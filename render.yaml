@@ -1,0 +1,11 @@
+# Fichier render.yaml
+# Ce fichier définit une commande à exécuter après le déploiement (post-deploy)
+
+services:
+  - type: web
+    name: render-test-app-laravel
+    plan: free
+    # Cette commande s'exécutera APRÈS que le conteneur soit démarré
+    # Elle exécute les migrations de base de données
+    postDeployCommands:
+      - "php artisan migrate --force"
