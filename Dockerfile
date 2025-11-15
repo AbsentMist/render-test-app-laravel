@@ -35,7 +35,5 @@ RUN composer install --no-dev --optimize-autoloader
 #     && chmod -R 775 /var/www/html/bootstrap/cache
 
 # Étape 9 : Exposer le port de PHP-FPM
-EXPOSE 9000
-
-# Le conteneur exécutera PHP-FPM, qui doit être servi par un serveur web (généralement Nginx, que Render gère implicitement pour les conteneurs FPM).
-CMD ["php-fpm"]
+EXPOSE 8000
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
