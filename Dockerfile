@@ -29,10 +29,10 @@ RUN composer install --no-dev --optimize-autoloader
 
 # Étape 8 : Configurer les permissions et clés
 # Cette étape est cruciale pour le bon fonctionnement de Laravel
-RUN php artisan key:generate
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
+# RUN php artisan key:generate
+# RUN chown -R www-data:www-data /var/www/html \
+#     && chmod -R 775 /var/www/html/storage \
+#     && chmod -R 775 /var/www/html/bootstrap/cache
 
 # Étape 9 : Exposer le port de PHP-FPM
 EXPOSE 9000
