@@ -36,4 +36,4 @@ RUN composer install --no-dev --optimize-autoloader
 
 # Étape 9 : Exposer le port de PHP-FPM
 EXPOSE 8000
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
