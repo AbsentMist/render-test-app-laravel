@@ -18,6 +18,7 @@
         "@vitejs/plugin-vue": "^6.0.3",
         "autoprefixer": "^10.4.23",
         "flowbite": "^4.0.1",
+        "flowbite-vue": "^0.2.2",
         "postcss": "^8.5.6",
         "vue": "^3.5.26"
     }
