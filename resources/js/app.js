@@ -1,7 +1,12 @@
 import './bootstrap';
-import 'flowbite'; // Active le JavaScript de Flowbite
+import 'flowbite'; 
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 
-// Si vous avez un composant de base, vous le monterez ici
+
 const app = createApp({});
+
+const pinia = createPinia();
+app.use(pinia);
+
 app.mount('#app');
