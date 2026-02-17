@@ -1,39 +1,39 @@
-# Étape 1 : Utiliser l'image PHP de base avec FPM
+# Étape 1 : Image de base PHP avec FPM
 FROM php:8.2-fpm
 
-# Étape 2 : Installer les dépendances système requises
+# Étape 2 : Dépendances système + INSTALLATION DE NODE.JS
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     unzip \
     libonig-dev \
     libzip-dev \
-    # Installer l'extension MySQL (pdo_mysql)
     libmariadb-dev \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Étape 3 : Installer les extensions PHP nécessaires (incluant celle pour MySQL)
+# Étape 3 : Extensions PHP
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath opcache
 
-# Étape 4 : Définir le répertoire de travail dans le conteneur
+# Étape 4 : Répertoire de travail
 WORKDIR /var/www/html
 
-# Étape 5 : Copier les fichiers de l'application
+# Étape 5 : Copier les fichiers
 COPY . /var/www/html
 
-# Étape 6 : Installer Composer
+# Étape 6 : Composer (Backend)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Étape 7 : Installer les dépendances Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Étape 8 : Configurer les permissions et clés
-# Cette étape est cruciale pour le bon fonctionnement de Laravel
-# RUN php artisan key:generate
-# RUN chown -R www-data:www-data /var/www/html \
-#     && chmod -R 775 /var/www/html/storage \
-#     && chmod -R 775 /var/www/html/bootstrap/cache
+# Étape 7 : NPM (Frontend) - COMPILATION VUE & TAILWIND
+RUN npm install
+RUN npm run build
 
-# Étape 9 : Exposer le port de PHP-FPM
+# Étape 8 : Permissions pour Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Étape 9 : Expose & Lancement
 EXPOSE 8000
+# On force la migration au démarrage pour que la DB MariaDB de Render soit toujours à jour
 CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000

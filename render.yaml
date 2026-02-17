@@ -1,11 +1,18 @@
-# Fichier render.yaml
-# Ce fichier définit une commande à exécuter après le déploiement (post-deploy)
-
 services:
   - type: web
     name: render-test-app-laravel
     plan: free
-    # Cette commande s'exécutera APRÈS que le conteneur soit démarré
-    # Elle exécute les migrations de base de données
+    runtime: docker 
+    envVars:
+      - key: APP_KEY
+        sync: false 
+      - key: APP_ENV
+        value: production
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        fromDatabase:
+          name: render-test-app-laravel
+          property: host
     postDeployCommands:
       - "php artisan migrate --force"
