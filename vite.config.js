@@ -1,15 +1,22 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
-import tailwindcss from '@tailwindcss/vite'; // Importez le nouveau plugin v4
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
     plugins: [
-        tailwindcss(), // Ajoutez Tailwind v4 ici
+        tailwindcss(), 
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: ['resources/frontend/assets/main.css', 'resources/frontend/main.js'],
             refresh: true,
         }),
-        vue(),
+        vue({
+            template: {
+                transformAssetUrls: {
+                    base: null,
+                    includeAbsolute: false,
+                },
+            },
+        }),
     ],
 });
