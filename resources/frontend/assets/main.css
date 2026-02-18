@@ -9,6 +9,7 @@ body {
 }
 
 @theme {
+    /** couleurs */
     --color-primary: #0e0f54;
     --color-primary-900: #404156;
     --color-primary-300: #9797AD;
@@ -21,9 +22,34 @@ body {
     --color-accent: #e54e4e;
     --color-accent-600: #f3c5c5;
     --color-accent-300:#ffe3e3;
+
+    /** Tailles de texte */
+    --text-title: 1.75rem;
+    --text-subtitle: 1.375rem;
+    --text-body: 1rem;
+    --text-label: 0.875rem;
 }
 
 @layer components {
+    /** Textes */
+    .text-title {
+        line-height: 2.25rem;
+        @apply text-primary font-normal text-title;
+    }
+    .text-subtitle {
+        line-height: 1.75rem;
+        @apply text-primary font-medium text-subtitle;
+    }
+    .text-body {
+        line-height: 1.5rem;
+        @apply text-primary-900 font-normal text-body;
+    }
+    .text-label {
+        line-height: 1.25rem;
+        @apply text-primary font-normal text-label;
+    }
+    
+    /* Boutons */
     .btn-tertiary {
         @apply text-primary bg-tertiary box-border border border-transparent hover:bg-tertiary-300 hover:border-tertiary shadow-md font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none;
     }
