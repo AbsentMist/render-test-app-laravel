@@ -5,7 +5,7 @@
       <router-link to="/inscriptions" class="text-gray-600 hover:text-blue-600">Mes inscriptions</router-link>
       <router-link to="/resultats" class="text-gray-600 hover:text-blue-600">Mes résultats</router-link>
     </nav>
-    
+
     <main>
       <router-view />
     </main>
