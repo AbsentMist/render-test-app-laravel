@@ -1,0 +1,394 @@
+<template>
+  <div class="auth-bg min-h-screen flex items-center justify-center px-4 py-8">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8">
+
+      <!-- Logo -->
+      <div class="flex justify-center mb-4">
+        <img src="/images/rgva-logo.png" alt="Running Geneva" class="h-20 object-contain" />
+      </div>
+
+      <!-- Titre -->
+      <p class="text-center text-body mb-6">
+        <strong>Bienvenue!</strong><br />
+        Veuillez entrer ces informations :
+        <span v-if="currentStep === 3"><br /><strong>Vous y êtes presque !</strong></span>
+      </p>
+
+      <!-- Stepper -->
+      <div class="flex items-center justify-between mb-8 px-4">
+        <div v-for="(step, index) in steps" :key="index" class="flex flex-col items-center flex-1">
+          <div class="flex items-center w-full">
+            <div v-if="index > 0" class="flex-1 h-0.5"
+              :class="currentStep > index ? 'bg-primary' : 'bg-gray-200'"></div>
+            <div class="w-7 h-7 rounded-full flex items-center justify-center border-2 flex-shrink-0"
+              :class="{
+                'bg-primary border-primary text-white': currentStep > index + 1,
+                'border-accent bg-white': currentStep === index + 1,
+                'border-gray-300 bg-white': currentStep < index + 1
+              }">
+              <svg v-if="currentStep > index + 1" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+              </svg>
+              <div v-else-if="currentStep === index + 1" class="w-2.5 h-2.5 rounded-full bg-accent"></div>
+            </div>
+            <div v-if="index < steps.length - 1" class="flex-1 h-0.5"
+              :class="currentStep > index + 1 ? 'bg-primary' : 'bg-gray-200'"></div>
+          </div>
+          <span class="text-label mt-1 text-center text-primary-300">{{ step }}</span>
+        </div>
+      </div>
+
+      <!-- ETAPE 1 : Identifiants -->
+      <div v-if="currentStep === 1" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-label block mb-1">Prénom : <span class="text-accent">*</span></label>
+            <input v-model="form.prenom" type="text" class="input-field w-full"
+              :class="{ 'border-accent': errors.prenom }" />
+            <p v-if="errors.prenom" class="text-accent text-label mt-1">{{ errors.prenom }}</p>
+          </div>
+          <div>
+            <label class="text-label block mb-1">Nom : <span class="text-accent">*</span></label>
+            <input v-model="form.nom" type="text" class="input-field w-full"
+              :class="{ 'border-accent': errors.nom }" />
+            <p v-if="errors.nom" class="text-accent text-label mt-1">{{ errors.nom }}</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-label block mb-1">Votre adresse mail : <span class="text-accent">*</span></label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-3 flex items-center text-primary-300">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </span>
+            <input v-model="form.email" type="email" class="input-field w-full pl-10"
+              :class="{ 'border-accent': errors.email }" />
+          </div>
+          <p v-if="errors.email" class="text-accent text-label mt-1">{{ errors.email }}</p>
+        </div>
+
+        <div>
+          <label class="text-label block mb-1">Votre mot de passe : <span class="text-accent">*</span></label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-3 flex items-center text-primary-300">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </span>
+            <input v-model="form.password" type="password" class="input-field w-full pl-10"
+              :class="{ 'border-accent': errors.password }" />
+          </div>
+          <p v-if="errors.password" class="text-accent text-label mt-1">{{ errors.password }}</p>
+        </div>
+
+        <div>
+          <label class="text-label block mb-1">Répétez votre mot de passe : <span class="text-accent">*</span></label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-3 flex items-center text-primary-300">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </span>
+            <input v-model="form.passwordConfirm" type="password" class="input-field w-full pl-10"
+              :class="{ 'border-accent': errors.passwordConfirm }" />
+          </div>
+          <p v-if="errors.passwordConfirm" class="text-accent text-label mt-1">{{ errors.passwordConfirm }}</p>
+        </div>
+      </div>
+
+      <!-- ETAPE 2 : Profil -->
+      <div v-if="currentStep === 2" class="space-y-4">
+        <div>
+          <label class="text-label block mb-1">Genre : <span class="text-accent">*</span></label>
+          <div class="grid grid-cols-2 gap-4">
+            <button @click="form.genre = 'Femme'"
+              class="py-3 rounded-xl border-2 text-body font-medium transition-all"
+              :class="form.genre === 'Femme' ? 'border-primary bg-primary text-white' : 'border-gray-300 bg-white text-primary hover:border-primary'">
+              Femme
+            </button>
+            <button @click="form.genre = 'Homme'"
+              class="py-3 rounded-xl border-2 text-body font-medium transition-all"
+              :class="form.genre === 'Homme' ? 'border-primary bg-primary text-white' : 'border-gray-300 bg-white text-primary hover:border-primary'">
+              Homme
+            </button>
+          </div>
+          <p v-if="errors.genre" class="text-accent text-label mt-1">{{ errors.genre }}</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-label block mb-1">Date de naissance (JJ/MM/AAAA) : <span class="text-accent">*</span></label>
+            <input v-model="form.dateNaissance" type="text" placeholder="JJ/MM/AAAA"
+              class="input-field w-full" :class="{ 'border-accent': errors.dateNaissance }" />
+            <p v-if="errors.dateNaissance" class="text-accent text-label mt-1">{{ errors.dateNaissance }}</p>
+          </div>
+          <div>
+            <label class="text-label block mb-1">N° téléphone : <span class="text-accent">*</span></label>
+            <input v-model="form.telephone" type="tel"
+              class="input-field w-full" :class="{ 'border-accent': errors.telephone }" />
+            <p v-if="errors.telephone" class="text-accent text-label mt-1">{{ errors.telephone }}</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-label block mb-1">Équipe, Club, Entreprise :</label>
+          <input v-model="form.club" type="text" class="input-field w-full" />
+        </div>
+
+        <!-- Combobox Nationalité -->
+        <div>
+          <label class="text-label block mb-1">Votre nationalité : <span class="text-accent">*</span></label>
+          <div class="relative" ref="nationaliteRef">
+            <input
+              v-model="nationaliteSearch"
+              type="text"
+              placeholder="Rechercher un pays..."
+              class="input-field w-full pr-8"
+              :class="{ 'border-accent': errors.nationalite }"
+              @focus="showCountryDropdown = true"
+              @input="showCountryDropdown = true"
+            />
+            <span class="absolute inset-y-0 right-3 flex items-center text-primary-300 pointer-events-none">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+            <div v-if="showCountryDropdown && filteredCountries.length > 0"
+              class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+              <button
+                v-for="country in filteredCountries"
+                :key="country"
+                @mousedown.prevent="selectCountry(country)"
+                class="w-full text-left px-4 py-2 text-body hover:bg-secondary-600 transition-colors">
+                {{ country }}
+              </button>
+            </div>
+          </div>
+          <p v-if="errors.nationalite" class="text-accent text-label mt-1">{{ errors.nationalite }}</p>
+        </div>
+      </div>
+
+      <!-- ETAPE 3 : Coordonnées -->
+      <div v-if="currentStep === 3" class="space-y-4">
+        <div class="grid grid-cols-3 gap-4">
+          <div class="col-span-2">
+            <label class="text-label block mb-1">Adresse : <span class="text-accent">*</span></label>
+            <input v-model="form.adresse" type="text" class="input-field w-full"
+              :class="{ 'border-accent': errors.adresse }" />
+            <p v-if="errors.adresse" class="text-accent text-label mt-1">{{ errors.adresse }}</p>
+          </div>
+          <div>
+            <label class="text-label block mb-1">N° <span class="text-accent">*</span></label>
+            <input v-model="form.numeroRue" type="text" class="input-field w-full"
+              :class="{ 'border-accent': errors.numeroRue }" />
+            <p v-if="errors.numeroRue" class="text-accent text-label mt-1">{{ errors.numeroRue }}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-label block mb-1">NPA : <span class="text-accent">*</span></label>
+            <input v-model="form.npa" type="text" class="input-field w-full"
+              :class="{ 'border-accent': errors.npa }" />
+            <p v-if="errors.npa" class="text-accent text-label mt-1">{{ errors.npa }}</p>
+          </div>
+          <div>
+            <label class="text-label block mb-1">Commune : <span class="text-accent">*</span></label>
+            <input v-model="form.commune" type="text" class="input-field w-full"
+              :class="{ 'border-accent': errors.commune }" />
+            <p v-if="errors.commune" class="text-accent text-label mt-1">{{ errors.commune }}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 items-start">
+          <div>
+            <label class="text-label block mb-1">Taille T-Shirt : <span class="text-accent">*</span></label>
+            <select v-model="form.tailleTshirt" class="input-field w-full pr-8 appearance-none cursor-pointer">
+              <option value="XS">XS</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-label block mb-1">Photo de profil :</label>
+            <div class="relative w-16 h-16">
+              <div class="w-16 h-16 rounded-full bg-tertiary flex items-center justify-center cursor-pointer overflow-hidden"
+                @click="triggerFileInput">
+                <img v-if="photoPreview" :src="photoPreview" class="w-full h-full object-cover" alt="Photo profil" />
+                <svg v-else class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <button v-if="photoPreview" @click="photoPreview = null; form.photo = null"
+                class="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary-300 hover:text-accent">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="handlePhotoChange" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="flex justify-between mt-8">
+        <button @click="previousStep" class="btn-accent-300 px-8 py-3 rounded-xl">Précédent</button>
+        <button v-if="currentStep < 3" @click="nextStep" class="btn-tertiary px-8 py-3 rounded-xl">Suivant</button>
+        <button v-else @click="handleRegister" class="btn-tertiary px-8 py-3 rounded-xl">Terminé</button>
+      </div>
+
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const currentStep = ref(1)
+const steps = ['Identifiants', 'Profil', 'Coordonnées']
+const fileInput = ref(null)
+const photoPreview = ref(null)
+const nationaliteRef = ref(null)
+const showCountryDropdown = ref(false)
+const nationaliteSearch = ref('')
+const errors = reactive({})
+
+const form = reactive({
+  prenom: '', nom: '', email: '', password: '', passwordConfirm: '',
+  genre: '', dateNaissance: '', telephone: '', club: '', nationalite: '',
+  adresse: '', numeroRue: '', npa: '', commune: '', tailleTshirt: 'L', photo: null,
+})
+
+const countries = [
+  'Afghanistan', 'Afrique du Sud', 'Albanie', 'Algérie', 'Allemagne', 'Andorre', 'Angola',
+  'Arabie Saoudite', 'Argentine', 'Arménie', 'Australie', 'Autriche', 'Azerbaïdjan',
+  'Bahreïn', 'Bangladesh', 'Belgique', 'Bénin', 'Biélorussie', 'Bolivie', 'Bosnie-Herzégovine',
+  'Botswana', 'Brésil', 'Bulgarie', 'Burkina Faso', 'Burundi',
+  'Cambodge', 'Cameroun', 'Canada', 'Chili', 'Chine', 'Chypre', 'Colombie', 'Congo',
+  'Corée du Nord', 'Corée du Sud', 'Costa Rica', "Côte d'Ivoire", 'Croatie', 'Cuba',
+  'Danemark', 'Djibouti', 'Égypte', 'Émirats Arabes Unis', 'Équateur', 'Érythrée', 'Espagne',
+  'Estonie', 'États-Unis', 'Éthiopie', 'Finlande', 'France',
+  'Gabon', 'Gambie', 'Géorgie', 'Ghana', 'Grèce', 'Guatemala', 'Guinée',
+  'Haïti', 'Honduras', 'Hongrie', 'Inde', 'Indonésie', 'Irak', 'Iran', 'Irlande',
+  'Islande', 'Israël', 'Italie', 'Jamaïque', 'Japon', 'Jordanie',
+  'Kazakhstan', 'Kenya', 'Kirghizistan', 'Kosovo', 'Koweït',
+  'Laos', 'Liban', 'Libye', 'Liechtenstein', 'Lituanie', 'Luxembourg',
+  'Macédoine du Nord', 'Madagascar', 'Malaisie', 'Mali', 'Malte', 'Maroc', 'Mauritanie',
+  'Mexique', 'Moldavie', 'Monaco', 'Mongolie', 'Monténégro', 'Mozambique',
+  'Namibie', 'Népal', 'Nicaragua', 'Niger', 'Nigéria', 'Norvège', 'Nouvelle-Zélande',
+  'Oman', 'Ouganda', 'Ouzbékistan', 'Pakistan', 'Panama', 'Paraguay', 'Pays-Bas',
+  'Pérou', 'Philippines', 'Pologne', 'Portugal', 'Qatar',
+  'République Centrafricaine', 'République Démocratique du Congo', 'République Dominicaine',
+  'République Tchèque', 'Roumanie', 'Royaume-Uni', 'Russie', 'Rwanda',
+  'Salvador', 'Sénégal', 'Serbie', 'Sierra Leone', 'Singapour', 'Slovaquie', 'Slovénie',
+  'Somalie', 'Soudan', 'Sri Lanka', 'Suède', 'Suisse', 'Syrie',
+  'Tadjikistan', 'Tanzanie', 'Thaïlande', 'Togo', 'Tunisie', 'Turkménistan', 'Turquie',
+  'Ukraine', 'Uruguay', 'Venezuela', 'Vietnam', 'Yémen', 'Zambie', 'Zimbabwe'
+]
+
+const filteredCountries = computed(() => {
+  if (!nationaliteSearch.value) return countries
+  const q = nationaliteSearch.value.toLowerCase()
+  return countries.filter(c => c.toLowerCase().includes(q))
+})
+
+function selectCountry(country) {
+  form.nationalite = country
+  nationaliteSearch.value = country
+  showCountryDropdown.value = false
+}
+
+function handleClickOutside(e) {
+  if (nationaliteRef.value && !nationaliteRef.value.contains(e.target)) {
+    showCountryDropdown.value = false
+  }
+}
+onMounted(() => document.addEventListener('mousedown', handleClickOutside))
+onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutside))
+
+function validateStep1() {
+  ['prenom','nom','email','password','passwordConfirm'].forEach(k => delete errors[k])
+  let valid = true
+  if (!form.prenom.trim()) { errors.prenom = 'Le prénom est requis.'; valid = false }
+  if (!form.nom.trim()) { errors.nom = 'Le nom est requis.'; valid = false }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!form.email.trim()) { errors.email = "L'email est requis."; valid = false }
+  else if (!emailRegex.test(form.email)) { errors.email = "L'email n'est pas valide."; valid = false }
+  if (!form.password) { errors.password = 'Le mot de passe est requis.'; valid = false }
+  else if (form.password.length < 8) { errors.password = 'Minimum 8 caractères.'; valid = false }
+  if (!form.passwordConfirm) { errors.passwordConfirm = 'Veuillez répéter le mot de passe.'; valid = false }
+  else if (form.password !== form.passwordConfirm) { errors.passwordConfirm = 'Les mots de passe ne correspondent pas.'; valid = false }
+  return valid
+}
+
+function validateStep2() {
+  ['genre','dateNaissance','telephone','nationalite'].forEach(k => delete errors[k])
+  let valid = true
+  if (!form.genre) { errors.genre = 'Veuillez sélectionner un genre.'; valid = false }
+  const dateRegex = /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/
+  if (!form.dateNaissance.trim()) { errors.dateNaissance = 'La date de naissance est requise.'; valid = false }
+  else if (!dateRegex.test(form.dateNaissance)) { errors.dateNaissance = 'Format attendu : JJ/MM/AAAA.'; valid = false }
+  if (!form.telephone.trim()) { errors.telephone = 'Le numéro de téléphone est requis.'; valid = false }
+  if (!form.nationalite) { errors.nationalite = 'Veuillez sélectionner une nationalité.'; valid = false }
+  return valid
+}
+
+function validateStep3() {
+  ['adresse','numeroRue','npa','commune'].forEach(k => delete errors[k])
+  let valid = true
+  if (!form.adresse.trim()) { errors.adresse = "L'adresse est requise."; valid = false }
+  if (!form.numeroRue.trim()) { errors.numeroRue = 'Le numéro est requis.'; valid = false }
+  if (!form.npa.trim()) { errors.npa = 'Le NPA est requis.'; valid = false }
+  if (!form.commune.trim()) { errors.commune = 'La commune est requise.'; valid = false }
+  return valid
+}
+
+function nextStep() {
+  const validators = { 1: validateStep1, 2: validateStep2 }
+  if (validators[currentStep.value]()) currentStep.value++
+}
+
+function previousStep() {
+  if (currentStep.value > 1) currentStep.value--
+  else router.push('/login')
+}
+
+function triggerFileInput() { fileInput.value?.click() }
+
+function handlePhotoChange(event) {
+  const file = event.target.files[0]
+  if (file) {
+    form.photo = file
+    const reader = new FileReader()
+    reader.onload = (e) => { photoPreview.value = e.target.result }
+    reader.readAsDataURL(file)
+  }
+}
+
+function handleRegister() {
+  if (!validateStep3()) return
+  // TODO (2.2) : appel API POST /api/register
+  // TODO (2.3) : gestion token Laravel Sanctum
+  router.push('/')
+}
+</script>
+
+<style scoped>
+.auth-bg {
+  background-image: url('/images/login-bg.png');
+  background-size: cover;
+  background-position: center;
+}
+</style>
