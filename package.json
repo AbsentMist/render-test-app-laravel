@@ -15,6 +15,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "@iconify/vue": "^5.0.0",
         "@vitejs/plugin-vue": "^6.0.3",
         "autoprefixer": "^10.4.23",
         "flowbite": "^4.0.1",
