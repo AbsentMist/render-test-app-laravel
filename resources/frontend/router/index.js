@@ -5,13 +5,13 @@ const routes = [
   {
     path: "/login",
     name: "login",
-    component: () => import("../views/LoginView.vue"),
+    component: () => import("../views/Connexion.vue"),
     meta: { guest: true } // TODO (3.1) : rediriger si déjà connecté
   },
   {
     path: "/inscription",
     name: "inscription",
-    component: () => import("../views/RegisterView.vue"),
+    component: () => import("../views/CreationCompte.vue"),
     meta: { guest: true }
   },
 
