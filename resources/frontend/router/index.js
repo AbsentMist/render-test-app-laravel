@@ -1,7 +1,21 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-
 const routes = [
+  // ===== Routes d'authentification (sans navbar) =====
+  {
+    path: "/login",
+    name: "login",
+    component: () => import("../views/Connexion.vue"),
+    meta: { guest: true } // TODO (3.1) : rediriger si déjà connecté
+  },
+  {
+    path: "/inscription",
+    name: "inscription",
+    component: () => import("../views/CreationCompte.vue"),
+    meta: { guest: true }
+  },
+
+  // ===== Routes de l'application (avec navbar) =====
   {
     path: "/accueil",
     name: "tableau-de-bord",
@@ -66,5 +80,8 @@ const router = createRouter({
     return { top: 0 };
   }
 });
+
+// TODO (3.1) : Ajouter ici le guard de navigation pour la gestion des rôles
+// router.beforeEach((to, from, next) => { ... })
 
 export default router;
