@@ -90,11 +90,25 @@
                 </div>
             </form>
         </div>
+
+        <div v-if="etape==formulaireEtape.RESSOURCES">
+            <p class="text-subtitle my-4">Ressources supplémentaires</p>
+            <div class="flex py-4 items-center">
+                <div class="flex-grow border-t border-gray-700 "></div>
+                <span class="mx-4">
+                    <button type="button" class="bg-tertiary border border-default-medium text-heading text-sm rounded-full focus:border-tertiary-900 px-2.5 py-2.5">
+                        <Icon icon="mdi:plus" class="w-4 h-4" />
+                    </button>
+                </span>
+                <div class="flex-grow border-t border-gray-700"></div>
+            </div>
+        </div>
+
         <div class="flex flex-row mt-6 gap-4"> 
             <button v-if="etape > formulaireEtape.GENERAL" class="btn-accent-300" @click="etape--">
                 Etape précédente
             </button>
-            <button v-if="etape < formulaireEtape.QUESTIONNAIRE" class="btn-tertiary ml-auto" @click="etape++">
+            <button v-if="etape < Math.max(...Object.values(formulaireEtape))" class="btn-tertiary ml-auto" @click="etape++">
                 Etape suivante
             </button>
         </div>
@@ -108,6 +122,7 @@ const formulaireEtape = {
     GENERAL: 1,
     RESSOURCES: 2,
     QUESTIONNAIRE: 3,
+    AVERTISSEMENT: 4,
 };
 
 export default {
