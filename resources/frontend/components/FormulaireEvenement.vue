@@ -102,6 +102,9 @@
                 </span>
                 <div class="flex-grow border-t border-gray-700"></div>
             </div>
+            <div class="">
+                <AddOption />
+            </div>
         </div>
 
         <div class="flex flex-row mt-6 gap-4"> 
@@ -117,6 +120,7 @@
 
 <script>
 import { Icon } from "@iconify/vue";
+import AddOption from "./AddOption.vue";
 
 const formulaireEtape = {
     GENERAL: 1,
@@ -127,7 +131,8 @@ const formulaireEtape = {
 
 export default {
     components: {
-        Icon
+        Icon,
+        AddOption
     },
     data() {
         return {
