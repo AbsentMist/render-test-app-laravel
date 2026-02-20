@@ -93,17 +93,23 @@
 
         <div v-if="etape==formulaireEtape.RESSOURCES">
             <p class="text-subtitle my-4">Ressources supplémentaires</p>
-            <div class="flex py-4 items-center">
+            <div v-if="this.emptyOptionNumber > 0" v-for="emptyOptionNumber in emptyOptionNumber" class="my-4">
+                <OptionTemplate />
+            </div>
+            <div class="flex pt-4 items-center">
                 <div class="flex-grow border-t border-gray-700 "></div>
                 <span class="mx-4">
-                    <button type="button" class="bg-tertiary border border-default-medium text-heading text-sm rounded-full focus:border-tertiary-900 px-2.5 py-2.5">
+                    <button type="button" @click="this.addOptionModal=!this.addOptionModal" class="bg-tertiary border border-default-medium text-heading text-sm rounded-full focus:border-tertiary-900 px-2.5 py-2.5">
                         <Icon icon="mdi:plus" class="w-4 h-4" />
                     </button>
                 </span>
                 <div class="flex-grow border-t border-gray-700"></div>
             </div>
-            <div class="">
-                <AddOption />
+            <div v-if="this.addOptionModal" class="flex items-center justify-center z-50">
+                <OptionList :elements="this.addOptionElements" @select-item="handleOptionSelection"/>
+            </div>
+            <div v-if="this.addExistingOptionModal" class="flex items-center justify-center z-50">
+                <OptionList :elements="this.addExistingOptionElements" @select-item="handleOptionSelection"/>
             </div>
         </div>
 
@@ -120,7 +126,8 @@
 
 <script>
 import { Icon } from "@iconify/vue";
-import AddOption from "./AddOption.vue";
+import OptionList from "./OptionList.vue";
+import OptionTemplate from "./OptionTemplate.vue";
 
 const formulaireEtape = {
     GENERAL: 1,
@@ -132,18 +139,39 @@ const formulaireEtape = {
 export default {
     components: {
         Icon,
-        AddOption
+        OptionList,
+        OptionTemplate,
     },
     data() {
         return {
             formulaireEtape,
             etape: formulaireEtape.GENERAL,
+            addOptionModal: false,
+            addExistingOptionModal: false,
+            addOptionElements: ["Existant", "Nouveau"],
+            addExistingOptionElements: ["1 Entrée + 1 pasta bolognaise"],
+            emptyOptionNumber: 0,
             eventName: '',
             eventUrl: '',
             eventLogo: null,
             eventColorPrimary: '#0e0f54',
             eventColorSecondary: '#d9f20b'
         };
+    },
+    methods: {
+        handleOptionSelection(option) {
+            console.log("Option sélectionnée :", option);
+            if(option === "Existant") {
+                this.addOptionModal = false;
+                this.addExistingOptionModal = true;
+            }
+            else if(option === "Nouveau") {
+                this.addOptionModal = false;
+                // Logique pour ajouter une nouvelle option
+                this.emptyOptionNumber++;
+            }
+                
+        }
     }
 };
 </script>
