@@ -3,6 +3,7 @@
         <div class="w-full bg-neutral-quaternary rounded-full h-2">
             <div class="bg-brand h-2 rounded-full" style="width: 45%"></div>
         </div>
+
         <div v-if="etape==formulaireEtape.GENERAL">
             <p class="text-subtitle my-4">Créer un évènement</p>
             <form>
@@ -93,23 +94,51 @@
 
         <div v-if="etape==formulaireEtape.RESSOURCES">
             <p class="text-subtitle my-4">Ressources supplémentaires</p>
-            <div v-if="this.emptyOptionNumber > 0" v-for="emptyOptionNumber in emptyOptionNumber" class="my-4">
-                <OptionTemplate />
+            <div v-if="this.emptyOptionNumber > 0 " v-for="emptyOptionNumber in emptyOptionNumber" class="my-4">
+                <OptionTemplate/>
+            </div>
+            <div v-if="this.selectedOptions.length > 0 " v-for="selectedOption in selectedOptions" class="my-4">
+                <OptionTemplate :existingOptions="selectedOption"/>
             </div>
             <div class="flex pt-4 items-center">
                 <div class="flex-grow border-t border-gray-700 "></div>
                 <span class="mx-4">
-                    <button type="button" @click="this.addOptionModal=!this.addOptionModal" class="bg-tertiary border border-default-medium text-heading text-sm rounded-full focus:border-tertiary-900 px-2.5 py-2.5">
+                    <button type="button" @click="handleModalState  " class="bg-tertiary border border-default-medium text-heading text-sm rounded-full focus:border-tertiary-900 px-2.5 py-2.5">
                         <Icon icon="mdi:plus" class="w-4 h-4" />
                     </button>
                 </span>
                 <div class="flex-grow border-t border-gray-700"></div>
             </div>
-            <div v-if="this.addOptionModal" class="flex items-center justify-center z-50">
-                <OptionList :elements="this.addOptionElements" @select-item="handleOptionSelection"/>
+            <div v-if="modal==optionModal.SELECTION" class="flex items-center justify-center z-50">
+                <OptionList :elements="this.optionElements" @select-item="handleOptionSelection"/>
             </div>
-            <div v-if="this.addExistingOptionModal" class="flex items-center justify-center z-50">
-                <OptionList :elements="this.addExistingOptionElements" @select-item="handleOptionSelection"/>
+            <div v-if="modal==optionModal.EXISTANT" class="flex items-center justify-center z-50">
+                <OptionList :elements="this.existingOptionElements.map(o => o.name)" @select-item="handleOptionSelection"/>
+            </div>
+        </div>
+
+        <div v-if="etape==formulaireEtape.QUESTIONNAIRE">
+            <p class="text-subtitle my-4">Questionnaires</p>
+            <div v-if="this.emptyQuestionNumber > 0 " v-for="emptyQuestionNumber in emptyQuestionNumber" class="my-4">
+                <QuestionTemplate/>
+            </div>
+            <div v-if="this.selectedQuestions.length > 0 " v-for="selectedQuestion in selectedQuestions" class="my-4">
+                <QuestionTemplate :existingQuestions="selectedQuestion"/>
+            </div>
+            <div class="flex pt-4 items-center">
+                <div class="flex-grow border-t border-gray-700 "></div>
+                <span class="mx-4">
+                    <button type="button" @click="handleModalState  " class="bg-tertiary border border-default-medium text-heading text-sm rounded-full focus:border-tertiary-900 px-2.5 py-2.5">
+                        <Icon icon="mdi:plus" class="w-4 h-4" />
+                    </button>
+                </span>
+                <div class="flex-grow border-t border-gray-700"></div>
+            </div>
+            <div v-if="modal==optionModal.SELECTION" class="flex items-center justify-center z-50">
+                <OptionList :elements="this.optionElements" @select-item="handleOptionSelection"/>
+            </div>
+            <div v-if="modal==optionModal.EXISTANT" class="flex items-center justify-center z-50">
+                <OptionList :elements="this.existingQuestionElements.map(q => q.question)" @select-item="handleOptionSelection"/>
             </div>
         </div>
 
@@ -128,6 +157,7 @@
 import { Icon } from "@iconify/vue";
 import OptionList from "./OptionList.vue";
 import OptionTemplate from "./OptionTemplate.vue";
+import QuestionTemplate from "./QuestionTemplate.vue";
 
 const formulaireEtape = {
     GENERAL: 1,
@@ -135,22 +165,40 @@ const formulaireEtape = {
     QUESTIONNAIRE: 3,
     AVERTISSEMENT: 4,
 };
+const optionModal = {
+    FERMEE: 1,
+    SELECTION: 2,
+    EXISTANT: 3,
+};
 
 export default {
     components: {
         Icon,
         OptionList,
         OptionTemplate,
+        QuestionTemplate,
     },
     data() {
         return {
             formulaireEtape,
+            optionModal,
             etape: formulaireEtape.GENERAL,
-            addOptionModal: false,
-            addExistingOptionModal: false,
-            addOptionElements: ["Existant", "Nouveau"],
-            addExistingOptionElements: ["1 Entrée + 1 pasta bolognaise"],
+            modal: optionModal.FERMEE,
+            optionElements: ["Existant", "Nouveau"],
+            existingOptionElements: [
+                {name: "1 Entrée + 1 pasta bolognaise",
+                description: "Réservation entrée + pasta non-participant CHF 19.00 / paiement à RUNNINGENEVA ASSOCIATION",
+                prix: "15",
+                quantiteMin: "1",
+                quantiteMax: "10"}],
             emptyOptionNumber: 0,
+            selectedOptions: [],
+            existingQuestionElements: [{
+                question: "Comment avez-vous connu l'évènement ?",
+                answers: ["Réseaux sociaux", "Bouche à oreille", "Autre"]
+            }],
+            emptyQuestionNumber: 0,
+            selectedQuestions: [],
             eventName: '',
             eventUrl: '',
             eventLogo: null,
@@ -159,19 +207,39 @@ export default {
         };
     },
     methods: {
+        handleModalState(){
+            if(this.modal === optionModal.FERMEE) {
+                this.modal = optionModal.SELECTION;
+            }
+            else {
+                this.modal = optionModal.FERMEE;
+            }
+        },
         handleOptionSelection(option) {
             console.log("Option sélectionnée :", option);
             if(option === "Existant") {
-                this.addOptionModal = false;
-                this.addExistingOptionModal = true;
+                this.modal = optionModal.EXISTANT;
             }
             else if(option === "Nouveau") {
-                this.addOptionModal = false;
                 // Logique pour ajouter une nouvelle option
-                this.emptyOptionNumber++;
-            }
+                if(this.etape === formulaireEtape.RESSOURCES)
+                    this.emptyOptionNumber++;
+
+                else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
+                    this.emptyQuestionNumber++;
                 
-        }
+                this.modal = optionModal.FERMEE; 
+            }
+            else if(this.modal === optionModal.EXISTANT) {
+                if(this.etape === formulaireEtape.RESSOURCES)
+                    this.selectedOptions.push(this.existingOptionElements.find(o => o.name === option)); 
+                
+                else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
+                    this.selectedQuestions.push(this.existingQuestionElements.find(q => q.question === option));
+                
+                this.modal = optionModal.FERMEE;
+            }
+        },
     }
 };
 </script>

@@ -1,25 +1,25 @@
 <template>
     <div class="border border-gray-300 rounded-base p-4">
         <div>
-            <label class="block mb-2.5 text-sm font-medium text-heading">Nom de la ressource</label>
-            <input type="text" id="optionName" v-model="eventName" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+            <label class="block mb-2.5 text-sm font-medium text-heading">Nom de l'option</label>
+            <input type="text" id="name" v-model="name" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
         </div>
         <div class="my-4">
             <label class="block mb-2.5 text-sm font-medium text-heading">Description</label>
-            <input type="text" id="optionName" v-model="description" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+            <input type="text" id="description" v-model="description" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
         </div>
         <div class="flex flex-row justify-between gap-4 my-4">
             <label class="block mb-2.5 text-sm font-medium text-heading">Prix</label>
-            <input type="text" id="optionName" v-model="description" class="basis-1/5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+            <input type="text" id="prix" v-model="prix" class="basis-1/5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
         </div>
         <div class="flex col-2 gap-4">
             <div class="basis-1/2">
                 <label class="block mb-2.5 text-sm font-medium text-heading">Qté min</label>
-                <input type="text" id="optionName" v-model="description" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                <input type="text" id="quantiteMin" v-model="quantiteMin" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
             </div>
             <div class="basis-1/2">
                 <label class="block mb-2.5 text-sm font-medium text-heading">Qté max</label>
-                <input type="text" id="optionName" v-model="description" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                <input type="text" id="quantiteMax" v-model="quantiteMax" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
             </div>  
         </div>
     </div>
@@ -27,10 +27,20 @@
 
 <script>
 export default {
+    props: {
+        existingOptions: {
+            type: Object,
+            required: false,
+            default: () => ({})
+        },
+    },
     data() {
         return {
-            optionName: '',
-            description: '',
+            name: this.existingOptions.name || '',
+            description: this.existingOptions.description || '',
+            prix: this.existingOptions.prix || '',
+            quantiteMin: this.existingOptions.quantiteMin || '',
+            quantiteMax: this.existingOptions.quantiteMax || '',
         }
     }
 }
