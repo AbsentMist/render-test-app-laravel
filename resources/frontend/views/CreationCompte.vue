@@ -223,8 +223,21 @@
       <div class="flex justify-between mt-8">
         <button @click="previousStep" class="btn-accent-300 px-8 py-3 rounded-xl">Précédent</button>
         <button v-if="currentStep < 3" @click="nextStep" class="btn-tertiary px-8 py-3 rounded-xl">Suivant</button>
-        <button v-else @click="handleRegister" class="btn-tertiary px-8 py-3 rounded-xl">Terminé</button>
-      </div>
+        <button
+    v-else
+    @click="handleRegister"
+    :disabled="chargement"
+    class="btn-tertiary px-8 py-3 rounded-xl"
+    :class="{ 'opacity-50 cursor-not-allowed': chargement }"
+  >
+    {{ chargement ? 'Création en cours...' : 'Terminé' }}
+  </button>
+</div>
+
+<!-- Message d'erreur global (en dehors du flex) -->
+<p v-if="erreurGlobale" class="text-accent text-label text-center mt-2">
+  {{ erreurGlobale }}
+</p>
 
     </div>
   </div>
@@ -233,9 +246,11 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 import IndicateurEtapes from '../components/IndicateurEtapes.vue'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const currentStep = ref(1)
 const steps = ['Identifiants', 'Profil', 'Coordonnées']
 const fileInput = ref(null)
@@ -244,6 +259,8 @@ const nationaliteRef = ref(null)
 const showCountryDropdown = ref(false)
 const nationaliteSearch = ref('')
 const errors = reactive({})
+const erreurGlobale = ref('')
+const chargement = ref(false)
 
 const form = reactive({
   prenom: '', nom: '', email: '', password: '', passwordConfirm: '',
@@ -357,11 +374,48 @@ function handlePhotoChange(event) {
   }
 }
 
-function handleRegister() {
+async function handleRegister() {
   if (!validateStep3()) return
-  // TODO (2.2) : appel API POST /api/register
-  // TODO (2.3) : gestion token Laravel Sanctum
-  router.push('/')
+
+  erreurGlobale.value = ''
+  chargement.value = true
+
+  try {
+    const payload = {
+      email:           form.email,
+      password:        form.password,
+      password_confirmation: form.passwordConfirm,
+      nom:             form.nom,
+      prenom:          form.prenom,
+      date_naissance:  form.dateNaissance,
+      telephone:       form.telephone,
+      nationalite:     form.nationalite,
+      adresse:         form.adresse,
+      code_postal:     form.npa,
+      ville:           form.commune,
+      pays:            form.nationalite,
+      taille_tshirt:   form.tailleTshirt,
+      sexe:            form.genre,
+      equipe_nom:      form.club,
+    }
+
+    await authStore.register(payload)
+    router.push('/accueil')
+
+  } catch (e) {
+    if (e.response?.data?.errors) {
+      const apiErrors = e.response.data.errors
+      if (apiErrors.email) errors.email = apiErrors.email[0]
+      if (apiErrors.telephone) errors.telephone = apiErrors.telephone[0]
+      if (apiErrors.password) errors.password = apiErrors.password[0]
+      // Retourne à l'étape concernée
+      if (apiErrors.email || apiErrors.password) currentStep.value = 1
+    } else {
+      erreurGlobale.value = 'Une erreur est survenue, veuillez réessayer.'
+    }
+  } finally {
+    chargement.value = false
+  }
 }
 </script>
 
