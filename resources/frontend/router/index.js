@@ -19,7 +19,7 @@ const routes = [
   {
     path: "/accueil",
     name: "tableau-de-bord participant",
-    component: () => import("../views/TableauDeBordParticipant.vue")
+    component: () => import("../views/ParticipantTableauDeBord.vue")
   },
   {
     path: "/inscriptions",
@@ -72,9 +72,9 @@ const routes = [
     component: () => import("../views/ProfilUser.vue")
   },
   {
-    path: "/formulaires",
+    path: "/organisateur/formulaires",
     name: "Formulaires",
-    component: () => import("../views/Formulaires.vue")
+    component: () => import("../views/OrganisateurFormulaires.vue")
   }
 ];
 
