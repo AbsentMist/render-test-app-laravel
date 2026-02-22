@@ -58,12 +58,17 @@
           </router-link>
         </div>
 
+        <!-- Message d'erreur -->
+        <p v-if="erreur" class="text-accent text-label text-center">{{ erreur }}</p>
+
         <!-- Bouton connexion -->
         <button
           @click="handleLogin"
+          :disabled="chargement"
           class="btn-tertiary w-full py-3 text-base rounded-xl"
+          :class="{ 'opacity-50 cursor-not-allowed': chargement }"
         >
-          Connexion
+          {{ chargement ? 'Connexion en cours...' : 'Connexion' }}
         </button>
 
         <!-- Lien inscription -->
@@ -92,16 +97,31 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
+
 const email = ref('')
 const password = ref('')
+const erreur = ref('')
+const chargement = ref(false)
 
-// Point 2.1 : design uniquement — la vraie logique sera faite en 2.2 et 2.3
-function handleLogin() {
-  // TODO (2.2) : appel API POST /api/login
-  // TODO (2.3) : gestion du token / session Laravel Sanctum
-  router.push('/')
+async function handleLogin() {
+  erreur.value = ''
+  chargement.value = true
+  try {
+    await authStore.login(email.value, password.value)
+    router.push('/accueil')
+  } catch (e) {
+    if (e.response?.data?.errors?.email) {
+      erreur.value = e.response.data.errors.email[0]
+    } else {
+      erreur.value = 'Identifiants incorrects, veuillez réessayer.'
+    }
+  } finally {
+    chargement.value = false
+  }
 }
 </script>
 
