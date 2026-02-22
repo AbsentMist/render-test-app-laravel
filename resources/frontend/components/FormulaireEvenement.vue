@@ -142,6 +142,18 @@
             </div>
         </div>
 
+        <div v-if="etape==formulaireEtape.AVERTISSEMENT">
+            <p class="text-subtitle my-4">Avertissement</p>
+            <div class="flex flex-col-2 gap-4 h-128">
+                <textarea type="text" id="avertissement" v-model="parameters.avertissement" class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                <div class="basis-1/3">
+                    <p v-for="existingAvertissementElement in existingAvertissementElements" class="border border-gray-300 rounded-base shadow-2xs p-2 mb-2"> 
+                        {{ existingAvertissementElement }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <div class="flex flex-row mt-6 gap-4"> 
             <button v-if="etape > formulaireEtape.GENERAL" class="btn-accent-300" @click="etape--">
                 Etape précédente
@@ -184,6 +196,12 @@ export default {
             optionModal,
             etape: formulaireEtape.GENERAL,
             modal: optionModal.FERMEE,
+            parameters: {
+                avertissement: false,
+                document: false,
+                questionnaire: false,
+                rabais: false,
+            },
             optionElements: ["Existant", "Nouveau"],
             existingOptionElements: [
                 {name: "1 Entrée + 1 pasta bolognaise",
@@ -199,6 +217,7 @@ export default {
             }],
             emptyQuestionNumber: 0,
             selectedQuestions: [],
+            existingAvertissementElements:["Course des ponts", "Antigel"],
             eventName: '',
             eventUrl: '',
             eventLogo: null,

@@ -18,8 +18,8 @@ const routes = [
   // ===== Routes de l'application (avec navbar) =====
   {
     path: "/accueil",
-    name: "tableau-de-bord",
-    component: () => import("../views/TableauDeBord.vue")
+    name: "tableau-de-bord participant",
+    component: () => import("../views/TableauDeBordParticipant.vue")
   },
   {
     path: "/inscriptions",
@@ -70,6 +70,11 @@ const routes = [
     path: "/profil",
     name: "Profil",
     component: () => import("../views/ProfilUser.vue")
+  },
+  {
+    path: "/formulaires",
+    name: "Formulaires",
+    component: () => import("../views/Formulaires.vue")
   }
 ];
 
