@@ -1,8 +1,6 @@
 <template>
-    <div class="bg-secondary m-4 p-6 rounded-base">
-        <div class="w-full bg-neutral-quaternary rounded-full h-2">
-            <div class="bg-brand h-2 rounded-full" style="width: 45%"></div>
-        </div>
+    <div class="bg-secondary p-6 rounded-base">
+        <IndicateurEtapes :steps="formulaireEtapesLabels" :currentStep="etapesActives.indexOf(etape) + 1"/>
 
         <div v-if="etape==formulaireEtape.GENERAL">
             <p class="text-subtitle my-4">Créer un évènement</p>
@@ -184,6 +182,7 @@ import OptionList from "./OptionList.vue";
 import OptionTemplate from "./OptionTemplate.vue";
 import QuestionTemplate from "./QuestionTemplate.vue";
 import PopupConfirmation from "./PopupConfirmation.vue";
+import IndicateurEtapes from "./IndicateurEtapes.vue";
 
 const formulaireEtape = {
     GENERAL: 1,
@@ -192,6 +191,7 @@ const formulaireEtape = {
     DOCUMENT: 4,
     QUESTIONNAIRE: 5,
 };
+
 const optionModal = {
     FERMEE: 1,
     SELECTION: 2,
@@ -205,6 +205,7 @@ export default {
         OptionTemplate,
         QuestionTemplate,
         PopupConfirmation,
+        IndicateurEtapes,
     },
     data() {
         return {
@@ -276,14 +277,29 @@ export default {
                     description: "Étudiant inscrit à un cours avec attestation de santé."
                 }
             ],
+            formulaireEtapesLabels: [
+                "Général", 
+                "Options supplémentaires", 
+            ],
         };
     },
     computed: {
         etapesActives() {
             const etapes = [formulaireEtape.GENERAL, formulaireEtape.OPTIONS];
-            if (this.eventData.parameters.avertissement) etapes.push(formulaireEtape.AVERTISSEMENT);
-            if (this.eventData.parameters.document) etapes.push(formulaireEtape.DOCUMENT);
-            if (this.eventData.parameters.questionnaire) etapes.push(formulaireEtape.QUESTIONNAIRE);
+            const labels = ["Général", "Options supplémentaires"];
+            if (this.eventData.parameters.avertissement){
+                etapes.push(formulaireEtape.AVERTISSEMENT);
+                labels.push("Avertissement");
+            } 
+            if (this.eventData.parameters.document) {
+                etapes.push(formulaireEtape.DOCUMENT);
+                labels.push("Documents");
+            }
+            if (this.eventData.parameters.questionnaire) {
+                etapes.push(formulaireEtape.QUESTIONNAIRE);
+                labels.push("Questionnaire");
+            }
+            this.formulaireEtapesLabels = labels;
             return etapes.sort((a, b) => a - b);
         }
     },
