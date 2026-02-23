@@ -17,10 +17,12 @@ use App\Http\Controllers\EvenementController;
         // Route accessible à tous les utilisateurs (Participants + Admins)
         Route::get('/evenements', [EvenementController::class, 'indexParticipant']); 
 
-        // Accessible uniquement aux administrateurs ("/organisateur")
         
-        //Gestion du rôle Administrateur par Middleware (3.1)
+        
+        //Gestion du rôle Administrateur par Middleware (3.1) - à décomenter plus tard
         //Route::middleware('is_admin')->prefix('organisateur')->group(function () {
+
+        // Disponible sur l'URL : /api/organisateur/evenements
         Route::prefix('organisateur')->group(function () {
             Route::get('/evenements', [EvenementController::class, 'indexAdmin']);
             Route::get('/evenements/{id}', [EvenementController::class, 'show']);
