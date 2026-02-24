@@ -49,6 +49,6 @@ class User extends Authenticatable
 
 public function participant()
 {
-    return $this->hasOne(Participant::class, 'id', 'id');
+    return $this->hasOne(Participant::class, 'id_user', 'id');
 }
 }
