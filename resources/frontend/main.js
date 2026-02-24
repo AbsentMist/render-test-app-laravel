@@ -1,4 +1,5 @@
 import './bootstrap';
+import 'flowbite/dist/flowbite.css';
 import './assets/main.css';
 import 'flowbite'; 
 
