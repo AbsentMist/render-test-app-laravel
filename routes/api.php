@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EvenementController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\OptionController;
 
 
     // ===== Routes publiques (sans authentification) =====
@@ -23,6 +24,9 @@ use App\Http\Controllers\CourseController;
             //Route pour la récupération des courses
             Route::get('/courses/{id_evenement}', [CourseController::class, 'indexParticipant']);
             Route::get('/courses/course/{id}', [CourseController::class, 'show']);
+
+            //Route pour la récupération des options d'une course
+            Route::get('/options/{id_course}', [OptionController::class, 'indexParticipant']);
         });
         
         //Gestion du rôle Administrateur par Middleware (3.1) - à décomenter plus tard
@@ -42,5 +46,12 @@ use App\Http\Controllers\CourseController;
             Route::post('/courses', [CourseController::class, 'store']);
             Route::put('/courses/{id}', [CourseController::class, 'update']);
             Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
+
+            //Route pour la gestion des options (CRUD)
+            Route::get('/options', [OptionController::class, 'indexAdmin']);
+            Route::get('/options/{id}', [OptionController::class, 'show']);
+            Route::post('/options', [OptionController::class, 'store']);
+            Route::put('/options/{id}', [OptionController::class, 'update']);
+            Route::delete('/options/{id}', [OptionController::class, 'destroy']);
         });
 //});

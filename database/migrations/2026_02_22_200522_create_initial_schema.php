@@ -20,7 +20,7 @@ return new class extends Migration
         Schema::create('Evenement', function (Blueprint $table) {
             $table->id();
             $table->string('nom', 180);
-            $table->binary('logo');
+            $table->binary('logo')->nullable(); //à enlever plus tard pour une conformité avec la DB
             $table->string('site', 255);
             $table->string('couleur_primaire', 10);
             $table->string('couleur_secondaire', 10);
@@ -66,8 +66,10 @@ return new class extends Migration
 
         Schema::create('Option', function (Blueprint $table) {
             $table->id();
+            $table->string('nom', 80);
             $table->string('type', 100);
-            $table->string('description', 255)->nullable();
+            $table->string('description', 255);
+            $table->float('tarif')->default(0);
             $table->binary('image')->nullable();
         });
 
@@ -181,7 +183,8 @@ return new class extends Migration
         Schema::create('OptionQuantifiable', function (Blueprint $table) {
             $table->unsignedBigInteger('id')->primary();
             $table->foreign('id')->references('id')->on('Option')->onDelete('cascade');
-            $table->integer('nombre')->default(0);
+            $table->integer('quantiteMin')->default(0);
+            $table->integer('quantiteMax');
         });
 
         Schema::create('OptionCochable', function (Blueprint $table) {
