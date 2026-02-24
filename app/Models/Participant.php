@@ -9,6 +9,7 @@ class Participant extends Model
 {
     use HasFactory;
     protected $table = 'Participant';
+    public $timestamps = false;
     protected $fillable = [
         'user_id',
         'nom',
