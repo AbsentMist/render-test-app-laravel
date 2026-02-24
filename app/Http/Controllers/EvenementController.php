@@ -10,14 +10,21 @@ class EvenementController extends Controller
     // GET (admin): 
     public function indexAdmin()
     {
-        $evenements = Evenement::all();
+        $evenements = Evenement::all()->map(function ($evenement) {
+            // Transformation du BLOB en Base64 pour l'affichage Frontend
+            if ($evenement->logo) {
+                $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
+            }
+            return $evenement;
+        });
+
         return response()->json($evenements);
     }
 
     // GET (participant): 
     public function indexParticipant()
     {
-        // Uniquement les événements actifs, sans les champs d'administration
+        
         $evenements = Evenement::where('is_actif', true)
             ->select(
                 'id', 
@@ -27,7 +34,14 @@ class EvenementController extends Controller
                 'couleur_primaire', 
                 'couleur_secondaire'
             )
-            ->get();
+            ->get()
+            ->map(function ($evenement) {
+                // Transformation du BLOB en Base64 (pour le frontend)
+                if ($evenement->logo) {
+                    $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
+                }
+                return $evenement;
+            });
 
         return response()->json($evenements);
     }
@@ -35,7 +49,8 @@ class EvenementController extends Controller
     // POST : (Admin)
     public function store(Request $request)
     {
-        $checkEvent = $request->validate([
+        // On stocke tout dans $validatedData
+        $validatedData = $request->validate([
             'nom' => 'required|string|max:180',
             'logo' => 'nullable|file|image|max:2048', 
             'site' => 'nullable|string|max:255',
@@ -49,12 +64,13 @@ class EvenementController extends Controller
             'is_interne' => 'boolean',
         ]);
 
-        // Si image récupèrer son code binaire
+        // Si une image, convertir en BLOB pour la base de données
         if ($request->hasFile('logo')) {
             $validatedData['logo'] = file_get_contents($request->file('logo')->getRealPath());
         }
 
-        $evenement = Evenement::create($checkEvent);
+        
+        $evenement = Evenement::create($validatedData);
 
         return response()->json([
             'message' => 'Évènement créé avec succès.',
@@ -66,6 +82,12 @@ class EvenementController extends Controller
     public function show($id)
     {
         $evenement = Evenement::findOrFail($id);
+
+        
+        if ($evenement->logo) {
+            $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
+        }
+
         return response()->json($evenement);
     }
 
@@ -74,7 +96,7 @@ class EvenementController extends Controller
     {
         $evenement = Evenement::findOrFail($id);
 
-        $checkEvent = $request->validate([
+        $validatedData = $request->validate([
             'nom' => 'sometimes|string|max:180',
             'logo' => 'nullable|file|image|max:2048', 
             'site' => 'nullable|string|max:255',
@@ -93,7 +115,7 @@ class EvenementController extends Controller
             $validatedData['logo'] = file_get_contents($request->file('logo')->getRealPath());
         }
 
-        $evenement->update($checkEvent);
+        $evenement->update($validatedData);
 
         return response()->json([
             'message' => 'Évènement mis à jour avec succès.',
