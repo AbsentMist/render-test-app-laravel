@@ -28,6 +28,7 @@ body {
     --text-subtitle: 1.375rem;
     --text-body: 1rem;
     --text-label: 0.875rem;
+    
 }
 
 @layer components {
@@ -63,5 +64,6 @@ body {
         @apply py-3 px-4 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
     }
 
+    
 }
 
