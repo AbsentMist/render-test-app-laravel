@@ -140,7 +140,8 @@
             <div class="flex flex-col-2 gap-4 h-128">
                 <textarea type="text" id="avertissement" v-model="eventData.avertissement.description" class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
                 <div class="basis-1/3">
-                    <button v-for="avertissementModel in avertissementModels" :key="avertissementModel.name" type="button" @click="eventData.avertissement.description = avertissementModel.description" class="border border-gray-300 rounded-base shadow-2xs p-2 mb-2 w-full text-left hover:bg-neutral-tertiary-medium">
+                    <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
+                    <button v-for="avertissementModel in avertissementModels" :key="avertissementModel.name" type="button" @click="eventData.avertissement.description = avertissementModel.description" class="btn-model">
                         {{ avertissementModel.name }}
                     </button>
                 </div>
@@ -153,7 +154,8 @@
             <div class="flex flex-col-2 gap-4 h-128">
                 <textarea type="text" id="documents" v-model="eventData.document.description" class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
                 <div class="basis-1/3">
-                    <button v-for="documentModel in documentModels" :key="documentModel.name" type="button" @click="eventData.document.description = documentModel.description" class="border border-gray-300 rounded-base shadow-2xs p-2 mb-2 w-full text-left hover:bg-neutral-tertiary-medium">
+                    <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
+                    <button v-for="documentModel in documentModels" :key="documentModel.name" type="button" @click="eventData.document.description = documentModel.description" class="btn-model">
                         {{ documentModel.name }}
                     </button>
                 </div>
