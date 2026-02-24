@@ -9,28 +9,17 @@ class Participant extends Model
 {
     use HasFactory;
     protected $table = 'Participant';
-    public $timestamps = false;
-    protected $fillable = [
-        'user_id',
-        'nom',
-        'prenom',
-        'date_naissance',
-        'equipe_nom',
-        'adresse',
-        'code_postal',
-        'ville',
-        'pays',
-        'telephone',
-        'nationalite',
-        'taille_tshirt',
-        'sexe',
-        'photo',
-    ];
+public $timestamps = false;
+protected $primaryKey = 'id';
 
-    // Relation vers User
-    // Remplace belongsTo par :
+protected $fillable = [
+    'id_user', 'nom', 'prenom', 'date_naissance', 'equipe_nom',
+    'adresse', 'code_postal', 'ville', 'pays', 'telephone',
+    'nationalite', 'instagram', 'facebook', 'taille_tshirt', 'sexe', 'photo',
+];
+
 public function user()
 {
-    return $this->belongsTo(User::class, 'id', 'id');
+    return $this->belongsTo(User::class, 'id_user', 'id');
 }
 }

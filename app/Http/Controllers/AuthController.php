@@ -48,7 +48,7 @@ class AuthController extends Controller
 
         // Création du Participant avec le même id que User
         Participant::create([
-            'id'             => $user->id,
+            'id_user'        => $user->id,
             'nom'            => $request->nom,
             'prenom'         => $request->prenom,
             'date_naissance' => $request->date_naissance,
