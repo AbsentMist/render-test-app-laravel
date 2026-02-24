@@ -20,10 +20,10 @@ return new class extends Migration
         Schema::create('Evenement', function (Blueprint $table) {
             $table->id();
             $table->string('nom', 180);
-            $table->binary('logo')->nullable();
-            $table->string('site', 255)->nullable();
-            $table->string('couleur_primaire', 10)->nullable();
-            $table->string('couleur_secondaire', 10)->nullable();
+            $table->binary('logo');
+            $table->string('site', 255);
+            $table->string('couleur_primaire', 10);
+            $table->string('couleur_secondaire', 10);
             $table->boolean('is_avertissement')->default(0);
             $table->boolean('is_document')->default(0);
             $table->boolean('is_questionnaire')->default(0);
@@ -88,22 +88,24 @@ return new class extends Migration
         Schema::create('Course', function (Blueprint $table) {
             $table->id();
             $table->foreignId('id_evenement')->constrained('Evenement')->onDelete('cascade');
+            $table->foreignId('id_categorie')->nullable()->constrained('Categorie')->onDelete('set null'); //Enlever nullable une fois les catégories créées
+            $table->foreignId('id_sous_categorie')->nullable()->constrained('SousCategorie')->onDelete('set null');
             $table->string('nom', 120);
-            $table->date('date')->nullable();
-            $table->date('debut_inscription')->nullable();
-            $table->date('fin_inscription')->nullable();
+            $table->date('date');
+            $table->date('debut_inscription');
+            $table->date('fin_inscription');
             $table->float('tarif')->default(0);
-            $table->string('status', 50)->nullable();
-            $table->string('type', 50)->nullable();
+            $table->string('status', 50);
+            $table->string('type', 50);
             $table->boolean('challenge')->default(0);
             $table->boolean('is_actif')->default(1);
-            $table->integer('max_inscription')->nullable();
-            $table->integer('premier_dossard')->nullable();
-            $table->integer('dernier_dossard')->nullable();
+            $table->integer('max_inscription');
+            $table->integer('premier_dossard');
+            $table->integer('dernier_dossard');
             $table->float('distance')->nullable();
             $table->time('heure_depart')->nullable();
             $table->time('heure_fin')->nullable();
-            $table->integer('age_minimum')->nullable();
+            $table->integer('age_minimum');
             $table->integer('age_maximum')->nullable();
         });
 
@@ -139,7 +141,7 @@ return new class extends Migration
             $table->foreignId('id_user')->constrained('User')->onDelete('cascade');
         });
 
-        Schema::create('Participant', function (Blueprint $table) {
+        Schema::create('Participant', function (Blueprint $table) { //Attention : doublons avec autre fichier migration
             $table->id();
             $table->foreignId('id_user')->constrained('User')->onDelete('cascade');
             $table->string('nom', 100);
