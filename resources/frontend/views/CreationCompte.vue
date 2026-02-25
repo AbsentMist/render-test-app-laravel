@@ -581,7 +581,7 @@ async function handleRegister() {
       password_confirmation: form.passwordConfirm,
       nom:             form.nom,
       prenom:          form.prenom,
-      date_naissance:  form.dateNaissance,
+      date_naissance: form.dateNaissance.split('/').reverse().join('-'),
       telephone:       form.telephone,
       nationalite:     form.nationalite,
       adresse:         form.adresse,
