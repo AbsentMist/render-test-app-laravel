@@ -24,12 +24,13 @@
 <script>
 import { Icon } from '@iconify/vue';
 import OptionTemplate from './OptionTemplate.vue';
+import optionService from '../services/optionService';
 
 export default {
     components: {
         Icon,
-        OptionTemplate
-
+        OptionTemplate,
+        optionService
     },
     data() {
         return {
@@ -75,5 +76,13 @@ export default {
              // Ajouter l'option à la liste des options
         }
     },
+    async mounted(){
+        try{
+            const response = await optionService.getAllOptions();
+            this.optionModels = response.data;
+        } catch (error) {
+            console.error("Erreur lors de la récupération des options :", error);
+        }
+    }
 }
 </script>
