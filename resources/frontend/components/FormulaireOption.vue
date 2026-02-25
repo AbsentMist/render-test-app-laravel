@@ -24,13 +24,13 @@
 <script>
 import { Icon } from '@iconify/vue';
 import OptionTemplate from './OptionTemplate.vue';
-import optionService from '../services/optionService';
+import optionOrganisateurService from '../services/optionOrganisateurService';
 
 export default {
     components: {
         Icon,
         OptionTemplate,
-        optionService
+        optionOrganisateurService
     },
     data() {
         return {
