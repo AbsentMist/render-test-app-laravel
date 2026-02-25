@@ -76,7 +76,7 @@
                     <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
                        <Icon icon="mdi:access-time" class="w-4 h-4 text-body" />
                     </div>
-                    <input type="time" id="startTime" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" value="00:00" required />
+                    <input type="time" id="startTime" v-model="courseData.time.start" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" value="00:00" required />
                 </div>
             </div>
             <div class="basis-1/2">
@@ -85,7 +85,7 @@
                     <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
                         <Icon icon="mdi:access-time" class="w-4 h-4 text-body" />
                     </div>
-                    <input type="time" id="endTime" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" value="00:00" required />
+                    <input type="time" id="endTime" v-model="courseData.time.end" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" value="00:00" required />
                 </div>
             </div>
         </div>
@@ -229,9 +229,9 @@
             </div>
         </div>
         <div class="flex justify-end items-center gap-4 my-4">
-            <button class="btn-tertiary" @click="insertCourse()">Créer la course</button>
+            <button class="btn-tertiary" @click="confirmationPopup=true">Créer la course</button>
         </div>
-        <PopupConfirmation v-if="confirmationPopup" @cancel="confirmationPopup = false" @confirm="confirmPopup"/>
+        <PopupConfirmation v-if="confirmationPopup" @cancel="confirmationPopup = false" @confirm="insertCourse()"/>
         <PopupConfirmation v-if="dataInserted" :message="'L\'évènement a été créé avec succès !'" :icon="'mdi:check'" :showButtons="false"/>
 
     </div>
@@ -241,6 +241,7 @@
 import { Icon } from '@iconify/vue';
 import { initDatepickers, initDropdowns } from 'flowbite';
 import PopupConfirmation from './PopupConfirmation.vue';
+import courseOrganisateurService from '../services/courseOrganisateurService';
 
 export default {
     components: {
@@ -293,7 +294,7 @@ export default {
             ],
             courseData:{
                 name: "",
-                event: "",
+                event: {name: "", id: ""},
                 date: {
                     start: "",
                     end: "",
@@ -308,7 +309,7 @@ export default {
                 tarif: "",
                 tarifInfo: "",
                 popupInfo: "",
-                type: "",
+                type: {name: "", id: ""},
                 maxRunners: "",
                 dossard: {
                     first: "",
@@ -321,11 +322,12 @@ export default {
                 },
                 tempsMoyen: "",
                 parameters: {
+                    actif: false,
                     dossardPersonalise: false,
                     challenge: false,
                 },
-                category: "",
-                subCategory: "",
+                category: {name: "", id: ""},
+                subCategory: {name: "", id: ""},
             },
         };
     },
@@ -346,10 +348,30 @@ export default {
             this.courseData.subCategory = subCategory;
             FlowbiteInstances.getInstance('Dropdown', 'dropdownSubcategory').hide();
         },
-        insertCourse() {
-            // Logique pour insérer la course dans la base de données
-            console.log(this.courseData);
-            this.confirmationPopup = true;
+        async insertCourse() {
+            try {
+                const payload = {
+                    id_evenement:       this.courseData.event.id,
+                    nom:                this.courseData.name,
+                    date:               this.courseData.date.start?.toISOString().split('T')[0],
+                    debut_inscription:  this.courseData.date.inscriptionStart?.toISOString().split('T')[0],
+                    fin_inscription:    this.courseData.date.inscriptionEnd?.toISOString().split('T')[0],
+                    tarif:              this.courseData.tarif,
+                    max_inscription:    this.courseData.maxRunners,
+                    premier_dossard:    this.courseData.dossard.first,
+                    dernier_dossard:    this.courseData.dossard.last,
+                    age_minimum:        this.courseData.age.min,
+                    status:             "actif",
+                    type:               this.courseData.type.name,
+                };
+
+                const response = await courseOrganisateurService.createCourse(payload);
+                if (response) {
+                    this.confirmPopup();
+                }
+            } catch(e) {
+                console.log("Erreur:", e.response?.data);
+            }
         },
         confirmPopup() {
             this.confirmationPopup = false;
@@ -369,12 +391,11 @@ export default {
             { id: 'inscriptionpicker-start', key: 'inscriptionStart' },
             { id: 'inscriptionpicker-end',  key: 'inscriptionEnd' },
         ];
-
         datepickerFields.forEach(({ id, key }) => {
             const el = document.getElementById(id);
             if (el) {
                 el.addEventListener('changeDate', (e) => {
-                    this.courseData.date[key] = e.detail.date; // ou e.target.value
+                    this.courseData.date[key] = e.detail.date;
                 });
             }
         });

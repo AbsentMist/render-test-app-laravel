@@ -1,6 +1,6 @@
 import api from './api';
 
-export const optionOrganisateurService = {
+const optionOrganisateurService = {
     getAllOptions() {
         return api.get('/organisateur/options');
     },
@@ -14,3 +14,5 @@ export const optionOrganisateurService = {
         return api.delete(`/organisateur/options/${id}`);
     }
 };
+
+export default optionOrganisateurService;

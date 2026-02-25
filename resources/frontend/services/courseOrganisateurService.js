@@ -1,19 +1,21 @@
 import api from './api';
 
-export const courseOrganisateurService = {
+const courseOrganisateurService = {
     getAllCourse() {
-        return api.get('/organisateur/course');
+        return api.get('/organisateur/courses');
     },
     getCourse(id) {
-        return api.get(`/organisateur/course/${id}`);
+        return api.get(`/organisateur/courses/${id}`);
     },
     createCourse(data) {
-        return api.post('/organisateur/course', data);
+        return api.post('/organisateur/courses', data);
     },
     modifyCourse(id, data) {
-        return api.put(`/organisateur/course/${id}`, data);
+        return api.put(`/organisateur/courses/${id}`, data);
     },
     deleteCourse(id) {
-        return api.delete(`/organisateur/course/${id}`);
+        return api.delete(`/organisateur/courses/${id}`);
     },
 }
+
+export default courseOrganisateurService;
