@@ -64,7 +64,7 @@ return new class extends Migration
             $table->string('enonce', 255);
         });
 
-        Schema::create('Option', function (Blueprint $table) {
+        Schema::create('Options', function (Blueprint $table) {
             $table->id();
             $table->string('nom', 80);
             $table->string('type', 100);
@@ -174,7 +174,7 @@ return new class extends Migration
         });
 
         Schema::create('OptionPourCourse', function (Blueprint $table) {
-            $table->foreignId('id_option')->constrained('Option')->onDelete('cascade');
+            $table->foreignId('id_option')->constrained('Options')->onDelete('cascade');
             $table->foreignId('id_course')->constrained('Course')->onDelete('cascade');
             $table->primary(['id_option', 'id_course']);
         });
@@ -182,14 +182,14 @@ return new class extends Migration
         // Héritages d'Option
         Schema::create('OptionQuantifiable', function (Blueprint $table) {
             $table->unsignedBigInteger('id')->primary();
-            $table->foreign('id')->references('id')->on('Option')->onDelete('cascade');
+            $table->foreign('id')->references('id')->on('Options')->onDelete('cascade');
             $table->integer('quantiteMin')->default(0);
             $table->integer('quantiteMax');
         });
 
         Schema::create('OptionCochable', function (Blueprint $table) {
             $table->unsignedBigInteger('id')->primary();
-            $table->foreign('id')->references('id')->on('Option')->onDelete('cascade');
+            $table->foreign('id')->references('id')->on('Options')->onDelete('cascade');
             $table->boolean('is_coche')->default(0);
         });
 

@@ -115,7 +115,7 @@
                 <OptionList :elements="this.optionElements" @select-item="handleOptionSelection"/>
             </div>
             <div v-if="modal==optionModal.EXISTANT" class="flex items-center justify-center z-50">
-                <OptionList :elements="optionModels.map(o => o.name)" @select-item="handleOptionSelection"/>
+                <OptionList :elements="optionModels.map(o => o.nom)" @select-item="handleOptionSelection"/>
             </div>
         </div>
 
@@ -261,8 +261,10 @@ export default {
                     name: "1 Entrée + 1 pasta bolognaise",
                     description: "Réservation entrée + pasta non-participant CHF 19.00 / paiement à RUNNINGENEVA ASSOCIATION",
                     prix: "15",
-                    quantiteMin: "1",
-                    quantiteMax: "10"
+                    quantifiable: {
+                        quantiteMin: "1",
+                        quantiteMax: "10"
+                    }
                 }
             ],
             questionModels: [
@@ -348,8 +350,10 @@ export default {
                         name: '',
                         description: '',
                         prix: '',
-                        quantiteMin: '',
-                        quantiteMax: '',
+                        quantifiable: {
+                            quantiteMin: '',
+                            quantiteMax: '',
+                        }
                     });
 
                 else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
@@ -362,7 +366,7 @@ export default {
             }
             else if(this.modal === optionModal.EXISTANT) {
                 if(this.etape === formulaireEtape.OPTIONS)
-                    this.eventData.options.push(this.optionModels.find(o => o.name === option)); 
+                    this.eventData.options.push(this.optionModels.find(o => o.nom === option)); 
                 
                 else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
                     this.eventData.questions.push(this.questionModels.find(q => q.question === option));
@@ -400,9 +404,8 @@ export default {
                 }
 
                 const response = await evenementOrganisateurService.createEvenement(formData);
-                if (response) {
-                    this.confirmPopup();
-                }
+                this.confirmPopup();
+                console.log(response.data);
             } catch(e) {
                 console.log("Erreur:", e.response?.data);
             }

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Option extends Model
 {
-    protected $table = 'Option';
+    protected $table = 'Options';
     public $timestamps = false;
 
     

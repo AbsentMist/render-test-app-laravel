@@ -87,7 +87,7 @@ class OptionController extends Controller
             'quantiteMax' => 'required_if:type,Quantifiable|integer|gte:quantiteMin',
             
             // Vérifier si les courses existent
-            'courses'     => 'required|array',
+            'courses'     => 'array',
             'courses.*'   => 'exists:Course,id'
         ]);
 
