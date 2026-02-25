@@ -58,6 +58,13 @@
                     <p>Paramètres</p>
                     <div class="flex flex-col m-4 gap-2">
                         <div class="flex flex-row justify-between items-center">
+                            <label class="text-sm font-medium text-heading">Actif</label>
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" v-model="eventData.parameters.actif" value="" class="sr-only peer">
+                                <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
+                            </label>
+                        </div>
+                        <div class="flex flex-row justify-between items-center">
                             <label class="text-sm font-medium text-heading">Avertissement</label>
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" v-model="eventData.parameters.avertissement" value="" class="sr-only peer">
@@ -169,11 +176,11 @@
             <button v-if="etapesActives.indexOf(etape) < etapesActives.length - 1" class="btn-tertiary ml-auto" @click="etape = etapesActives[etapesActives.indexOf(etape) + 1]">
                 Etape suivante
             </button>
-            <button v-else class="btn-tertiary ml-auto" @click="insertData">
+            <button v-else class="btn-tertiary ml-auto" @click="confirmationPopup=true">
                 Créer l'évènement
             </button>
         </div>
-        <PopupConfirmation v-if="confirmationPopup" @cancel="confirmationPopup = false" @confirm="confirmPopup"/>
+        <PopupConfirmation v-if="confirmationPopup" @cancel="confirmationPopup = false" @confirm="insertData()"/>
         <PopupConfirmation v-if="dataInserted" :message="'L\'évènement a été créé avec succès !'" :icon="'mdi:check'" :showButtons="false"/>
     </div>
 </template>
@@ -185,6 +192,8 @@ import OptionTemplate from "./OptionTemplate.vue";
 import QuestionTemplate from "./QuestionTemplate.vue";
 import PopupConfirmation from "./PopupConfirmation.vue";
 import IndicateurEtapes from "./IndicateurEtapes.vue";
+import evenementOrganisateurService from "../services/evenementOrganisateurService";
+import optionOrganisateurService from "../services/optionOrganisateurService";
 
 const formulaireEtape = {
     GENERAL: 1,
@@ -208,6 +217,8 @@ export default {
         QuestionTemplate,
         PopupConfirmation,
         IndicateurEtapes,
+        evenementOrganisateurService,
+        optionOrganisateurService,
     },
     data() {
         return {
@@ -226,6 +237,7 @@ export default {
                     secondary: '#d9f20b',
                 },
                 parameters: {
+                    actif: false,
                     avertissement: false,
                     document: false,
                     questionnaire: false,
@@ -358,9 +370,42 @@ export default {
                 this.modal = optionModal.FERMEE;
             }
         },
-        insertData() {
-            console.log("Données de l'évènement à insérer :", this.eventData);
-            this.confirmationPopup = true;
+        async insertData() {
+            try {
+                const formData = new FormData();
+                formData.append('nom',              this.eventData.name);
+                formData.append('site',              this.eventData.url);
+                formData.append('couleur_primaire', this.eventData.colors.primary);
+                formData.append('couleur_secondaire', this.eventData.colors.secondary);
+                formData.append('is_avertissement',    this.eventData.parameters.avertissement ? 1 : 0);
+                formData.append('is_document',         this.eventData.parameters.document ? 1 : 0);
+                formData.append('is_questionnaire',    this.eventData.parameters.questionnaire ? 1 : 0);
+                formData.append('is_rabais',           this.eventData.parameters.rabais ? 1 : 0);
+                formData.append("is_actif",         this.eventData.parameters.actif ? 1 : 0);
+
+                if (this.eventData.logo) {
+                    formData.append('logo', this.eventData.logo);
+                }
+                if (this.eventData.parameters.avertissement) {
+                    formData.append('avertissement_description', this.eventData.avertissement.description);
+                }
+                if (this.eventData.parameters.document) {
+                    formData.append('document_description', this.eventData.document.description);
+                }
+                if (this.eventData.parameters.questionnaire) {
+                    formData.append('questions', JSON.stringify(this.eventData.questions));
+                }
+                if (this.eventData.options.length > 0) {
+                    formData.append('options', JSON.stringify(this.eventData.options));
+                }
+
+                const response = await evenementOrganisateurService.createEvenement(formData);
+                if (response) {
+                    this.confirmPopup();
+                }
+            } catch(e) {
+                console.log("Erreur:", e.response?.data);
+            }
         },
         confirmPopup() {
             this.confirmationPopup = false;
@@ -369,6 +414,15 @@ export default {
                 this.dataInserted = false; 
             }, 2000); 
         }
-    }
+    },
+    async mounted() {
+        try{
+            let response = await optionOrganisateurService.getAllOptions();
+            this.optionModels = response.data;
+            console.log("Options chargées: ", this.optionModels);
+        } catch(e) {
+            console.error("Erreur lors de la récupération des options: ", e);
+        }
+    },
 };
 </script>
