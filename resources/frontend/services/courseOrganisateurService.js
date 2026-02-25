@@ -1,7 +1,7 @@
 import api from './api';
 
 const courseOrganisateurService = {
-    getAllCourse() {
+    getAllCourses() {
         return api.get('/organisateur/courses');
     },
     getCourse(id) {
