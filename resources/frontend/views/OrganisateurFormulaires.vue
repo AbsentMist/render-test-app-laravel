@@ -33,7 +33,7 @@ export default {
   data() {
     return {
       formulaires,
-      activeTab: formulaires.COURSE,
+      activeTab: this.$route.query.onglet || formulaires.COURSE,
     };
   },
   mounted() {

@@ -24,7 +24,7 @@
 <script>
 import { Icon } from '@iconify/vue';
 import OptionTemplate from './OptionTemplate.vue';
-import optionService from '../services/optionService';
+import { optionService } from '../services/optionService';
 
 export default {
     components: {
