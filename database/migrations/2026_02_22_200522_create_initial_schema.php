@@ -67,7 +67,7 @@ return new class extends Migration
         Schema::create('Options', function (Blueprint $table) {
             $table->id();
             $table->string('nom', 80)->unique();
-            $table->string('type', 100)->unique();
+            $table->string('type', 100);
             $table->string('description', 255);
             $table->float('tarif')->default(0);
             $table->binary('image')->nullable();

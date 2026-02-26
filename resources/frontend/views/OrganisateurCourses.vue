@@ -146,7 +146,7 @@ export default {
         this.erreur = ''
         try {
             const response = await courseOrganisateurService.getAllCourses(this.idEvenement)
-            this.courses = response.data.courses
+            this.courses = response.data?.courses ?? []
         } catch (e) {
             this.erreur = 'Impossible de charger les courses.'
         } finally {
