@@ -53,8 +53,8 @@ export default {
             this.optionData.nom = option.nom;
             this.optionData.description = option.description;
             this.optionData.tarif = option.tarif;
-            this.optionData.quantifiable.quantiteMin = option.quantiteMin;
-            this.optionData.quantifiable.quantiteMax = option.quantiteMax;
+            this.optionData.quantifiable.quantiteMin = option.quantifiable.quantiteMin;
+            this.optionData.quantifiable.quantiteMax = option.quantifiable.quantiteMax;
         },
         async removeOption(index) {
             try {

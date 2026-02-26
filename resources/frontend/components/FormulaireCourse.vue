@@ -242,27 +242,20 @@ import { Icon } from '@iconify/vue';
 import { initDatepickers, initDropdowns } from 'flowbite';
 import PopupConfirmation from './PopupConfirmation.vue';
 import evenementOrganisateurService from '../services/evenementOrganisateurService';
+import courseOrganisateurService from '../services/courseOrganisateurService';
 
 export default {
     components: {
         Icon,
         PopupConfirmation,
+        courseOrganisateurService,
         evenementOrganisateurService,
     },
     data() {
         return {
             confirmationPopup: false,
             dataInserted: false,
-            evenements: [
-                {
-                    name: "Evènement 1",
-                    id: 1,
-                },
-                {
-                    name: "Evènement 2",
-                    id: 2,
-                },
-            ],
+            evenements: [],
             typesCourse: [
                 {
                     name: "Type de course 1",
@@ -370,6 +363,7 @@ export default {
                 if (response) {
                     this.confirmPopup();
                 }
+                console.log(response.data);
             } catch(e) {
                 console.log("Erreur:", e.response?.data);
             }
