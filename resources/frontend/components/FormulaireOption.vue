@@ -35,20 +35,22 @@ export default {
     data() {
         return {
             optionData:
-                {
-                    name: "",
-                    description: "",
-                    tarif: "",
-                    quantifiable: {
-                        quantiteMin: "",
-                        quantiteMax: ""
-                    }
-                },
+            {
+                nom: "",
+                description: "",
+                tarif: "",
+                quantifiable: {
+                    quantiteMin: "",
+                    quantiteMax: ""
+                }
+            },
+            optionModels: [],
+
         };
     },
      methods: {
         copyDatas(option) {
-            this.optionData.name = option.nom;
+            this.optionData.nom = option.nom;
             this.optionData.description = option.description;
             this.optionData.tarif = option.tarif;
             this.optionData.quantifiable.quantiteMin = option.quantiteMin;
@@ -68,7 +70,7 @@ export default {
                 const formData = new FormData();
                 
                 // 1. Données pour la table 'Option'
-                formData.append('nom', this.optionData.name);
+                formData.append('nom', this.optionData.nom);
                 formData.append('description', this.optionData.description);
                 formData.append('tarif', this.optionData.tarif);
                 
@@ -102,6 +104,7 @@ export default {
         try{
             const response = await optionOrganisateurService.getAllOptions();
             this.optionModels = response.data;
+            console.log(response.data);
         } catch (error) {
             console.error("Erreur lors de la récupération des options :", error);
         }
