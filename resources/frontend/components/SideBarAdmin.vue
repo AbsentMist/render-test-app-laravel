@@ -20,7 +20,7 @@
           
           <ul class="space-y-1 text-[1rem] leading-[1.5rem]">
              <li>
-                <router-link to="/" class="flex items-center px-3 py-2.5 rounded-lg text-secondary hover:bg-tertiary hover:text-primary transition-colors duration-200" active-class="bg-tertiary !text-primary">
+                <router-link to="/organisateur/evenements" class="flex items-center px-3 py-2.5 rounded-lg text-secondary hover:bg-tertiary hover:text-primary transition-colors duration-200" active-class="bg-tertiary !text-primary">
                    <svg class="w-5 h-5 opacity-90 transition duration-75" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16v10H4V6Zm0 0v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6M8 20h8M12 16v4"/></svg>
                    <span class="ms-3 font-medium">Tableau de bord</span>
                 </router-link>
