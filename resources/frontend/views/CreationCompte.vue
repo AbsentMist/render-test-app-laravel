@@ -584,7 +584,7 @@ async function handleRegister() {
       date_naissance: form.dateNaissance.split('/').reverse().join('-'),
       telephone:       form.telephone,
       nationalite:     form.nationalite,
-      adresse:         form.adresse,
+      adresse:         `${form.adresse} ${form.numeroRue}`.trim(),
       code_postal:     form.npa,
       ville:           form.commune,
       pays:            form.nationalite,
