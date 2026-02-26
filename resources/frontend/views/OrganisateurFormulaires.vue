@@ -1,4 +1,5 @@
 <template>
+  <Title texte="Formulaires"/>
   <div class="p-6">
     <FormulaireOnglet :formulaires="Object.values(formulaires)" v-model="activeTab" />
     <FormulaireCourse v-if="activeTab === formulaires.COURSE" />
@@ -12,6 +13,7 @@ import FormulaireCourse from '../components/FormulaireCourse.vue';
 import FormulaireEvenement from '../components/FormulaireEvenement.vue';
 import FormulaireOnglet from '../components/FormulaireOnglet.vue';
 import FormulaireOption from '../components/FormulaireOption.vue';
+import Title from '../components/Title.vue';
 
 const formulaires = {
     COURSE: "Course",
@@ -25,6 +27,7 @@ const formulaires = {
 
 export default {
   components: {
+    Title,
     FormulaireEvenement,
     FormulaireOnglet,
     FormulaireCourse,
@@ -33,7 +36,7 @@ export default {
   data() {
     return {
       formulaires,
-      activeTab: formulaires.COURSE,
+      activeTab: this.$route.query.onglet || formulaires.COURSE,
     };
   },
   mounted() {

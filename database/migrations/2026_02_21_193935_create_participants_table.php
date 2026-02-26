@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
 {
-    Schema::create('participants', function (Blueprint $table) {
-        $table->unsignedBigInteger('id')->primary();
-        $table->foreign('id')->references('id')->on('users')->onDelete('cascade');
+    Schema::create('Participant', function (Blueprint $table) {
+        $table->id();
+
+        $table->foreignId('id_user')->constrained('User')->onDelete('cascade');
         $table->string('nom', 100);
         $table->string('prenom', 100);
         $table->date('date_naissance');
@@ -29,12 +30,11 @@ return new class extends Migration
         $table->string('taille_tshirt', 10);
         $table->string('sexe', 10);
         $table->binary('photo')->nullable();
-        $table->timestamps();
     });
 }
 
 public function down(): void
 {
-    Schema::dropIfExists('participants');
+    Schema::dropIfExists('Participant');
 }
 };

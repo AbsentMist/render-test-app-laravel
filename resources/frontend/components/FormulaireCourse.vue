@@ -6,7 +6,7 @@
             <label for="dropdown" class="text-sm font-medium text-heading">Evènement</label>
             <div class="relative">
                 <button data-dropdown-toggle="dropdownEvent" class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5" type="button">
-                    {{courseData.event.name || "Sélectionner un évènement"}}
+                    {{courseData.event.nom || "Sélectionner un évènement"}}
                     <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
                 </button>
                 <div id="dropdownEvent" class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
@@ -14,7 +14,7 @@
                         <li v-for="evenement in evenements" :key="evenement.id">
                             <button type="button" @click="selectEvent(evenement);" 
                                 class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
-                                {{ evenement.name }}
+                                {{ evenement.nom }}
                             </button>
                         </li>
                     </ul>
@@ -241,27 +241,21 @@
 import { Icon } from '@iconify/vue';
 import { initDatepickers, initDropdowns } from 'flowbite';
 import PopupConfirmation from './PopupConfirmation.vue';
+import evenementOrganisateurService from '../services/evenementOrganisateurService';
 import courseOrganisateurService from '../services/courseOrganisateurService';
 
 export default {
     components: {
         Icon,
         PopupConfirmation,
+        courseOrganisateurService,
+        evenementOrganisateurService,
     },
     data() {
         return {
             confirmationPopup: false,
             dataInserted: false,
-            evenements: [
-                {
-                    name: "Evènement 1",
-                    id: 1,
-                },
-                {
-                    name: "Evènement 2",
-                    id: 2,
-                },
-            ],
+            evenements: [],
             typesCourse: [
                 {
                     name: "Type de course 1",
@@ -369,6 +363,7 @@ export default {
                 if (response) {
                     this.confirmPopup();
                 }
+                console.log(response.data);
             } catch(e) {
                 console.log("Erreur:", e.response?.data);
             }
@@ -381,7 +376,7 @@ export default {
             }, 2000); 
         }
     },
-    mounted() {
+    async mounted() {
         initDatepickers();
         initDropdowns();
 
@@ -399,6 +394,13 @@ export default {
                 });
             }
         });
+        try{
+            const response = await evenementOrganisateurService.getAllEvenements();
+            this.evenements = response.data;
+            console.log("Dropdown evenement: ", response.data);
+        } catch(e){
+            console.log("Erreur lors de la récupération de l'évènement ", e);
+        }
     }
 }
 </script>

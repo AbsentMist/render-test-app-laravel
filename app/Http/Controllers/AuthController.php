@@ -15,12 +15,12 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'email'          => 'required|email|max:80|unique:users,email',
+            'email'          => 'required|email|max:80|unique:User,email',
             'password' => ['required', 'confirmed', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/'],
             'nom'            => 'required|string|max:100',
             'prenom'         => 'required|string|max:100',
             'date_naissance' => 'required|date',
-            'telephone'      => 'required|string|max:20|unique:participants,telephone',
+            'telephone'      => 'required|string|max:20|unique:Participant,telephone',
             'nationalite'    => 'required|string|max:100',
             'adresse'        => 'required|string|max:100',
             'code_postal'    => 'required|string|max:10',
