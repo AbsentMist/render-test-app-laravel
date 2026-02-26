@@ -1,11 +1,11 @@
 import api from './api';
 
 const courseOrganisateurService = {
-    getAllCourses() {
-        return api.get('/organisateur/courses');
+    getAllCourses(idEvent) {
+        return api.get(`/organisateur/evenements/${idEvent}/courses`);
     },
-    getCourse(id) {
-        return api.get(`/organisateur/courses/${id}`);
+    getCourse(id, idEvent) {
+        return api.get(`/organisateur/evenements/${idEvent}/courses/${id}`);
     },
     createCourse(data) {
         return api.post('/organisateur/courses', data);

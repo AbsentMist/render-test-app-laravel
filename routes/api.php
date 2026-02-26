@@ -42,7 +42,7 @@ use App\Http\Controllers\OptionController;
             Route::delete('/evenements/{id}', [EvenementController::class, 'destroy']);
 
             // Routes pour la gestion des courses (CRUD)
-            Route::get('/courses/{id_evenement}', [CourseController::class, 'indexAdmin']);
+            Route::get('/evenements/{id_evenement}/courses', [CourseController::class, 'indexAdmin']);
             Route::post('/courses', [CourseController::class, 'store']);
             Route::put('/courses/{id}', [CourseController::class, 'update']);
             Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
