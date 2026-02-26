@@ -7,10 +7,10 @@
             </div>
             <p class="text-heading text-center text-sm">{{ message }}</p>
             <div v-if="showButtons" class="flex flex-row gap-4 mt-2 w-full">
-                <button type="button" @click="$emit('confirm')" class="btn-accent-300 flex-1">
+                <button type="button" @click="$emit('confirm')" class="btn-tertiary flex-1">
                     Continuer
                 </button>
-                <button type="button" @click="$emit('cancel')" class="btn-tertiary flex-1">
+                <button type="button" @click="$emit('cancel')" class="btn-accent-300 flex-1">
                     Annuler
                 </button>
             </div>

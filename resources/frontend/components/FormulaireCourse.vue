@@ -21,15 +21,9 @@
                 </div>
             </div>
         </div>
-        <div class="flex flex-col-2 gap-4">
-            <div class="w-full">
-                <label for="year" class="block mb-2.5 text-sm font-medium text-heading">Année</label>
-                <input type="text" id="year" v-model="courseData.year" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
-            </div>
-            <div class="w-full">
-                <label for="format" class="block mb-2.5 text-sm font-medium text-heading">Format</label>
-                <input type="text" id="format" v-model="courseData.format" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
-            </div>
+        <div class="w-full">
+            <label for="name" class="block mb-2.5 text-sm font-medium text-heading">Nom</label>
+            <input type="text" id="name" v-model="courseData.name" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
         </div>
 
         <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
@@ -71,7 +65,31 @@
                 </div>
             </div>
         </div>
-        <div class="flex flex-col-3 gap-4">
+
+        <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
+
+
+        <div class="flex gap-4 mb-4">
+            <div class="basis-1/2">
+                <label for="startTime" class="block mb-2 text-sm font-medium text-heading">Heure départ</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
+                       <Icon icon="mdi:access-time" class="w-4 h-4 text-body" />
+                    </div>
+                    <input type="time" id="startTime" v-model="courseData.time.start" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" value="00:00" required />
+                </div>
+            </div>
+            <div class="basis-1/2">
+                <label for="endTime" class="block mb-2 text-sm font-medium text-heading">Heure fin</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
+                        <Icon icon="mdi:access-time" class="w-4 h-4 text-body" />
+                    </div>
+                    <input type="time" id="endTime" v-model="courseData.time.end" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" value="00:00" required />
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col-3 gap-4 mb-4">
             <div class="w-full">
                 <label for="distance" class="block mb-2.5 text-sm font-medium text-heading">Distance</label>
                 <input type="text" id="distance" v-model="courseData.distance" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
@@ -108,34 +126,62 @@
                 </div>
             </div>
         </div>
+
+        <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
+
         <div class="flex justify-between items-center gap-4 my-4">
             <label for="maxRunners" class="basis-1/3 block mb-2.5 text-sm font-medium text-heading">Nombre de coureur maximum</label>
             <input type="text" id="maxRunners" v-model="courseData.maxRunners" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
         </div>
-        <div class="flex flex-col-2 gap-4">
+        <div class="flex flex-col-2 gap-4 mb-4">
             <div class="w-full">
                 <label for="firstDossard" class="block mb-2.5 text-sm font-medium text-heading">Premier dossard</label>
-                <input type="text" id="firstDossard" v-model="courseData.firstDossard" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                <input type="text" id="firstDossard" v-model="courseData.dossard.first" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
             </div>
             <div class="w-full">
                 <label for="lastDossard" class="block mb-2.5 text-sm font-medium text-heading">Dernier dossard</label>
-                <input type="text" id="lastDossard" v-model="courseData.lastDossard" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                <input type="text" id="lastDossard" v-model="courseData.dossard.last" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
             </div>
+        </div>
+        <div class="flex flex-col-3 gap-4 mb-4">
+            <div class="w-full">
+                <label for="ageMin" class="block mb-2.5 text-sm font-medium text-heading">Limite âge min</label>
+                <input type="text" id="ageMin" v-model="courseData.age.min" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+            </div>
+            <div class="w-full">
+                <label for="ageMax" class="block mb-2.5 text-sm font-medium text-heading">Limite âge max</label>
+                <input type="text" id="ageMax" v-model="courseData.age.max" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+            </div>
+            <div class="w-full">
+                <label for="conditionMineur" class="block mb-2.5 text-sm font-medium text-heading">Condition participant mineur</label>
+                <input type="text" id="conditionMineur" v-model="courseData.age.conditionMineur" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+            </div>
+        </div>
+        <div class="w-full">
+            <label for="tempsMoyen" class="block mb-2.5 text-sm font-medium text-heading">Temps moyen pour X km</label>
+            <input type="text" id="tempsMoyen" v-model="courseData.tempsMoyen" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
         </div>
         
         <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
-        <div class="flex flex-row justify-between items-center">
-            <label class="text-sm font-medium text-heading">Dossard personnalisé</label>
+        <div class="flex flex-row justify-between items-center mb-4">
+            <label class="text-sm font-medium text-heading">Actif</label>
             <label class="inline-flex items-center cursor-pointer">
-                <input type="checkbox" v-model="courseData.dossardPersonalise" value="" class="sr-only peer">
+                <input type="checkbox" v-model="courseData.parameters.actif" value="" class="sr-only peer">
                 <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
             </label>
         </div>
-        <div class="flex flex-row justify-between items-center my-4">
+        <div class="flex flex-row justify-between items-center mb-4">
+            <label class="text-sm font-medium text-heading">Dossard personnalisé</label>
+            <label class="inline-flex items-center cursor-pointer">
+                <input type="checkbox" v-model="courseData.parameters.dossardPersonalise" value="" class="sr-only peer">
+                <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
+            </label>
+        </div>
+        <div class="flex flex-row justify-between items-center mb-4">
             <label class="text-sm font-medium text-heading">Challenge</label>
             <label class="inline-flex items-center cursor-pointer">
-                <input type="checkbox" v-model="courseData.challenge" value="" class="sr-only peer">
+                <input type="checkbox" v-model="courseData.parameters.challenge" value="" class="sr-only peer">
                 <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
             </label>
         </div>
@@ -183,9 +229,9 @@
             </div>
         </div>
         <div class="flex justify-end items-center gap-4 my-4">
-            <button class="btn-tertiary" @click="insertCourse()">Créer la course</button>
+            <button class="btn-tertiary" @click="confirmationPopup=true">Créer la course</button>
         </div>
-        <PopupConfirmation v-if="confirmationPopup" @cancel="confirmationPopup = false" @confirm="confirmPopup"/>
+        <PopupConfirmation v-if="confirmationPopup" @cancel="confirmationPopup = false" @confirm="insertCourse()"/>
         <PopupConfirmation v-if="dataInserted" :message="'L\'évènement a été créé avec succès !'" :icon="'mdi:check'" :showButtons="false"/>
 
     </div>
@@ -195,6 +241,7 @@
 import { Icon } from '@iconify/vue';
 import { initDatepickers, initDropdowns } from 'flowbite';
 import PopupConfirmation from './PopupConfirmation.vue';
+import courseOrganisateurService from '../services/courseOrganisateurService';
 
 export default {
     components: {
@@ -246,27 +293,41 @@ export default {
                 },
             ],
             courseData:{
-                year: "",
-                format: "",
-                event: "",
+                name: "",
+                event: {name: "", id: ""},
                 date: {
                     start: "",
                     end: "",
                     inscriptionStart: "",
                     inscriptionEnd: "",
                 },
+                time: {
+                    start: "",
+                    end: "",
+                },
                 distance: "",
                 tarif: "",
                 tarifInfo: "",
                 popupInfo: "",
-                type: "",
+                type: {name: "", id: ""},
                 maxRunners: "",
-                firstDossard: "",
-                lastDossard: "",
-                dossardPersonalise: false,
-                challenge: false,
-                category: "",
-                subCategory: "",
+                dossard: {
+                    first: "",
+                    last: "",
+                },
+                age: {
+                    min: "",
+                    max: "",
+                    conditionMineur: "",
+                },
+                tempsMoyen: "",
+                parameters: {
+                    actif: false,
+                    dossardPersonalise: false,
+                    challenge: false,
+                },
+                category: {name: "", id: ""},
+                subCategory: {name: "", id: ""},
             },
         };
     },
@@ -287,10 +348,30 @@ export default {
             this.courseData.subCategory = subCategory;
             FlowbiteInstances.getInstance('Dropdown', 'dropdownSubcategory').hide();
         },
-        insertCourse() {
-            // Logique pour insérer la course dans la base de données
-            console.log(this.courseData);
-            this.confirmationPopup = true;
+        async insertCourse() {
+            try {
+                const payload = {
+                    id_evenement:       this.courseData.event.id,
+                    nom:                this.courseData.name,
+                    date:               this.courseData.date.start?.toISOString().split('T')[0],
+                    debut_inscription:  this.courseData.date.inscriptionStart?.toISOString().split('T')[0],
+                    fin_inscription:    this.courseData.date.inscriptionEnd?.toISOString().split('T')[0],
+                    tarif:              this.courseData.tarif,
+                    max_inscription:    this.courseData.maxRunners,
+                    premier_dossard:    this.courseData.dossard.first,
+                    dernier_dossard:    this.courseData.dossard.last,
+                    age_minimum:        this.courseData.age.min,
+                    status:             "actif",
+                    type:               this.courseData.type.name,
+                };
+
+                const response = await courseOrganisateurService.createCourse(payload);
+                if (response) {
+                    this.confirmPopup();
+                }
+            } catch(e) {
+                console.log("Erreur:", e.response?.data);
+            }
         },
         confirmPopup() {
             this.confirmationPopup = false;
@@ -310,12 +391,11 @@ export default {
             { id: 'inscriptionpicker-start', key: 'inscriptionStart' },
             { id: 'inscriptionpicker-end',  key: 'inscriptionEnd' },
         ];
-
         datepickerFields.forEach(({ id, key }) => {
             const el = document.getElementById(id);
             if (el) {
                 el.addEventListener('changeDate', (e) => {
-                    this.courseData.date[key] = e.detail.date; // ou e.target.value
+                    this.courseData.date[key] = e.detail.date;
                 });
             }
         });
