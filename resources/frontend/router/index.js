@@ -75,6 +75,11 @@ const routes = [
     path: "/organisateur/formulaires",
     name: "Formulaires",
     component: () => import("../views/OrganisateurFormulaires.vue")
+  },
+  {
+    path: "/organisateur/evenements/:idEvenement/courses",
+    name: "OrganisateurCourses",
+    component: () => import("../views/OrganisateurCourses.vue")
   }
 ];
 
