@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use  Laravel\Sanctum\HasApiTokens;
+
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -51,4 +53,9 @@ public function participant()
 {
     return $this->hasOne(Participant::class, 'id_user', 'id');
 }
+
+public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'UserRole', 'id_user', 'id_role');
+    }
 }
