@@ -1,13 +1,10 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue' // Ajout de computed
+import { ref, computed } from 'vue'
 import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', () => {
-    // NOUVEAU : On récupère l'user depuis le localStorage s'il existe
-    const storedUser = localStorage.getItem('user');
-    const user = ref(storedUser ? JSON.parse(storedUser) : null);
+    const user = ref(null)
     const token = ref(localStorage.getItem('token') || null)
-
     
     // Mémorise la vue de l'admin (true = vue admin, false = vue participant)
     const activeAdminMode = ref(localStorage.getItem('adminMode') === 'true')
@@ -25,11 +22,28 @@ export const useAuthStore = defineStore('auth', () => {
             localStorage.setItem('adminMode', activeAdminMode.value);
         }
     }
-    // -------------------------------
+
+    // Récupération du profil dans le serveur
+    async function fetchUser() {
+        if (!token.value) return;
+        
+        try {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+            const response = await axios.get('/api/me') 
+            user.value = response.data
+            
+            if (isAdmin.value && localStorage.getItem('adminMode') === null) {
+                activeAdminMode.value = true;
+                localStorage.setItem('adminMode', 'true');
+            }
+        } catch (error) {
+            logout(); 
+        }
+    }
 
     // Configure axios avec le token si déjà connecté
     if (token.value) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+        fetchUser(); 
     }
 
     async function login(email, password) {
@@ -37,12 +51,9 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = response.data.token
         user.value = response.data.user
         
-        // NOUVEAU : On sauvegarde l'objet user en texte (JSON)
         localStorage.setItem('token', token.value)
-        localStorage.setItem('user', JSON.stringify(user.value))
         
-        
-        if (user.value.roles && user.value.roles.some(r => r.type === 'Administrateur')) {
+        if (isAdmin.value) {
             activeAdminMode.value = true;
             localStorage.setItem('adminMode', 'true');
         }
@@ -59,24 +70,24 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function logout() {
-        await axios.post('/api/logout')
+        try {
+            await axios.post('/api/logout')
+        } catch (e) {
+            console.error('Erreur lors de la déconnexion :', e)
+        }
+        
         token.value = null
         user.value = null
-        
-        
         localStorage.removeItem('token')
-        localStorage.removeItem('user') 
         localStorage.removeItem('adminMode') 
-        
         activeAdminMode.value = false
         delete axios.defaults.headers.common['Authorization']
     }
 
     const isAuthenticated = () => !!token.value
 
-    
     return { 
-        user, token, login, register, logout, isAuthenticated,
+        user, token, login, register, logout, isAuthenticated, fetchUser,
         isAdmin, showAdminLayout, toggleAdminMode 
     }
 })
