@@ -3,7 +3,9 @@ import { ref, computed } from 'vue' // Ajout de computed
 import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', () => {
-    const user = ref(null)
+    // NOUVEAU : On récupère l'user depuis le localStorage s'il existe
+    const storedUser = localStorage.getItem('user');
+    const user = ref(storedUser ? JSON.parse(storedUser) : null);
     const token = ref(localStorage.getItem('token') || null)
 
     
@@ -34,11 +36,12 @@ export const useAuthStore = defineStore('auth', () => {
         const response = await axios.post('/api/login', { email, password })
         token.value = response.data.token
         user.value = response.data.user
-
-        console.log('Utilisateur reçu du backend : user.value =', user.value)
-        localStorage.setItem('token', token.value)
         
-        // Si c'est un admin qui se connecte, on le met direct en mode admin
+        // NOUVEAU : On sauvegarde l'objet user en texte (JSON)
+        localStorage.setItem('token', token.value)
+        localStorage.setItem('user', JSON.stringify(user.value))
+        
+        
         if (user.value.roles && user.value.roles.some(r => r.type === 'Administrateur')) {
             activeAdminMode.value = true;
             localStorage.setItem('adminMode', 'true');
@@ -59,15 +62,19 @@ export const useAuthStore = defineStore('auth', () => {
         await axios.post('/api/logout')
         token.value = null
         user.value = null
+        
+        
         localStorage.removeItem('token')
-        localStorage.removeItem('adminMode') // On nettoie le choix de vue
+        localStorage.removeItem('user') 
+        localStorage.removeItem('adminMode') 
+        
         activeAdminMode.value = false
         delete axios.defaults.headers.common['Authorization']
     }
 
     const isAuthenticated = () => !!token.value
 
-    // N'oublie pas d'exporter les nouvelles variables !
+    
     return { 
         user, token, login, register, logout, isAuthenticated,
         isAdmin, showAdminLayout, toggleAdminMode 
