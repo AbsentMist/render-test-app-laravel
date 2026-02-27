@@ -1,9 +1,6 @@
 <template>
+  <Title :texte="`Tableau de bord : évènements`" />
   <div class="p-6">
-
-    <!-- En-tête -->
-    <h1 class="text-subtitle mb-6">Tableau de bord : évènements</h1>
-
     <!-- Bouton Nouveau -->
     <button @click="$router.push('/organisateur/formulaires?onglet=Evènement')" class="btn-tertiary px-4 py-2 rounded-lg inline-block mb-6">
   Nouveau
@@ -40,6 +37,7 @@
             v-for="evenement in evenements"
             :key="evenement.id"
             class="border-t border-default-medium hover:bg-neutral-secondary-medium transition-colors"
+            @click.stop="$router.push(`/organisateur/evenements/${evenement.id}/courses`)"
           >
             <!-- Nom -->
             <td class="px-4 py-3 font-medium text-heading">
@@ -84,7 +82,7 @@
               <div class="flex items-center gap-2">
                 <!-- Bouton Modifier -->
                 <button
-                  @click="modifierEvenement(evenement)"
+                  @click.stop="modifierEvenement(evenement)"
                   class="p-1.5 rounded-lg text-primary hover:bg-tertiary transition-colors"
                   title="Modifier"
                 >
@@ -96,7 +94,7 @@
 
                 <!-- Bouton Supprimer -->
                 <button
-                  @click="confirmerSuppression(evenement)"
+                  @click.stop="confirmerSuppression(evenement)"
                   class="p-1.5 rounded-lg text-accent hover:bg-red-50 transition-colors"
                   title="Supprimer"
                 >
@@ -138,6 +136,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import Title from '../components/Title.vue'
 
 const router = useRouter()
 const evenements = ref([])
@@ -162,7 +161,7 @@ async function chargerEvenements() {
 // ===== MODIFIER =====
 function modifierEvenement(evenement) {
   // TODO (4.2) : passer les données de l'événement au FormulaireEvenement en mode édition
-  router.push('/organisateur/formulaires')
+  router.push('/organisateur/formulaires?onglet=Evènement')
 }
 
 // ===== SUPPRIMER =====
