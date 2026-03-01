@@ -1,20 +1,16 @@
 <template>
   <Title :texte="`Tableau de bord : évènements`" />
   <div class="p-6">
-    <!-- Bouton Nouveau -->
     <button @click="$router.push('/organisateur/formulaires?onglet=Evènement')" class="btn-tertiary px-4 py-2 rounded-lg inline-block mb-6">
-  Nouveau
-</button>
+      Nouveau
+    </button>
 
-    <!-- Message d'erreur -->
     <p v-if="erreur" class="text-accent text-label mb-4">{{ erreur }}</p>
 
-    <!-- Chargement -->
     <div v-if="chargement" class="text-body text-center py-8">
       Chargement des évènements...
     </div>
 
-    <!-- Tableau -->
     <div v-else class="overflow-x-auto rounded-xl border border-default-medium">
       <table class="w-full text-sm text-left text-body">
         <thead class="bg-neutral-secondary-medium text-heading text-xs uppercase">
@@ -36,28 +32,21 @@
           <tr
             v-for="evenement in evenements"
             :key="evenement.id"
-            class="border-t border-default-medium hover:bg-neutral-secondary-medium transition-colors"
+            class="border-t border-default-medium hover:bg-neutral-secondary-medium transition-colors cursor-pointer"
             @click.stop="$router.push(`/organisateur/evenements/${evenement.id}/courses`)"
           >
-            <!-- Nom -->
             <td class="px-4 py-3 font-medium text-heading">
               {{ evenement.nom }}
             </td>
 
-            <!-- Date début (TODO 9.2) -->
             <td class="px-4 py-3">
-              <!-- TODO (9.2) : remplacer par vraie date min des courses liées -->
-              <!-- GET /api/organisateur/courses/{id_evenement} -->
-              —
+              {{ getDateDebutEvenement(evenement) }}
             </td>
 
-            <!-- Date fin (TODO 9.2) -->
             <td class="px-4 py-3">
-              <!-- TODO (9.2) : remplacer par vraie date max des courses liées -->
-              —
+              {{ getDateFinEvenement(evenement) }}
             </td>
 
-            <!-- Actif -->
             <td class="px-4 py-3 text-center">
               <svg v-if="evenement.is_actif" class="w-5 h-5 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -67,7 +56,6 @@
               </svg>
             </td>
 
-            <!-- Interne -->
             <td class="px-4 py-3 text-center">
               <svg v-if="evenement.is_interne" class="w-5 h-5 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -77,10 +65,8 @@
               </svg>
             </td>
 
-            <!-- Actions -->
             <td class="px-4 py-3">
               <div class="flex items-center gap-2">
-                <!-- Bouton Modifier -->
                 <button
                   @click.stop="modifierEvenement(evenement)"
                   class="p-1.5 rounded-lg text-primary hover:bg-tertiary transition-colors"
@@ -92,7 +78,6 @@
                   </svg>
                 </button>
 
-                <!-- Bouton Supprimer -->
                 <button
                   @click.stop="confirmerSuppression(evenement)"
                   class="p-1.5 rounded-lg text-accent hover:bg-red-50 transition-colors"
@@ -110,7 +95,6 @@
       </table>
     </div>
 
-    <!-- Popup confirmation suppression -->
     <div v-if="evenementASupprimer" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-2xl p-6 shadow-xl max-w-sm w-full mx-4">
         <h2 class="text-heading font-bold text-lg mb-2">Confirmer la suppression</h2>
@@ -144,6 +128,41 @@ const chargement = ref(true)
 const erreur = ref('')
 const evenementASupprimer = ref(null)
 
+// ===== GESTION DES DATES (Calcul dynamique) =====
+function formaterDate(dateString) {
+  if (!dateString) return '—'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('fr-CH', {
+    day: '2-digit', month: '2-digit', year: 'numeric'
+  })
+}
+
+function getDateDebutEvenement(evenement) {
+  if (!evenement.courses || evenement.courses.length === 0) return '—'
+  
+  const dates = evenement.courses
+    .map(c => c.debut_inscription)
+    .filter(d => d) 
+    .map(d => new Date(d).getTime())
+  
+  if (dates.length === 0) return '—'
+  
+  return formaterDate(new Date(Math.min(...dates)))
+}
+
+function getDateFinEvenement(evenement) {
+  if (!evenement.courses || evenement.courses.length === 0) return '—'
+  
+  const dates = evenement.courses
+    .map(c => c.fin_inscription)
+    .filter(d => d)
+    .map(d => new Date(d).getTime())
+  
+  if (dates.length === 0) return '—'
+  
+  return formaterDate(new Date(Math.max(...dates)))
+}
+
 // ===== CHARGER LES ÉVÉNEMENTS =====
 async function chargerEvenements() {
   chargement.value = true
@@ -160,8 +179,7 @@ async function chargerEvenements() {
 
 // ===== MODIFIER =====
 function modifierEvenement(evenement) {
-  // TODO (4.2) : passer les données de l'événement au FormulaireEvenement en mode édition
-  router.push('/organisateur/formulaires?onglet=Evènement')
+  router.push(`/organisateur/formulaires?onglet=Evènement&id=${evenement.id}`);
 }
 
 // ===== SUPPRIMER =====
