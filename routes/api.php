@@ -12,7 +12,7 @@ use App\Http\Controllers\OptionController;
     Route::post('/login',    [AuthController::class, 'login']);
 
     // ===== Routes protégées (nécessite d'être connecté) =====
-    //Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me',      [AuthController::class, 'me']);
         
@@ -29,11 +29,9 @@ use App\Http\Controllers\OptionController;
             Route::get('/options/{id_course}', [OptionController::class, 'indexParticipant']);
         });
         
-        //Gestion du rôle Administrateur par Middleware (3.1) - à décomenter plus tard
-        //Route::middleware('is_admin')->prefix('organisateur')->group(function () {
-
+        //Gestion du rôle Administrateur par Middleware (3.1)
         // Disponible sur l'URL : /api/organisateur/*
-        Route::prefix('organisateur')->group(function () {
+        Route::middleware('is_admin')->prefix('organisateur')->group(function () {
             // Routes pour la gestion des événements (CRUD)
             Route::get('/evenements', [EvenementController::class, 'indexAdmin']);
             Route::get('/evenements/{id}', [EvenementController::class, 'show']);
@@ -54,4 +52,4 @@ use App\Http\Controllers\OptionController;
             Route::put('/options/{id}', [OptionController::class, 'update']);
             Route::delete('/options/{id}', [OptionController::class, 'destroy']);
         });
-//});
+    });

@@ -36,4 +36,5 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Étape 9 : Expose & Lancement
 EXPOSE 8000
 # On force la migration au démarrage pour que la DB MariaDB de Render soit toujours à jour
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
+# On ajoute également des données pour que l'application possède déjà les accès admins
+CMD php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=8000

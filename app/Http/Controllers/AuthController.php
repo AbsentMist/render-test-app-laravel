@@ -70,7 +70,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user'  => $user->load('participant'),
+            'user'  => $user->load('participant', 'roles'),
         ], 201);
     }
 
@@ -93,7 +93,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user'  => $user->load('participant'),
+            'user'  => $user->load('participant', 'roles'),
         ]);
     }
 
@@ -110,6 +110,6 @@ class AuthController extends Controller
     // ===== UTILISATEUR CONNECTÉ =====
     public function me(Request $request)
     {
-        return response()->json($request->user()->load('participant'));
+        return response()->json($request->user()->load('participant', 'roles'));
     }
 }

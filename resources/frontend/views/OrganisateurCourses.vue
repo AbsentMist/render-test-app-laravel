@@ -1,7 +1,7 @@
 <template>
     <Title :texte="`Tableau de bord : courses ${nomEvenement}`" />
     <div class="p-6">
-        <button @click="$router.push('/organisateur/formulaires?onglet=Evènement')" class="btn-tertiary px-4 py-2 rounded-lg inline-block mb-6">
+        <button @click="$router.push('/organisateur/formulaires?onglet=Course')" class="btn-tertiary px-4 py-2 rounded-lg inline-block mb-6">
         Nouveau
         </button>
 

@@ -1,11 +1,14 @@
 <script setup>
 import SidebarUser from './components/SideBarUser.vue';
+import SidebarAdmin from './components/SideBarAdmin.vue'; // Nouvel import
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from './stores/auth';
 
 const route = useRoute()
+const authStore = useAuthStore()
 
 // Masque la sidebar/header sur les pages d'authentification
 const isAuthPage = computed(() => {
@@ -18,7 +21,9 @@ const isAuthPage = computed(() => {
 
     <template v-if="!isAuthPage">
       <Header />
-      <SidebarUser />
+      
+      <SidebarAdmin v-if="authStore.showAdminLayout" />
+      <SidebarUser v-else />
     </template>
 
     <main :class="!isAuthPage ? 'sm:ml-64 pt-28 p-8 min-h-screen flex flex-col' : 'min-h-screen'">
