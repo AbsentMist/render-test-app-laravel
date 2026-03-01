@@ -3,7 +3,7 @@
         <IndicateurEtapes :steps="formulaireEtapesLabels" :currentStep="etapesActives.indexOf(etape) + 1"/>
 
         <div v-if="etape==formulaireEtape.GENERAL">
-            <p class="text-subtitle my-4">Créer un évènement</p>
+            <p class="text-subtitle my-4">{{ isEditMode ? 'Modifier l\'évènement' : 'Créer un évènement' }}</p>
             <form>
                 <div class="flex flex-row gap-4">
                     <div class="basis-3/4 flex flex-col gap-4">
@@ -177,11 +177,11 @@
                 Etape suivante
             </button>
             <button v-else class="btn-tertiary ml-auto" @click="confirmationPopup=true">
-                Créer l'évènement
+                {{ isEditMode ? 'Enregistrer les modifications' : 'Créer l\'évènement' }}
             </button>
         </div>
         <PopupConfirmation v-if="confirmationPopup" @cancel="confirmationPopup = false" @confirm="insertData()"/>
-        <PopupConfirmation v-if="dataInserted" :message="'L\'évènement a été créé avec succès !'" :icon="'mdi:check'" :showButtons="false"/>
+        <PopupConfirmation v-if="dataInserted" :message="isEditMode ? 'L\'évènement a été modifié avec succès !' : 'L\'évènement a été créé avec succès !'" :icon="'mdi:check'" :showButtons="false"/>
     </div>
 </template>
 
@@ -300,6 +300,12 @@ export default {
         };
     },
     computed: {
+        isEditMode() {
+            return !!this.$route.query.id;
+        },
+        eventId() {
+            return this.$route.query.id;
+        },
         etapesActives() {
             const etapes = [formulaireEtape.GENERAL, formulaireEtape.OPTIONS];
             const labels = ["Général", "Options supplémentaires"];
@@ -329,8 +335,34 @@ export default {
         'eventData.parameters.questionnaire'(val) {
             if (!val) this.eventData.questions = [];
         },
+        eventId(newId) {
+            if (newId) {
+                // S'il y a un nouvel ID, on charge les données correspondantes
+                this.chargerDonneesEvenement();
+            } else {
+                // Si l'ID a disparu (clic sur "Formulaires" dans la sidebar), on vide tout !
+                this.resetFormulaire();
+            }
+        }
     },  
     methods: {
+        // Remet le formulaire à neuf, en cas de reset
+        resetFormulaire() {
+            this.eventData = {
+                name: '',
+                url: '',
+                logo: null,
+                colors: { primary: '#0e0f54', secondary: '#d9f20b' },
+                parameters: {
+                    actif: false, avertissement: false, document: false, questionnaire: false, rabais: false,
+                },
+                options: [],
+                questions: [],
+                avertissement: { description: '' },
+                document: { description: '' },
+            };
+            this.etape = this.formulaireEtape.GENERAL; 
+        },
         handleModalState(){
             if(this.modal === optionModal.FERMEE) {
                 this.modal = optionModal.SELECTION;
@@ -374,6 +406,39 @@ export default {
                 this.modal = optionModal.FERMEE;
             }
         },
+        
+        // Chargement des données en mode édition
+        async chargerDonneesEvenement() {
+            try {
+                const response = await evenementOrganisateurService.getEvenement(this.eventId);
+                const ev = response.data;
+                
+                // Pré-remplissage du formulaire
+                this.eventData.name = ev.nom;
+                this.eventData.url = ev.site || '';
+                this.eventData.colors.primary = ev.couleur_primaire || '#0e0f54';
+                this.eventData.colors.secondary = ev.couleur_secondaire || '#d9f20b';
+                
+                this.eventData.parameters.actif = (ev.is_actif == 1 || ev.is_actif === true);
+                this.eventData.parameters.avertissement = (ev.is_avertissement == 1 || ev.is_avertissement === true);
+                this.eventData.parameters.document = (ev.is_document == 1 || ev.is_document === true);
+                this.eventData.parameters.questionnaire = (ev.is_questionnaire == 1 || ev.is_questionnaire === true);
+                this.eventData.parameters.rabais = (ev.is_rabais == 1 || ev.is_rabais === true);
+
+                
+                if (ev.is_avertissement === 1 && ev.avertissement_description) {
+                    this.eventData.avertissement.description = ev.avertissement_description;
+                }
+                if (ev.is_document === 1 && ev.document_description) {
+                    this.eventData.document.description = ev.document_description;
+                }
+                
+                console.log("Données chargées pour édition :", ev);
+            } catch(e) {
+                console.error("Erreur lors du chargement de l'événement: ", e);
+            }
+        },
+
         async insertData() {
             try {
                 const formData = new FormData();
@@ -403,7 +468,14 @@ export default {
                     formData.append('options', JSON.stringify(this.eventData.options));
                 }
 
-                const response = await evenementOrganisateurService.createEvenement(formData);
+                let response;
+                if (this.isEditMode) {
+                    formData.append('_method', 'PUT'); 
+                    response = await evenementOrganisateurService.modifyEvenement(this.eventId, formData);
+                } else {
+                    response = await evenementOrganisateurService.createEvenement(formData);
+                }
+
                 this.confirmPopup();
                 console.log(response.data);
             } catch(e) {
@@ -415,10 +487,18 @@ export default {
             this.dataInserted = true; 
             setTimeout(() => {
                 this.dataInserted = false; 
+                // Redirection vers le tableau de bord après modification
+                if (this.isEditMode) {
+                    this.$router.push('/organisateur/evenements');
+                }
             }, 2000); 
         }
     },
     async mounted() {
+        if (this.isEditMode) {
+            await this.chargerDonneesEvenement();
+        }
+
         try{
             let response = await optionOrganisateurService.getAllOptions();
             this.optionModels = response.data;

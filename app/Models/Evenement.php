@@ -38,4 +38,11 @@ class Evenement extends Model
         }
         return null;
     }
+
+    public function courses()
+    {
+        // Un événement possède plusieurs courses. 
+        // (Le 2ème paramètre 'id_evenement' dépend du nom de ta clé étrangère dans la BDD)
+        return $this->hasMany(Course::class, 'id_evenement'); 
+    }
 }

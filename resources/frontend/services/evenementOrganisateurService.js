@@ -11,7 +11,9 @@ const evenementOrganisateurService = {
         return api.post('/organisateur/evenements', data);
     },
     modifyEvenement(id, data) {
-        return api.put(`/organisateur/evenements/${id}`, data);
+        // Laravel n'arrive pas à gérer les requêtes PUT avec des données multipart/form-data (pour les images)    
+        // POST à la place de PUT pour la modification d'un événement
+        return api.post(`/organisateur/evenements/${id}`, data);
     },
     deleteEvenement(id) {
         return api.delete(`/organisateur/evenements/${id}`);
