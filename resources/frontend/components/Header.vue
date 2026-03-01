@@ -1,13 +1,14 @@
 <script setup>
 import { Icon } from '@iconify/vue';
 import { useAuthStore } from '../stores/auth';
+import { useThemeStore } from '../stores/theme';
 import { useRouter } from 'vue-router';
-import { computed } from 'vue'; // 👈 Import de computed
+import { computed } from 'vue'; 
 
 const authStore = useAuthStore();
+const themeStore = useThemeStore(); 
 const router = useRouter();
 
-// Fonction pour basculer de vue
 const handleToggleMode = async () => {
   authStore.toggleAdminMode();
   if (authStore.showAdminLayout) {
@@ -17,30 +18,22 @@ const handleToggleMode = async () => {
   }
 };
 
-// ✨ NOUVEAU : Le rôle Admin reste figé pour toi, peu importe la vue
 const userDisplayName = computed(() => {
-  // 1. Si l'utilisateur est un Admin (dans la base de données), 
-  // on affiche "Administrateur" en permanence.
   if (authStore.isAdmin) {
-    return {
-      top: 'Rôle',
-      bottom: 'Administrateur'
-    };
+    return { top: 'Rôle', bottom: 'Administrateur' };
   }
-
-  // 2. Pour les autres (simples participants), on affiche Prénom Nom
   const prenom = authStore.user?.participant?.prenom || 'Utilisateur';
   const nom = authStore.user?.participant?.nom || '';
-
-  return {
-    top: prenom,
-    bottom: nom.toUpperCase()
-  };
+  return { top: prenom, bottom: nom.toUpperCase() };
 });
 </script>
 
 <template>
-  <nav class="fixed top-0 z-50 w-full bg-primary-900 border-b border-primary-900 shadow-sm h-20">
+  <nav 
+    class="fixed top-0 z-50 w-full border-b shadow-sm h-20 transition-colors duration-300"
+    :class="themeStore.primaryColor ? '' : 'bg-primary-900 border-primary-900'"
+    :style="themeStore.primaryColor ? { backgroundColor: themeStore.primaryColor, borderBottomColor: themeStore.secondaryColor } : {}"
+  >
     <div class="px-3 lg:px-5 lg:pl-3 h-full flex items-center justify-between">
       
       <div class="flex items-center justify-start">
@@ -65,17 +58,24 @@ const userDisplayName = computed(() => {
 
         <router-link to="/profil" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
           <div class="flex flex-col items-start hidden sm:flex">
-            <div class="w-8 h-[2px] bg-tertiary mb-1"></div>
+            <div 
+                class="w-8 h-[2px] mb-1" 
+                :class="themeStore.secondaryColor ? '' : 'bg-tertiary'"
+                :style="themeStore.secondaryColor ? { backgroundColor: themeStore.secondaryColor } : {}"
+            ></div>
             
-            <span class="text-[15px] leading-tight font-medium text-secondary">
+            <span class="text-[15px] leading-tight font-medium" :class="themeStore.primaryColor ? 'text-white' : 'text-secondary'">
               {{ userDisplayName.top }}
             </span>
-            <span class="text-[15px] leading-tight font-bold text-secondary uppercase">
+            <span class="text-[15px] leading-tight font-bold uppercase" :class="themeStore.primaryColor ? 'text-white' : 'text-secondary'">
               {{ userDisplayName.bottom }}
             </span>
           </div>
           
-          <div class="w-11 h-11 rounded-full bg-[#EAE6F5] flex items-center justify-center text-primary-900 border border-primary-900 shadow-inner">
+          <div 
+            class="w-11 h-11 rounded-full flex items-center justify-center border shadow-inner transition-colors duration-300"
+            :class="themeStore.primaryColor ? 'text-white border-white bg-transparent' : 'bg-[#EAE6F5] text-primary-900 border-primary-900'"
+          >
             <Icon icon="lucide:circle-user-round" class="w-7 h-7" />
           </div>
         </router-link>
