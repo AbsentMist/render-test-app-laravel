@@ -5,7 +5,7 @@ const courseOrganisateurService = {
         return api.get(`/organisateur/evenements/${idEvent}/courses`);
     },
     getCourse(id, idEvent) {
-        return api.get(`/organisateur/evenements/${idEvent}/courses/${id}`);
+        return api.get(`/organisateur/courses/${id}`);
     },
     createCourse(data) {
         return api.post('/organisateur/courses', data);

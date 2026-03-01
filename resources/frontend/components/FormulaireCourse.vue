@@ -1,12 +1,12 @@
 <template>
     <div class="bg-secondary rounded-b-base rounded-tr-base p-6">
-        <h1 class="text-subtitle my-4">Créer une course</h1>
+        <h1 class="text-subtitle my-4">{{ isEditMode ? 'Modifier la course' : 'Créer une course' }}</h1>
         
         <div class="flex justify-between items-center">
             <label for="dropdown" class="text-sm font-medium text-heading">Evènement</label>
             <div class="relative">
                 <button data-dropdown-toggle="dropdownEvent" class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5" type="button">
-                    {{courseData.event.nom || "Sélectionner un évènement"}}
+                    {{courseData.event.nom || courseData.event.name || "Sélectionner un évènement"}}
                     <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
                 </button>
                 <div id="dropdownEvent" class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
@@ -76,7 +76,7 @@
                     <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
                        <Icon icon="mdi:access-time" class="w-4 h-4 text-body" />
                     </div>
-                    <input type="time" id="startTime" v-model="courseData.time.start" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" value="00:00" required />
+                    <input type="time" id="startTime" v-model="courseData.time.start" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" required />
                 </div>
             </div>
             <div class="basis-1/2">
@@ -85,7 +85,7 @@
                     <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
                         <Icon icon="mdi:access-time" class="w-4 h-4 text-body" />
                     </div>
-                    <input type="time" id="endTime" v-model="courseData.time.end" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" value="00:00" required />
+                    <input type="time" id="endTime" v-model="courseData.time.end" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" required />
                 </div>
             </div>
         </div>
@@ -167,21 +167,21 @@
         <div class="flex flex-row justify-between items-center mb-4">
             <label class="text-sm font-medium text-heading">Actif</label>
             <label class="inline-flex items-center cursor-pointer">
-                <input type="checkbox" v-model="courseData.parameters.actif" value="" class="sr-only peer">
+                <input type="checkbox" v-model="courseData.parameters.actif" class="sr-only peer">
                 <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
             </label>
         </div>
         <div class="flex flex-row justify-between items-center mb-4">
             <label class="text-sm font-medium text-heading">Dossard personnalisé</label>
             <label class="inline-flex items-center cursor-pointer">
-                <input type="checkbox" v-model="courseData.parameters.dossardPersonalise" value="" class="sr-only peer">
+                <input type="checkbox" v-model="courseData.parameters.dossardPersonalise" class="sr-only peer">
                 <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
             </label>
         </div>
         <div class="flex flex-row justify-between items-center mb-4">
             <label class="text-sm font-medium text-heading">Challenge</label>
             <label class="inline-flex items-center cursor-pointer">
-                <input type="checkbox" v-model="courseData.parameters.challenge" value="" class="sr-only peer">
+                <input type="checkbox" v-model="courseData.parameters.challenge" class="sr-only peer">
                 <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
             </label>
         </div>
@@ -229,10 +229,10 @@
             </div>
         </div>
         <div class="flex justify-end items-center gap-4 my-4">
-            <button class="btn-tertiary" @click="confirmationPopup=true">Créer la course</button>
+            <button class="btn-tertiary" @click="confirmationPopup=true">{{ isEditMode ? 'Enregistrer les modifications' : 'Créer la course' }}</button>
         </div>
         <PopupConfirmation v-if="confirmationPopup" @cancel="confirmationPopup = false" @confirm="insertCourse()"/>
-        <PopupConfirmation v-if="dataInserted" :message="'L\'évènement a été créé avec succès !'" :icon="'mdi:check'" :showButtons="false"/>
+        <PopupConfirmation v-if="dataInserted" :message="isEditMode ? 'La course a été modifiée avec succès !' : 'La course a été créée avec succès !'" :icon="'mdi:check'" :showButtons="false"/>
 
     </div>
 </template>
@@ -257,75 +257,159 @@ export default {
             dataInserted: false,
             evenements: [],
             typesCourse: [
-                {
-                    name: "Type de course 1",
-                    id: 1,
-                },
-                {
-                    name: "Type de course 2",
-                    id: 2,
-                },
+                { name: "Type de course 1", id: 1 },
+                { name: "Type de course 2", id: 2 },
             ],
             categories: [
-                {
-                    name: "Catégorie 1",
-                    id: 1,
-                },
-                {
-                    name: "Catégorie 2",
-                    id: 2,
-                },
+                { name: "Catégorie 1", id: 1 },
+                { name: "Catégorie 2", id: 2 },
             ],
             subCategories: [
-                {
-                    name: "Sous-catégorie 1",
-                    id: 1,
-                },
-                {
-                    name: "Sous-catégorie 2",
-                    id: 2,
-                },
+                { name: "Sous-catégorie 1", id: 1 },
+                { name: "Sous-catégorie 2", id: 2 },
             ],
             courseData:{
                 name: "",
                 event: {name: "", id: ""},
-                date: {
-                    start: "",
-                    end: "",
-                    inscriptionStart: "",
-                    inscriptionEnd: "",
-                },
-                time: {
-                    start: "",
-                    end: "",
-                },
+                date: { start: "", end: "", inscriptionStart: "", inscriptionEnd: "" },
+                time: { start: "", end: "" },
                 distance: "",
                 tarif: "",
                 tarifInfo: "",
                 popupInfo: "",
                 type: {name: "", id: ""},
                 maxRunners: "",
-                dossard: {
-                    first: "",
-                    last: "",
-                },
-                age: {
-                    min: "",
-                    max: "",
-                    conditionMineur: "",
-                },
+                dossard: { first: "", last: "" },
+                age: { min: "", max: "", conditionMineur: "" },
                 tempsMoyen: "",
-                parameters: {
-                    actif: false,
-                    dossardPersonalise: false,
-                    challenge: false,
-                },
+                parameters: { actif: false, dossardPersonalise: false, challenge: false },
                 category: {name: "", id: ""},
                 subCategory: {name: "", id: ""},
             },
         };
     },
+    computed: {
+        isEditMode() {
+            return !!this.$route.query.id;
+        },
+        courseId() {
+            return this.$route.query.id;
+        },
+        eventIdFromUrl() {
+            return this.$route.query.idEvenement;
+        }
+    },
+    watch: {
+        courseId(newId) {
+            if (newId) {
+                this.chargerDonneesCourse();
+            } else {
+                this.resetFormulaire();
+            }
+        }
+    },
     methods: {
+        //Remet le formulaire lors d'un reset
+        resetFormulaire() {
+            this.courseData = {
+                name: "", event: {name: "", id: ""},
+                date: { start: "", end: "", inscriptionStart: "", inscriptionEnd: "" },
+                time: { start: "", end: "" },
+                distance: "", tarif: "", tarifInfo: "", popupInfo: "",
+                type: {name: "", id: ""}, maxRunners: "",
+                dossard: { first: "", last: "" },
+                age: { min: "", max: "", conditionMineur: "" },
+                tempsMoyen: "",
+                parameters: { actif: false, dossardPersonalise: false, challenge: false },
+                category: {name: "", id: ""}, subCategory: {name: "", id: ""}
+            };
+            // Vidage manuel des champs Flowbite
+            ['datepicker-start', 'datepicker-end', 'inscriptionpicker-start', 'inscriptionpicker-end'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.value = '';
+            });
+        },
+
+        // Chargement des données pour l'édition
+        async chargerDonneesCourse() {
+            try {
+                
+                const response = await courseOrganisateurService.getCourse(this.courseId);
+
+                //Gestion erreur
+                if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+                    console.error("ERREUR : L'API a renvoyé une page HTML. La route Backend n'existe pas.");
+                    return;
+                }
+
+                const course = response.data.course || response.data; 
+
+                this.courseData.name = course.nom || "";
+                this.courseData.tarif = course.tarif || "";
+                this.courseData.maxRunners = course.max_inscription || "";
+                this.courseData.dossard.first = course.premier_dossard || "";
+                this.courseData.dossard.last = course.dernier_dossard || "";
+                this.courseData.age.min = course.age_minimum || "";
+                this.courseData.age.max = course.age_maximum || "";
+                this.courseData.distance = course.distance || "";
+                this.courseData.popupInfo = course.pop_info || "";
+                
+                // Mappage du type
+                if (course.type) {
+                    this.courseData.type = { name: course.type, id: "" };
+                }
+
+                if (course.heure_depart) {
+                    this.courseData.time.start = course.heure_depart.substring(0, 5);
+                }
+                if (course.heure_fin) {
+                    this.courseData.time.end = course.heure_fin.substring(0, 5);
+                }
+
+                if (course.date) {
+                    this.courseData.date.start = new Date(course.date);
+                    const el = document.getElementById('datepicker-start');
+                    if(el) el.value = course.date; 
+                }
+                if (course.debut_inscription) {
+                    this.courseData.date.inscriptionStart = new Date(course.debut_inscription);
+                    const el = document.getElementById('inscriptionpicker-start');
+                    if(el) el.value = course.debut_inscription;
+                }
+                if (course.fin_inscription) {
+                    this.courseData.date.inscriptionEnd = new Date(course.fin_inscription);
+                    const el = document.getElementById('inscriptionpicker-end');
+                    if(el) el.value = course.fin_inscription;
+                }
+                
+                this.courseData.parameters.actif = (course.is_actif == 1 || course.is_actif === true);
+                this.courseData.parameters.challenge = (course.challenge == 1 || course.challenge === true);
+                
+                // Pré-sélection de l'événement dans le dropdown
+                if (course.id_evenement && this.evenements.length > 0) {
+                    this.courseData.event = this.evenements.find(e => e.id === course.id_evenement) || {name: "", id: ""};
+                }
+
+                // Force la mise à jour des Datepickers Flowbite
+                if (course.date) {
+                    this.courseData.date.start = new Date(course.date);
+                    document.getElementById('datepicker-start').value = course.date; 
+                }
+                if (course.debut_inscription) {
+                    this.courseData.date.inscriptionStart = new Date(course.debut_inscription);
+                    document.getElementById('inscriptionpicker-start').value = course.debut_inscription;
+                }
+                if (course.fin_inscription) {
+                    this.courseData.date.inscriptionEnd = new Date(course.fin_inscription);
+                    document.getElementById('inscriptionpicker-end').value = course.fin_inscription;
+                }
+
+                console.log("Course chargée avec succès :", course);
+            } catch(e) {
+                console.error("Erreur chargement course:", e);
+            }
+        },
+
         selectEvent(event) {
             this.courseData.event = event;
             FlowbiteInstances.getInstance('Dropdown', 'dropdownEvent').hide();
@@ -347,19 +431,33 @@ export default {
                 const payload = {
                     id_evenement:       this.courseData.event.id,
                     nom:                this.courseData.name,
-                    date:               this.courseData.date.start?.toISOString().split('T')[0],
-                    debut_inscription:  this.courseData.date.inscriptionStart?.toISOString().split('T')[0],
-                    fin_inscription:    this.courseData.date.inscriptionEnd?.toISOString().split('T')[0],
+                    date:               this.courseData.date.start?.toISOString ? this.courseData.date.start.toISOString().split('T')[0] : null,
+                    debut_inscription:  this.courseData.date.inscriptionStart?.toISOString ? this.courseData.date.inscriptionStart.toISOString().split('T')[0] : null,
+                    fin_inscription:    this.courseData.date.inscriptionEnd?.toISOString ? this.courseData.date.inscriptionEnd.toISOString().split('T')[0] : null,
                     tarif:              this.courseData.tarif,
                     max_inscription:    this.courseData.maxRunners,
                     premier_dossard:    this.courseData.dossard.first,
                     dernier_dossard:    this.courseData.dossard.last,
                     age_minimum:        this.courseData.age.min,
+                    age_maximum:        this.courseData.age.max,
+                    distance:           this.courseData.distance,
+                    heure_depart:       this.courseData.time.start,
+                    heure_fin:          this.courseData.time.end,
+                    pop_info:           this.courseData.popupInfo,
+                    challenge:          Boolean(this.courseData.parameters.challenge),
                     status:             "actif",
                     type:               this.courseData.type.name,
+                    is_actif:           Boolean(this.courseData.parameters.actif)
                 };
 
-                const response = await courseOrganisateurService.createCourse(payload);
+                let response;
+                // ✨ MODIFICATION : Choix entre CREATE et UPDATE
+                if (this.isEditMode) {
+                    response = await courseOrganisateurService.modifyCourse(this.courseId, payload);
+                } else {
+                    response = await courseOrganisateurService.createCourse(payload);
+                }
+
                 if (response) {
                     this.confirmPopup();
                 }
@@ -373,6 +471,15 @@ export default {
             this.dataInserted = true; 
             setTimeout(() => {
                 this.dataInserted = false; 
+                // Redirection après succès
+                if (this.isEditMode) {
+                    // On retourne sur la liste des courses de l'événement modifié
+                    if(this.courseData.event.id) {
+                        this.$router.push(`/organisateur/evenements/${this.courseData.event.id}/courses`);
+                    } else {
+                        this.$router.push(`/organisateur/evenements`);
+                    }
+                }
             }, 2000); 
         }
     },
@@ -397,9 +504,13 @@ export default {
         try{
             const response = await evenementOrganisateurService.getAllEvenements();
             this.evenements = response.data;
-            console.log("Dropdown evenement: ", response.data);
         } catch(e){
             console.log("Erreur lors de la récupération de l'évènement ", e);
+        }
+
+        //Charger les données si mode édition
+        if (this.isEditMode) {
+            await this.chargerDonneesCourse();
         }
     }
 }

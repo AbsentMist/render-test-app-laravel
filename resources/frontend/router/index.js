@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../stores/auth";
+import { useThemeStore } from "../stores/theme";
 
 const routes = [
   // ===== Route par défaut (Racine du site) =====
@@ -13,7 +14,7 @@ const routes = [
     path: "/login",
     name: "login",
     component: () => import("../views/Connexion.vue"),
-    meta: { guest: true } // TODO (3.1) : rediriger si déjà connecté
+    meta: { guest: true }
   },
   {
     path: "/inscription",
@@ -48,7 +49,7 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: "/liste-courses",
+    path: "/liste-courses/:idEvenement",
     name: "ListeCourses",
     component: () => import("../views/ListeCourses.vue")
   },
@@ -122,12 +123,18 @@ const router = createRouter({
   }
 });
 
-// TODO (3.1) : Ajouter ici le guard de navigation pour la gestion des rôles
-// router.beforeEach((to, from, next) => { ... })
+
+
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
+  const themeStore = useThemeStore(); 
   const isAuthenticated = authStore.isAuthenticated();
   const isAdmin = authStore.isAdmin;
+
+  // Rénitialise si on quitte page ListeCourses
+  if (from.name === 'ListeCourses' && to.name !== 'ListeCourses') {
+    themeStore.resetTheme();
+  }
 
   //Redirige si l'utilisateur est déjà connecté lors du /login ou /inscription
   if (to.meta.guest && isAuthenticated) {

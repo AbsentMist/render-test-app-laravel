@@ -40,10 +40,10 @@
                 <td class="px-4 py-3 font-medium text-heading">{{ course.nom }}</td>
 
                 <!-- Date début (TODO 9.2) -->
-                <td class="px-4 py-3">—</td>
+                <td class="px-4 py-3">{{ formaterDate(course.debut_inscription) }}</td>
 
                 <!-- Date fin (TODO 9.2) -->
-                <td class="px-4 py-3">—</td>
+                <td class="px-4 py-3">{{ formaterDate(course.fin_inscription) }}</td>
 
                 <!-- Actif -->
                 <td class="px-4 py-3 text-center">
@@ -141,6 +141,15 @@ export default {
         }
     },
     methods: {
+        formaterDate(dateString) {
+            if (!dateString) return '—'; // Si pas de date
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-CH', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        },
         async chargerCourses() {
         this.chargement = true
         this.erreur = ''
@@ -154,7 +163,7 @@ export default {
         }
         },
         modifierCourse(course) {
-        this.$router.push(`/organisateur/formulaires?id=${course.id}`)
+        this.$router.push(`/organisateur/formulaires?onglet=Course&id=${course.id}&idEvenement=${this.idEvenement}`);
         },
         confirmerSuppression(course) {
         this.courseASupprimer = course

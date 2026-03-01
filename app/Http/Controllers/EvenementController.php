@@ -10,7 +10,8 @@ class EvenementController extends Controller
     // GET (admin): 
     public function indexAdmin()
     {
-        $evenements = Evenement::all()->map(function ($evenement) {
+        // 1. On remplace all() par with('courses')->get()
+        $evenements = Evenement::with('courses')->get()->map(function ($evenement) {
             // Transformation du BLOB en Base64 pour l'affichage Frontend
             if ($evenement->logo) {
                 $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);

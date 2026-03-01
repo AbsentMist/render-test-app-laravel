@@ -1,79 +1,74 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { Icon } from '@iconify/vue';
+import courseParticipantService from '../services/courseParticipantService';
+import { useThemeStore } from '../stores/theme'; // 👈 1. Import du store
 
-// Données fictives, facilement remplaçables par un appel API
-// Les couleurs sont intégrées dans l'objet pour être dynamiques selon la course
-const courses = ref([
-  {
-    id: 1,
-    eventName: 'Nocturne des\nEvaux',
-    date: '10.04.2026',
-    title: 'Course 20 km',
-    price: '35.00',
-    validity: '1 janvier 2026',
-    extraInfo: '',
-    // Couleurs dynamiques (pourront venir de la BDD)
-    cardBg: 'bg-[#cbf0f4]',        // Fond bleu clair de la carte entière
-    leftBg: 'bg-[#5e7082]',        // Fond bleu foncé du bloc de gauche
-    datePillBg: 'bg-[#3b5266]',    // Fond de la pilule de date
-    textColor: 'text-[#5e7082]',   // Couleur du texte à droite
-  },
-  {
-    id: 2,
-    eventName: 'Nocturne des\nEvaux',
-    date: '10.04.2026',
-    title: 'Course 20 km',
-    price: '35.00',
-    validity: '1 janvier 2026',
-    extraInfo: 'Groupe (2)',
-    cardBg: 'bg-[#cbf0f4]',
-    leftBg: 'bg-[#5e7082]',
-    datePillBg: 'bg-[#3b5266]',
-    textColor: 'text-[#5e7082]',
-  },
-  {
-    id: 3,
-    eventName: 'Nocturne des\nEvaux',
-    date: '10.04.2026',
-    title: 'Course 20 km',
-    price: '35.00',
-    validity: '1 janvier 2026',
-    extraInfo: '',
-    cardBg: 'bg-[#cbf0f4]',
-    leftBg: 'bg-[#5e7082]',
-    datePillBg: 'bg-[#3b5266]',
-    textColor: 'text-[#5e7082]',
-  },
-  {
-    id: 4,
-    eventName: 'Nocturne des\nEvaux',
-    date: '10.04.2026',
-    title: 'Course 20 km',
-    price: '35.00',
-    validity: '1 janvier 2026',
-    extraInfo: '',
-    cardBg: 'bg-[#cbf0f4]',
-    leftBg: 'bg-[#5e7082]',
-    datePillBg: 'bg-[#3b5266]',
-    textColor: 'text-[#5e7082]',
+const route = useRoute();
+const themeStore = useThemeStore(); // 👈 2. Initialisation du store
+const evenement = ref(null);
+const courses = ref([]);
+const chargement = ref(true);
+const recherche = ref('');
+
+const idEvenement = computed(() => route.params.idEvenement);
+
+// ===== CHARGEMENT DES COURSES =====
+async function chargerDonnees() {
+  try {
+    const response = await courseParticipantService.getAllCourses(idEvenement.value);
+    evenement.value = response.data.evenement;
+    courses.value = response.data.courses;
+
+    // ✨ 3. C'EST ICI QUE LA MAGIE OPÈRE : 
+    // On indique au Store les couleurs de l'évènement pour que la Sidebar et le Header changent !
+    if (evenement.value) {
+        themeStore.setTheme(
+            evenement.value.couleur_primaire,
+            evenement.value.couleur_secondaire
+        );
+    }
+
+  } catch (error) {
+    console.error("Erreur chargement courses :", error);
+  } finally {
+    chargement.value = false;
   }
-]);
+}
+
+// Filtre de recherche
+const coursesFiltrees = computed(() => {
+  return courses.value.filter(c => 
+    c.nom_course.toLowerCase().includes(recherche.value.toLowerCase())
+  );
+});
+
+// Formatage de la date (JJ.MM.AAAA)
+function formaterDate(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('fr-CH');
+}
+
+onMounted(() => {
+  chargerDonnees();
+});
 </script>
 
 <template>
   <div class="p-6">
-
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-      <div>
-        <h2 class="text-2xl font-normal text-gray-900">Nocturne des Evaux</h2>
-        <div class="h-1 w-20 bg-pink-200 mt-2 rounded-full"></div>
+      <div v-if="evenement">
+        <h2 class="text-2xl font-normal text-gray-900">{{ evenement.nom }}</h2>
+        <div class="h-1 w-20 mt-2 rounded-full" :style="{ backgroundColor: evenement.couleur_secondaire || '#fbcfe8' }"></div>
       </div>
 
       <div class="relative w-full md:w-72">
         <input
+          v-model="recherche"
           type="text"
-          placeholder="Rechercher"
-          class="w-full pl-4 pr-10 py-2.5 rounded-full bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-200 text-sm font-medium text-gray-700 placeholder-gray-800"
+          placeholder="Rechercher une course"
+          class="w-full pl-4 pr-10 py-2.5 rounded-full bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-200 text-sm font-medium text-gray-700"
         />
         <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
           <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -81,54 +76,54 @@ const courses = ref([
       </div>
     </div>
 
-    <div class="flex flex-col gap-4">
-
+    <div v-if="chargement" class="text-center py-10">Chargement des courses...</div>
+    
+    <div v-else class="flex flex-col gap-4">
       <div
-        v-for="course in courses"
+        v-for="course in coursesFiltrees"
         :key="course.id"
-        :class="['p-1.5 rounded-2xl flex items-stretch shadow-sm border border-gray-100 cursor-pointer transition-transform hover:-translate-y-0.5', course.cardBg]"
+        class="p-1.5 rounded-2xl flex items-stretch shadow-sm border cursor-pointer transition-transform hover:-translate-y-0.5"
+        :style="evenement ? { 
+            borderColor: evenement.couleur_primaire + '40', 
+            backgroundColor: evenement.couleur_secondaire + '26' /* 26 = 15% d'opacité. Tu peux mettre '33' pour 20% si tu veux un peu plus foncé */
+        } : { backgroundColor: '#ffffff', borderColor: '#f3f4f6' }" 
       >
-        <div :class="['w-48 md:w-56 rounded-xl border-2 border-white flex flex-col items-center justify-center p-4 text-center text-white shrink-0', course.leftBg]">
-          <h3 class="text-xl font-medium leading-tight whitespace-pre-line">{{ course.eventName }}</h3>
-          <div :class="['mt-3 px-4 py-1 rounded-full text-sm font-semibold tracking-wide', course.datePillBg]">
-            {{ course.date }}
+        <div 
+          class="w-48 md:w-56 rounded-xl border-2 border-white flex flex-col items-center justify-center p-4 text-center text-white shrink-0"
+          :style="{ backgroundColor: evenement?.couleur_primaire || '#5e7082' }"
+        >
+          <h3 class="text-xl font-medium leading-tight whitespace-pre-line">{{ evenement?.nom }}</h3>
+          <div 
+            class="mt-3 px-4 py-1 rounded-full text-sm font-semibold tracking-wide bg-opacity-30 bg-black"
+          >
+            {{ formaterDate(evenement?.date) }}
           </div>
         </div>
 
         <div class="flex-1 flex flex-col md:flex-row md:items-center justify-between p-4 pl-6">
-
-          <div :class="['flex flex-col', course.textColor]">
-            <h4 class="text-xl font-semibold mb-2">{{ course.title }}</h4>
+          <div :style="{ color: evenement?.couleur_primaire }">
+            <h4 class="text-xl font-semibold mb-2">{{ course.nom_course }}</h4>
 
             <div class="text-sm font-semibold">
-              Tarif CHF {{ course.price }}
+              Tarif CHF {{ course.tarif }}
             </div>
             <div class="text-xs opacity-80">
               + Frais de plateforme et frais bancaire
             </div>
 
-            <div class="text-xs italic mt-3 font-medium opacity-80">
-              Tarif valable jusqu'au {{ course.validity }}
-            </div>
-
-            <div class="text-sm font-bold mt-2">
-              Dossards restants
+            <div class="text-sm font-bold mt-4 flex items-center gap-2">
+              <Icon icon="mdi:ticket-confirmation" class="w-5 h-5" />
+              Dossards restants : {{ course.dossards_restants }}
             </div>
           </div>
 
           <div class="flex items-center gap-8 mt-4 md:mt-0">
-            <span v-if="course.extraInfo" :class="['text-sm font-semibold', course.textColor]">
-              {{ course.extraInfo }}
-            </span>
-
-            <svg :class="['w-6 h-6', course.textColor]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg :style="{ color: evenement?.couleur_primaire }" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
             </svg>
           </div>
-
         </div>
       </div>
-
     </div>
   </div>
 </template>
