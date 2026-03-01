@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import axios from 'axios'
+import api from '../services/api'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref(null)
@@ -28,8 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
         if (!token.value) return;
         
         try {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
-            const response = await axios.get('/api/me') 
+            const response = await api.get('/me') 
             user.value = response.data
             
             if (isAdmin.value && localStorage.getItem('adminMode') === null) {
@@ -47,7 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function login(email, password) {
-        const response = await axios.post('/api/login', { email, password })
+        const response = await api.post('/login', { email, password })
         token.value = response.data.token
         user.value = response.data.user
         
@@ -57,21 +56,19 @@ export const useAuthStore = defineStore('auth', () => {
             activeAdminMode.value = true;
             localStorage.setItem('adminMode', 'true');
         }
-
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
     }
 
     async function register(formData) {
-        const response = await axios.post('/api/register', formData)
+        // 👈 CHANGEMENT 4 : On utilise 'api'
+        const response = await api.post('/register', formData)
         token.value = response.data.token
         user.value = response.data.user
         localStorage.setItem('token', token.value)
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
     }
 
     async function logout() {
         try {
-            await axios.post('/api/logout')
+            await api.post('/logout')
         } catch (e) {
             console.error('Erreur lors de la déconnexion :', e)
         }
@@ -81,7 +78,6 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.removeItem('token')
         localStorage.removeItem('adminMode') 
         activeAdminMode.value = false
-        delete axios.defaults.headers.common['Authorization']
     }
 
     const isAuthenticated = () => !!token.value

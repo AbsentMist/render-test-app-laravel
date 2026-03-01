@@ -3,12 +3,25 @@ import axios from 'axios';
 console.log(import.meta.env.VITE_API_URL);
 
 const api = axios.create({
-    baseURL: 'https://render-test-app-laravel.onrender.com/api',
+    baseURL: import.meta.env.VITE_API_URL || '/api',
     withCredentials: true, 
     headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'Content-Type': 'application/json'
+        'X-Requested-With': 'XMLHttpRequest'
     }
 });
+
+
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
 
 export default api;
