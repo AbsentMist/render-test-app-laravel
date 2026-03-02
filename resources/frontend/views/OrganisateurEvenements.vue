@@ -119,7 +119,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '../services/api.js'
 import Title from '../components/Title.vue'
 
 const router = useRouter()
@@ -168,7 +168,7 @@ async function chargerEvenements() {
   chargement.value = true
   erreur.value = ''
   try {
-    const response = await axios.get('/api/organisateur/evenements')
+    const response = await api.get('/organisateur/evenements')
     evenements.value = response.data
   } catch (e) {
     erreur.value = 'Impossible de charger les évènements.'
@@ -189,7 +189,7 @@ function confirmerSuppression(evenement) {
 
 async function supprimerEvenement() {
   try {
-    await axios.delete(`/api/organisateur/evenements/${evenementASupprimer.value.id}`)
+    await api.delete(`/organisateur/evenements/${evenementASupprimer.value.id}`)
     evenements.value = evenements.value.filter(e => e.id !== evenementASupprimer.value.id)
     evenementASupprimer.value = null
   } catch (e) {
