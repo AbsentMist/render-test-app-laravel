@@ -84,8 +84,10 @@ class CourseController extends Controller
             'id_evenement'      => 'required|integer|exists:Evenement,id',
             'id_categorie'      => 'nullable|integer|exists:Categorie,id', //à remettre required une fois que les catégories sont créées
             'id_sous_categorie' => 'nullable|integer|exists:SousCategorie,id',
+            'id_avertissement'  => 'nullable|integer|exists:Avertissement,id',
             'nom'               => 'required|string|max:120',
-            'date'              => 'required|date',
+            'date_debut'        => 'required|date',
+            'date_fin'          => 'required|date',
             'debut_inscription' => 'required|date',
             'fin_inscription'   => 'required|date|after_or_equal:debut_inscription',
             'tarif'             => 'required|numeric|min:0',
@@ -101,7 +103,6 @@ class CourseController extends Controller
             'age_maximum'       => 'nullable|integer|gte:age_minimum',
             'challenge'         => 'boolean',
             'is_actif'          => 'boolean', 
-            'pop_info'          => 'nullable|string|max:255',
         ]);
 
         // Valeurs par défaut si manquantes
@@ -120,7 +121,7 @@ class CourseController extends Controller
     // GET (Admin / Participant)
     public function show($id): JsonResponse
     {
-        $course = Course::with(['categorie', 'sousCategorie', 'evenement'])->find($id);
+        $course = Course::with(['categorie', 'sousCategorie', 'evenement', 'avertissement'])->find($id);
 
         if (!$course) {
             return response()->json(['message' => 'Course introuvable.'], 404);
@@ -145,10 +146,13 @@ class CourseController extends Controller
         }
 
         $validatedData = $request->validate([
+            'id_evenement'      => 'sometimes|required|integer|exists:Evenement,id',
             'id_categorie'      => 'sometimes|required|integer|exists:Categorie,id',
             'id_sous_categorie' => 'nullable|integer|exists:SousCategorie,id',
+            'id_avertissement'  => 'nullable|integer|exists:Avertissement,id',
             'nom'               => 'sometimes|required|string|max:120',
-            'date'              => 'sometimes|required|date',
+            'date_debut'        => 'sometimes|required|date',
+            'date_fin'          => 'sometimes|required|date',
             'debut_inscription' => 'sometimes|required|date',
             'fin_inscription'   => 'sometimes|required|date|after_or_equal:debut_inscription',
             'tarif'             => 'sometimes|required|numeric|min:0',
@@ -161,7 +165,6 @@ class CourseController extends Controller
             'heure_fin'         => 'sometimes|required|date_format:H:i|after:heure_depart',
             'age_minimum'       => 'sometimes|required|integer|min:0',
             'age_maximum'       => 'sometimes|required|integer|gte:age_minimum',
-            'pop_info'          => 'nullable|string|max:255',
         ]);
 
         $course->update($validatedData);

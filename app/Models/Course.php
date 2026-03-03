@@ -13,7 +13,7 @@ class Course extends Model
 
     //Nom des champs dans DB
     protected $fillable = [
-        'id_evenement', 'id_categorie', 'id_sous_categorie', 'nom', 'date', 
+        'id_evenement', 'id_categorie', 'id_sous_categorie', 'nom', 'date_debut', 'date_fin', 
         'debut_inscription', 'fin_inscription', 'tarif', 'status', 'type', 
         'challenge', 'is_actif', 'max_inscription', 'premier_dossard', 
         'dernier_dossard', 'distance', 'heure_depart', 'heure_fin', 
@@ -40,7 +40,15 @@ class Course extends Model
         return $this->belongsTo(SousCategorie::class, 'id_sous_categorie');
     }
 
+    public function avertissement(): BelongsTo{
+        return $this->belongsTo(Avertissement::class, 'id_avertissement');
+    }
+
     public function inscriptions(): HasMany {
         return $this->hasMany(Inscription::class, 'id_course');
+    }
+
+    public function options(): HasMany {
+        return $this->hasMany(OptionPourCourse::class, 'id_course');
     }
 }
