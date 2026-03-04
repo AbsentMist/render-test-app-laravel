@@ -39,9 +39,11 @@ export default {
                 nom: "",
                 description: "",
                 tarif: "",
+                type: "Quantifiable",
+                modele: true,
                 quantifiable: {
-                    quantiteMin: "",
-                    quantiteMax: ""
+                    quantiteMin: 0,
+                    quantiteMax: 1,
                 }
             },
             optionModels: [],
@@ -53,6 +55,8 @@ export default {
             this.optionData.nom = option.nom;
             this.optionData.description = option.description;
             this.optionData.tarif = option.tarif;
+            this.optionData.type = option.type;
+            this.optionData.type = option.modele,
             this.optionData.quantifiable.quantiteMin = option.quantifiable.quantiteMin;
             this.optionData.quantifiable.quantiteMax = option.quantifiable.quantiteMax;
         },
@@ -68,21 +72,20 @@ export default {
         async handleSubmit() {
             try {
                 const formData = new FormData();
-                
-                // 1. Données pour la table 'Option'
                 formData.append('nom', this.optionData.nom);
                 formData.append('description', this.optionData.description);
                 formData.append('tarif', this.optionData.tarif);
-                
-                // On détermine le type
-                const isQuantifiable = parseInt(this.optionData.quantifiable.quantiteMax) > 0;
-                formData.append('type', isQuantifiable ? 'Quantifiable' : 'Cochable');
+                formData.append('type', this.optionData.type);
+                formData.append('modele', this.optionData.modele);
 
-                // 2. Données pour la table 'OptionQuantifiable'
-                if (isQuantifiable) {
-                    formData.append('quantiteMin', this.optionData.quantifiable.quantiteMin || 0);
+                // On n'ajoute les IDs de quantité que si c'est nécessaire
+                if (this.optionData.type === 'Quantifiable') {
+                    formData.append('quantiteMin', this.optionData.quantifiable.quantiteMin);
                     formData.append('quantiteMax', this.optionData.quantifiable.quantiteMax);
                 }
+
+                // Toujours la liaison course pour ton controller
+                formData.append('courses[]', 1); 
 
                 const response = await optionOrganisateurService.createOption(formData);
                 
@@ -96,7 +99,8 @@ export default {
                 }
                 console.log(response.data);
             } catch (error) {
-                console.error("Erreur détaillée :", error.response?.data || error);
+                // Utilise l'optionnel chaining ?. pour éviter le crash "undefined"
+                console.error("Erreur détaillée :", error.response?.data || error.message || error);
             }
         },
     },

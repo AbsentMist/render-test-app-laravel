@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AvertissementController;
+use App\Http\Controllers\OptionPourCourseController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EvenementController;
@@ -52,5 +54,18 @@ use App\Http\Controllers\OptionController;
             Route::post('/options', [OptionController::class, 'store']);
             Route::put('/options/{id}', [OptionController::class, 'update']);
             Route::delete('/options/{id}', [OptionController::class, 'destroy']);
+
+            Route::get('/avertissements', [AvertissementController::class, 'indexAdmin']);
+            Route::get('/avertissements/{id}', [AvertissementController::class, 'show']);
+            Route::post('/avertissements', [AvertissementController::class, 'store']);
+            Route::put('/avertissements/{id}', [AvertissementController::class, 'update']);
+            Route::delete('/avertissements/{id}', [AvertissementController::class, 'destroy']);
+            
+            Route::get('/optionCourse', [OptionPourCourseController::class, 'indexAdmin']);
+            Route::get('/optionCourse/{id_course}/{id_option}', [OptionPourCourseController::class, 'show']);
+            Route::post('/optionCourse', [OptionPourCourseController::class, 'store']);            
+            Route::put('/optionCourse/{id_course}/{id_option}', [OptionPourCourseController::class, 'update']);
+            Route::delete('/optionCourse/{id_course}/{id_option}', [OptionPourCourseController::class, 'destroy']);
+            Route::delete('/optionCourse/{id_course}', [OptionPourCourseController::class, 'destroyByCourse']);
         });
     });

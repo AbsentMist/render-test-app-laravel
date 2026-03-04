@@ -1,41 +1,7 @@
-<script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import evenementParticipantService from '../services/evenementParticipantService';
-
-const router = useRouter();
-const evenements = ref([]);
-const chargement = ref(true);
-
-//CHARGEMENT DES DONNÉES
-async function chargerEvenements() {
-  try {
-    const response = await evenementParticipantService.getAllEvenements();
-    evenements.value = response.data;
-  } catch (error) {
-    console.error("Erreur lors du chargement des évènements :", error);
-  } finally {
-    chargement.value = false;
-  }
-}
-
-
-function goToListeCourses(idEvenement) {
-  router.push({ name: 'ListeCourses', params: { idEvenement } });
-}
-
-onMounted(() => {
-  chargerEvenements();
-});
-</script>
 
 <template>
+  <Title :texte="`Liste des évènements`" />
   <div class="p-6">
-    <div class="mb-8">
-      <h2 class="text-2xl font-normal text-gray-900">Liste des évènements</h2>
-      <div class="h-1 w-20 bg-pink-200 mt-2 rounded-full"></div>
-    </div>
-
     <div v-if="chargement" class="text-center py-10 text-body">
       Chargement des évènements...
     </div>
@@ -69,3 +35,35 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import evenementParticipantService from '../services/evenementParticipantService';
+import Title from '../components/Title.vue';
+
+const router = useRouter();
+const evenements = ref([]);
+const chargement = ref(true);
+
+//CHARGEMENT DES DONNÉES
+async function chargerEvenements() {
+  try {
+    const response = await evenementParticipantService.getAllEvenements();
+    evenements.value = response.data;
+  } catch (error) {
+    console.error("Erreur lors du chargement des évènements :", error);
+  } finally {
+    chargement.value = false;
+  }
+}
+
+
+function goToListeCourses(idEvenement) {
+  router.push({ name: 'ListeCourses', params: { idEvenement } });
+}
+
+onMounted(() => {
+  chargerEvenements();
+});
+</script>

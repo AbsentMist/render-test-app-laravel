@@ -10,6 +10,9 @@ const optionOrganisateurService = {
     createOption(data) {
         return api.post('/organisateur/options', data);
     },
+    modifyOption(id, data){
+        return api.put(`/organisateur/options/${id}`, data);
+    },
     deleteOption(id) {
         return api.delete(`/organisateur/options/${id}`);
     }
