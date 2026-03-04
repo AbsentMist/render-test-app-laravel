@@ -32,7 +32,6 @@
         </span>
       </div>
       
-      <div class="h-8"></div>
     </div>
   </div>
 </template>

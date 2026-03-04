@@ -24,7 +24,7 @@ class CourseController extends Controller
             $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
         }
 
-        $courses = Course::with(['categorie', 'sousCategorie', 'avertissement'])
+        $courses = Course::with(['categorie', 'sousCategorie', 'avertissement', 'evenement', 'options.quantifiable', 'options.cochable'])
             ->withCount('inscriptions')
             ->where('id_evenement', $id_evenement)
             ->where('is_actif', true)
@@ -38,9 +38,12 @@ class CourseController extends Controller
                     'categorie'         => $course->categorie ? $course->categorie->nom : null,
                     'sous_categorie'    => $course->sousCategorie ? $course->sousCategorie->nom : null,
                     'avertissement'     => $course->avertissement ?? null,
+                    'evenement'         => $course->evenement ?? null,
+                    'options'           => $course->options ?? null,
                     'dossards_restants' => $course->max_inscription
                         ? ($course->max_inscription - $course->inscriptions_count)
                         : 'Illimité',
+                    
                 ];
             });
 
