@@ -22,6 +22,7 @@
       <div
         v-for="course in coursesFiltrees"
         :key="course.id"
+        @click="ouvrirInscription(course)"
         class="p-1.5 rounded-2xl flex items-stretch shadow-sm border cursor-pointer transition-transform hover:-translate-y-0.5"
         :style="evenement ? { 
             borderColor: evenement.couleur_primaire + '40', 
@@ -66,6 +67,7 @@
       </div>
     </div>
   </div>
+  <PopupInscriptionCourse v-if="popupInscription" :course="courseSelectionnee" :couleur-primaire="evenement?.couleur_primaire" @close="popupInscription = false"/>
 </template>
 
 <script setup>
@@ -75,6 +77,7 @@ import { Icon } from '@iconify/vue';
 import courseParticipantService from '../services/courseParticipantService';
 import { useThemeStore } from '../stores/theme'; // 👈 1. Import du store
 import Title from '../components/Title.vue';
+import PopupInscriptionCourse from '../components/PopupInscriptionCourse.vue';
 
 const route = useRoute();
 const themeStore = useThemeStore(); // 👈 2. Initialisation du store
@@ -82,9 +85,17 @@ const evenement = ref(null);
 const courses = ref([]);
 const chargement = ref(true);
 const recherche = ref('');
+const popupInscription = ref(false);
 
 const idEvenement = computed(() => route.params.idEvenement);
 
+const courseSelectionnee = ref(null);
+
+function ouvrirInscription(course) {
+    courseSelectionnee.value = course;
+    popupInscription.value = true;
+    console.log(course);
+}
 // ===== CHARGEMENT DES COURSES =====
 async function chargerDonnees() {
   try {
