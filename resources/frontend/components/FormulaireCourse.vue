@@ -307,6 +307,8 @@ import evenementOrganisateurService from '../services/evenementOrganisateurServi
 import courseOrganisateurService from '../services/courseOrganisateurService';
 import optionOrganisateurService from '../services/optionOrganisateurService';
 import IndicateurEtapes from './IndicateurEtapes.vue';
+import avertissementOrganisateurService from '../services/avertissementOrganisateurService';
+import optionCourseService from '../services/optionCourseService';
 
 const formulaireEtape = {
     GENERAL: 1,
@@ -507,10 +509,27 @@ export default {
                 if (course.id_evenement && this.evenements.length > 0) {
                     this.courseData.event = this.evenements.find(e => e.id === course.id_evenement) || { name: "", id: "" };
                 }
+                if (course.options && Array.isArray(course.options)) {
+                    this.courseData.options = course.options.map(opt => {
+                        return {
+                            id: opt.id,
+                            nom: opt.nom,
+                            description: opt.description,
+                            tarif: opt.tarif,
+                            type: opt.type,
+                            // Reconstitution de l'objet pour OptionTemplate
+                            quantifiable: opt.quantifiable ? {
+                                quantiteMin: opt.quantifiable.quantiteMin,
+                                quantiteMax: opt.quantifiable.quantiteMax
+                            } : { quantiteMin: 0, quantiteMax: 0 }
+                        };
+                    });
+                    console.log("Options injectées dans le formulaire :", this.courseData.options);
+                }
 
                 console.log("Course chargée avec succès :", course);
             } catch (e) {
-                console.error("Erreur chargement course:", e);
+                console.error("Erreur globale chargement course:", e);
             }
         },
 
@@ -525,6 +544,7 @@ export default {
                     name: '',
                     description: '',
                     prix: '',
+                    type: 'Quantifiable',
                     quantifiable: { quantiteMin: '', quantiteMax: '' }
                 });
                 this.modal = optionModal.FERMEE;
@@ -550,50 +570,79 @@ export default {
             this.courseData.subCategory = subCategory;
             FlowbiteInstances.getInstance('Dropdown', 'dropdownSubcategory').hide();
         },
-
         async insertCourse() {
             try {
+                // 1. Gestion de l'avertissement : on le crée d'abord pour récupérer son id
+                let id_avertissement = null;
+                if (this.courseData.parameters.avertissement && this.courseData.avertissement.description) {
+                    const avertissementPayload = {
+                        titre: this.courseData.name,
+                        contenu: this.courseData.avertissement.description
+                    }
+                    const avertissementResponse = await avertissementOrganisateurService.createAvertissement(avertissementPayload);
+                    id_avertissement = avertissementResponse.data.avertissement.id;
+                }
+
+                // 2. Construction du payload course (sans options, sans avertissement brut)
                 const payload = {
-                    id_evenement:           this.courseData.event.id,
-                    nom:                    this.courseData.name,
-                    date_debut:             this.courseData.date.start?.toISOString ? this.courseData.date.start.toISOString().split('T')[0] : null,
-                    date_fin:               this.courseData.date.end?.toISOString ? this.courseData.date.end.toISOString().split('T')[0] : null,
-                    debut_inscription:      this.courseData.date.inscriptionStart?.toISOString ? this.courseData.date.inscriptionStart.toISOString().split('T')[0] : null,
-                    fin_inscription:        this.courseData.date.inscriptionEnd?.toISOString ? this.courseData.date.inscriptionEnd.toISOString().split('T')[0] : null,
-                    tarif:                  this.courseData.tarif,
-                    max_inscription:        this.courseData.maxRunners,
-                    premier_dossard:        this.courseData.dossard.first,
-                    dernier_dossard:        this.courseData.dossard.last,
-                    age_minimum:            this.courseData.age.min,
-                    age_maximum:            this.courseData.age.max,
-                    distance:               this.courseData.distance,
-                    heure_depart:           this.courseData.time.start,
-                    heure_fin:              this.courseData.time.end,
-                    challenge:              Boolean(this.courseData.parameters.challenge),
-                    status:                 "actif",
-                    type:                   this.courseData.type.name,
-                    is_actif:               Boolean(this.courseData.parameters.actif),
-                    is_avertissement:       this.courseData.parameters.avertissement ? 1 : 0,
+                    id_evenement:      this.courseData.event.id,
+                    nom:               this.courseData.name,
+                    date_debut:        this.courseData.date.start?.toISOString ? this.courseData.date.start.toISOString().split('T')[0] : null,
+                    date_fin:          this.courseData.date.end?.toISOString ? this.courseData.date.end.toISOString().split('T')[0] : null,
+                    debut_inscription: this.courseData.date.inscriptionStart?.toISOString ? this.courseData.date.inscriptionStart.toISOString().split('T')[0] : null,
+                    fin_inscription:   this.courseData.date.inscriptionEnd?.toISOString ? this.courseData.date.inscriptionEnd.toISOString().split('T')[0] : null,
+                    tarif:             this.courseData.tarif,
+                    max_inscription:   this.courseData.maxRunners,
+                    premier_dossard:   this.courseData.dossard.first,
+                    dernier_dossard:   this.courseData.dossard.last,
+                    age_minimum:       this.courseData.age.min,
+                    age_maximum:       this.courseData.age.max,
+                    distance:          this.courseData.distance,
+                    heure_depart:      this.courseData.time.start,
+                    heure_fin:         this.courseData.time.end,
+                    challenge:         Boolean(this.courseData.parameters.challenge),
+                    status:            "actif",
+                    type:              this.courseData.type.name,
+                    is_actif:          Boolean(this.courseData.parameters.actif),
+                    id_avertissement:  id_avertissement,
                 };
 
-                if (this.courseData.parameters.avertissement) {
-                    payload.avertissement_description = this.courseData.avertissement.description;
-                }
-                if (this.courseData.options.length > 0) {
-                    payload.options = JSON.stringify(this.courseData.options);
-                }
-
+                // 3. Création ou modification de la course
                 let response;
                 if (this.isEditMode) {
+                    // En édition : on supprime les anciennes associations options avant de recréer
+                    await optionCourseService.deleteOptionByCourse(this.courseId);
                     response = await courseOrganisateurService.modifyCourse(this.courseId, payload);
                 } else {
                     response = await courseOrganisateurService.createCourse(payload);
                 }
 
-                if (response) {
-                    this.confirmPopup();
+                const courseId = this.isEditMode ? this.courseId : response.data.course.id;
+
+                // 4. Association des options à la course
+                for (const option of this.courseData.options) {
+                    if (option.id) {
+                        const optionPayload = {
+                            id_course: courseId,
+                            id_option: option.id, 
+                        }
+                        // Option existante → juste l'association
+                        await optionCourseService.createOptionCourse(optionPayload);
+                    } else {
+                        // Nouvelle option → création + association
+                        const response = await optionOrganisateurService.createOption(option);
+                        const optionId = response.data.option.id;
+                        const optionPayload = {
+                            id_course: courseId,
+                            id_option: optionId, 
+                        }
+                        await optionCourseService.createOptionCourse(optionPayload);
+                    }
                 }
+
+                this.confirmPopup();
                 console.log(response.data);
+
             } catch (e) {
                 console.log("Erreur:", e.response?.data);
             }

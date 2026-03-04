@@ -10,7 +10,12 @@ class OptionPourCourse extends Model {
 
     public $timestamps = false;
 
+    protected $fillable = ['id_option', 'id_course'];
+    
     public function course() : BelongsTo{
         return $this->belongsTo(Course::class, 'id_course');
+    }
+    public function option() : BelongsTo{
+        return $this->belongsTo(Option::class, 'id_option');
     }
 }

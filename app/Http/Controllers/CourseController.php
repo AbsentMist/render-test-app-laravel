@@ -9,7 +9,7 @@ use Illuminate\Http\JsonResponse;
 
 class CourseController extends Controller
 {
-    //GET (Participant):
+    // GET (Participant)
     public function indexParticipant($id_evenement): JsonResponse
     {
         $evenement = Evenement::select(
@@ -20,38 +20,37 @@ class CourseController extends Controller
             return response()->json(['message' => 'Événement introuvable.'], 404);
         }
 
-        // Conversion du logo BLOB de la DB en Base64 pour que le frontend puisse l'afficher
         if ($evenement->logo) {
             $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
         }
 
-        // Récupération des courses actives avec leurs catégories
-        $courses = Course::with(['categorie', 'sousCategorie'])
+        $courses = Course::with(['categorie', 'sousCategorie', 'avertissement'])
             ->withCount('inscriptions')
             ->where('id_evenement', $id_evenement)
-            ->where('is_actif', 1) 
+            ->where('is_actif', 1)
             ->get()
             ->map(function ($course) {
                 return [
-                    'id' => $course->id,
-                    'nom_course' => $course->nom,
-                    'tarif' => $course->tarif,
-                    'type' => $course->type,
-                    'categorie' => $course->categorie ? $course->categorie->nom : null,
-                    'sous_categorie' => $course->sousCategorie ? $course->sousCategorie->nom : null,
-                    'dossards_restants' => $course->max_inscription 
-                        ? ($course->max_inscription - $course->inscriptions_count) 
+                    'id'                => $course->id,
+                    'nom_course'        => $course->nom,
+                    'tarif'             => $course->tarif,
+                    'type'              => $course->type,
+                    'categorie'         => $course->categorie ? $course->categorie->nom : null,
+                    'sous_categorie'    => $course->sousCategorie ? $course->sousCategorie->nom : null,
+                    'avertissement'     => $course->avertissement ?? null,
+                    'dossards_restants' => $course->max_inscription
+                        ? ($course->max_inscription - $course->inscriptions_count)
                         : 'Illimité',
                 ];
             });
 
         return response()->json([
             'evenement' => $evenement,
-            'courses' => $courses
+            'courses'   => $courses
         ], 200);
     }
 
-    //GET (Admin):
+    // GET (Admin)
     public function indexAdmin($id_evenement): JsonResponse
     {
         $evenement = Evenement::find($id_evenement);
@@ -60,7 +59,6 @@ class CourseController extends Controller
             return response()->json(['message' => 'Événement introuvable.'], 404);
         }
 
-        //Conversion BLOB en base64 pour frontend
         if ($evenement->logo) {
             $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
         }
@@ -72,17 +70,40 @@ class CourseController extends Controller
 
         return response()->json([
             'evenement' => $evenement,
-            'courses' => $courses
+            'courses'   => $courses
         ], 200);
     }
 
-    
+    // GET (Admin / Participant)
+    public function show($id): JsonResponse
+    {
+        // Chargement de la course avec toutes les relations nécessaires pour le formulaire
+        $course = Course::with([
+            'categorie', 
+            'sousCategorie', 
+            'evenement', 
+            'avertissement',
+            'options.quantifiable', // Charge les détails si quantifiable
+            'options.cochable'     // Charge les détails si cochable
+        ])->find($id);
+
+        if (!$course) {
+            return response()->json(['message' => 'Course introuvable.'], 404);
+        }
+
+        if ($course->evenement && $course->evenement->logo) {
+            $course->evenement->logo = 'data:image/jpeg;base64,' . base64_encode($course->evenement->logo);
+        }
+
+        return response()->json($course, 200);
+    }
+
     // POST (Admin)
     public function store(Request $request): JsonResponse
     {
         $validatedData = $request->validate([
             'id_evenement'      => 'required|integer|exists:Evenement,id',
-            'id_categorie'      => 'nullable|integer|exists:Categorie,id', //à remettre required une fois que les catégories sont créées
+            'id_categorie'      => 'nullable|integer|exists:Categorie,id',
             'id_sous_categorie' => 'nullable|integer|exists:SousCategorie,id',
             'id_avertissement'  => 'nullable|integer|exists:Avertissement,id',
             'nom'               => 'required|string|max:120',
@@ -102,41 +123,21 @@ class CourseController extends Controller
             'age_minimum'       => 'required|integer|min:0',
             'age_maximum'       => 'nullable|integer|gte:age_minimum',
             'challenge'         => 'boolean',
-            'is_actif'          => 'boolean', 
+            'is_actif'          => 'boolean',
         ]);
 
-        // Valeurs par défaut si manquantes
         $validatedData['challenge'] = $validatedData['challenge'] ?? false;
-        $validatedData['is_actif'] = $validatedData['is_actif'] ?? true;
+        $validatedData['is_actif']  = $validatedData['is_actif'] ?? true;
 
         $course = Course::create($validatedData);
 
         return response()->json([
             'message' => 'Course créée avec succès.',
-            'course' => $course
+            'course'  => $course
         ], 201);
     }
 
-    
-    // GET (Admin / Participant)
-    public function show($id): JsonResponse
-    {
-        $course = Course::with(['categorie', 'sousCategorie', 'evenement', 'avertissement'])->find($id);
-
-        if (!$course) {
-            return response()->json(['message' => 'Course introuvable.'], 404);
-        }
-
-        // Conversion Logo BLOB en Base64 pour affichage frontend
-        if ($course->evenement && $course->evenement->logo) {
-            $course->evenement->logo = 'data:image/jpeg;base64,' . base64_encode($course->evenement->logo);
-        }
-
-        return response()->json($course, 200);
-    }
-
-    
-    // PUT (Admin) :
+    // PUT (Admin)
     public function update(Request $request, $id): JsonResponse
     {
         $course = Course::find($id);
@@ -171,11 +172,11 @@ class CourseController extends Controller
 
         return response()->json([
             'message' => 'Course mise à jour avec succès.',
-            'course' => $course
+            'course'  => $course
         ], 200);
     }
 
-    // DELETE (Admin) :
+    // DELETE (Admin)
     public function destroy($id): JsonResponse
     {
         $course = Course::find($id);
@@ -188,4 +189,4 @@ class CourseController extends Controller
 
         return response()->json(['message' => 'Course supprimée avec succès.'], 200);
     }
-    }
+}
