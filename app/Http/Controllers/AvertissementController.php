@@ -14,7 +14,7 @@ class AvertissementController extends Controller
     public function indexAdmin(): JsonResponse
     {
         // On récupère tous les modèles d'avertissements
-        $avertissements = Avertissement::all();
+        $avertissements = Avertissement::where('modele', true)->get();
 
         return response()->json($avertissements);
     }
@@ -38,10 +38,10 @@ class AvertissementController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        dd($request->all()); 
         $validatedData = $request->validate([
             'titre'   => 'nullable|string|max:100',
             'contenu' => 'required|string',
+            'modele'      => 'boolean',
         ]);
 
         $avertissement = Avertissement::create($validatedData);
@@ -72,6 +72,7 @@ class AvertissementController extends Controller
         $validatedData = $request->validate([
             'titre'   => 'sometimes|string|max:100',
             'contenu' => 'sometimes|string',
+            'modele'      => 'boolean',
         ]);
 
         $avertissement->update($validatedData);

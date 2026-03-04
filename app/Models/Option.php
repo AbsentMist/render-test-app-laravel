@@ -12,7 +12,7 @@ class Option extends Model
     public $timestamps = false;
 
     
-    protected $fillable = ['nom', 'tarif', 'type', 'description', 'image'];
+    protected $fillable = ['nom', 'tarif', 'type', 'modele', 'description'];
 
     // Relation Many-to-Many avec Course
     public function courses(): BelongsToMany

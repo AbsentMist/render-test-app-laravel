@@ -245,7 +245,7 @@
         <div v-if="etape==formulaireEtape.OPTIONS">
             <p class="text-subtitle my-4">Options supplémentaires</p>
             <div v-for="(option, index) in courseData.options" class="my-4">
-                <OptionTemplate :optionModel="option" @remove-option="courseData.options.splice(index, 1)"/>
+                <OptionTemplate :optionModel="option" @remove-option="removeOption(index)"/>
             </div>
             <div class="flex pt-4 items-center">
                 <div class="flex-grow border-t border-gray-700"></div>
@@ -269,11 +269,11 @@
             <p class="text-subtitle mt-4">Avertissement</p>
             <p class="mb-4">Cette page apparaitra dès la sélection de la course. Elle sert à avertir les participants de risques potentiels.</p>
             <div class="flex flex-col-2 gap-4 h-128">
-                <textarea type="text" id="avertissement" v-model="courseData.avertissement.description" class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                <textarea type="text" id="avertissement" v-model="courseData.avertissement.contenu" class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
                 <div class="basis-1/3">
                     <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
-                    <button v-for="avertissementModel in avertissementModels" :key="avertissementModel.name" type="button" @click="courseData.avertissement.description = avertissementModel.description" class="btn-model">
-                        {{ avertissementModel.name }}
+                    <button v-for="avertissementModel in avertissementModels" :key="avertissementModel.name" type="button" @click="courseData.avertissement.contenu = avertissementModel.contenu" class="btn-model">
+                        {{ avertissementModel.titre }}
                     </button>
                 </div>
             </div>
@@ -354,16 +354,7 @@ export default {
             ],
             optionElements: ["Existant", "Nouveau"],
             optionModels: [],
-            avertissementModels: [
-                {
-                    name: "Course des ponts",
-                    description: "Course urbaine avec de nombreux ponts à traverser, ce qui peut présenter un risque de chute en cas de pluie."
-                },
-                {
-                    name: "Antigel",
-                    description: "En raison de conditions météorologiques hivernales, du verglas peut être présent sur le parcours, ce qui peut rendre certaines sections glissantes."
-                }
-            ],
+            avertissementModels: [],
             courseData: {
                 name: "",
                 event: { name: "", id: "" },
@@ -387,7 +378,7 @@ export default {
                 category: { name: "", id: "" },
                 subCategory: { name: "", id: "" },
                 options: [],
-                avertissement: { description: "" },
+                avertissement: { contenu: "", id:"" },
             },
         };
     },
@@ -414,7 +405,7 @@ export default {
     },
     watch: {
         'courseData.parameters.avertissement'(val) {
-            if (!val) this.courseData.avertissement = { description: '' };
+            if (!val) this.courseData.avertissement = { contenu: '' };
         },
         courseId(newId) {
             if (newId) {
@@ -438,7 +429,7 @@ export default {
                 parameters: { actif: false, dossardPersonalise: false, challenge: false, avertissement: false },
                 category: { name: "", id: "" }, subCategory: { name: "", id: "" },
                 options: [],
-                avertissement: { description: "" },
+                avertissement: { contenu: "", id: ""},
             };
             this.etape = formulaireEtape.GENERAL;
             ['datepicker-start', 'datepicker-end', 'inscriptionpicker-start', 'inscriptionpicker-end'].forEach(id => {
@@ -502,8 +493,9 @@ export default {
                 this.courseData.parameters.challenge = (course.challenge == 1 || course.challenge === true);
                 this.courseData.parameters.avertissement = (course.is_avertissement == 1 || course.is_avertissement === true);
 
-                if (course.is_avertissement && course.avertissement_description) {
-                    this.courseData.avertissement.description = course.avertissement_description;
+                if (course.is_avertissement) {
+                    this.courseData.avertissement.contenu = course.avertissement.contenu;
+                    this.courseData.avertissement.id = course.avertissement.id;
                 }
 
                 if (course.id_evenement && this.evenements.length > 0) {
@@ -541,15 +533,27 @@ export default {
                 this.modal = optionModal.EXISTANT;
             } else if (option === "Nouveau") {
                 this.courseData.options.push({
-                    name: '',
+                    nom: '',
                     description: '',
-                    prix: '',
+                    tarif: '',
                     type: 'Quantifiable',
-                    quantifiable: { quantiteMin: '', quantiteMax: '' }
+                    modele: false,
+                    quantifiable: { quantiteMin: 0, quantiteMax: 1 },
                 });
                 this.modal = optionModal.FERMEE;
             } else if (this.modal === optionModal.EXISTANT) {
-                this.courseData.options.push(this.optionModels.find(o => o.nom === option));
+                const modele = this.optionModels.find(o => o.nom === option);
+                this.courseData.options.push({
+                    nom: modele.nom,
+                    description: modele.description,
+                    tarif: modele.tarif,
+                    type: modele.type,
+                    modele: false,
+                    quantifiable: modele.type === 'Quantifiable' ? {
+                        quantiteMin: parseInt(modele.quantifiable?.quantiteMin) || 0,
+                        quantiteMax: parseInt(modele.quantifiable?.quantiteMax) || 0,
+                    } : null,
+                });
                 this.modal = optionModal.FERMEE;
             }
         },
@@ -570,20 +574,50 @@ export default {
             this.courseData.subCategory = subCategory;
             FlowbiteInstances.getInstance('Dropdown', 'dropdownSubcategory').hide();
         },
+        async removeOption(index) {
+            const option = this.courseData.options[index];
+            if (option.id) {
+                await optionCourseService.deleteOptionCourse({ 
+                    id_course: this.courseId, 
+                    id_option: option.id 
+                });
+                await optionOrganisateurService.deleteOption(option.id);
+            }
+            this.courseData.options.splice(index, 1);
+        },
+        buildOptionPayload(option) {
+            const payload = {
+                nom: option.nom,
+                description: option.description,
+                tarif: option.tarif,
+                type: option.type,
+                modele: false,
+            };
+            if (option.type === 'Quantifiable') {
+                payload.quantiteMin = parseInt(option.quantifiable?.quantiteMin) || 0;
+                payload.quantiteMax = parseInt(option.quantifiable?.quantiteMax) || 0;
+            }
+            return payload;
+        },
         async insertCourse() {
             try {
-                // 1. Gestion de l'avertissement : on le crée d'abord pour récupérer son id
-                let id_avertissement = null;
-                if (this.courseData.parameters.avertissement && this.courseData.avertissement.description) {
+                // 1. Gestion de l'avertissement
+                let id_avertissement = this.courseData.avertissement.id || null;
+
+                if (this.courseData.parameters.avertissement && this.courseData.avertissement.contenu) {
                     const avertissementPayload = {
                         titre: this.courseData.name,
-                        contenu: this.courseData.avertissement.description
+                        contenu: this.courseData.avertissement.contenu
+                    };
+                    if (this.isEditMode && id_avertissement) {
+                        await avertissementOrganisateurService.modifyAvertissement(id_avertissement, avertissementPayload);
+                    } else {
+                        const avertissementResponse = await avertissementOrganisateurService.createAvertissement(avertissementPayload);
+                        id_avertissement = avertissementResponse.data.avertissement.id;
                     }
-                    const avertissementResponse = await avertissementOrganisateurService.createAvertissement(avertissementPayload);
-                    id_avertissement = avertissementResponse.data.avertissement.id;
                 }
 
-                // 2. Construction du payload course (sans options, sans avertissement brut)
+                // 2. Payload course
                 const payload = {
                     id_evenement:      this.courseData.event.id,
                     nom:               this.courseData.name,
@@ -600,18 +634,18 @@ export default {
                     distance:          this.courseData.distance,
                     heure_depart:      this.courseData.time.start,
                     heure_fin:         this.courseData.time.end,
-                    challenge:         Boolean(this.courseData.parameters.challenge),
                     status:            "actif",
                     type:              this.courseData.type.name,
                     is_actif:          Boolean(this.courseData.parameters.actif),
+                    is_dossard:        Boolean(this.courseData.parameters.dossardPersonalise),
+                    is_avertissement:  Boolean(this.courseData.parameters.avertissement),
+                    is_challenge:      Boolean(this.courseData.parameters.challenge),
                     id_avertissement:  id_avertissement,
                 };
 
                 // 3. Création ou modification de la course
                 let response;
                 if (this.isEditMode) {
-                    // En édition : on supprime les anciennes associations options avant de recréer
-                    await optionCourseService.deleteOptionByCourse(this.courseId);
                     response = await courseOrganisateurService.modifyCourse(this.courseId, payload);
                 } else {
                     response = await courseOrganisateurService.createCourse(payload);
@@ -619,25 +653,20 @@ export default {
 
                 const courseId = this.isEditMode ? this.courseId : response.data.course.id;
 
-                // 4. Association des options à la course
-                for (const option of this.courseData.options) {
-                    if (option.id) {
-                        const optionPayload = {
-                            id_course: courseId,
-                            id_option: option.id, 
-                        }
-                        // Option existante → juste l'association
-                        await optionCourseService.createOptionCourse(optionPayload);
-                    } else {
-                        // Nouvelle option → création + association
-                        const response = await optionOrganisateurService.createOption(option);
-                        const optionId = response.data.option.id;
-                        const optionPayload = {
-                            id_course: courseId,
-                            id_option: optionId, 
-                        }
-                        await optionCourseService.createOptionCourse(optionPayload);
-                    }
+                // 4a. Options existantes → modification
+                const optionsExistantes = this.courseData.options.filter(o => o.id);
+                for (const option of optionsExistantes) {
+                    await optionOrganisateurService.modifyOption(option.id, this.buildOptionPayload(option));
+                }
+
+                // 4b. Nouvelles options → création + association
+                const optionsNouvelles = this.courseData.options.filter(o => !o.id);
+                for (const option of optionsNouvelles) {
+                    const optionResponse = await optionOrganisateurService.createOption(this.buildOptionPayload(option));
+                    await optionCourseService.createOptionCourse({
+                        id_course: courseId,
+                        id_option: optionResponse.data.option.id
+                    });
                 }
 
                 this.confirmPopup();
@@ -694,6 +723,14 @@ export default {
             this.optionModels = response.data;
         } catch (e) {
             console.error("Erreur lors de la récupération des options: ", e);
+        }
+
+        try{
+            const response = await avertissementOrganisateurService.getAllAvertissement();
+            this.avertissementModels = response.data;
+            console.log(response.data);
+        } catch (e) {
+            console.error("Erreur lors de la récupération des avertissements: ", e);
         }
 
         if (this.isEditMode) {

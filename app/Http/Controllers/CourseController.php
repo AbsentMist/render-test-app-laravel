@@ -27,7 +27,7 @@ class CourseController extends Controller
         $courses = Course::with(['categorie', 'sousCategorie', 'avertissement'])
             ->withCount('inscriptions')
             ->where('id_evenement', $id_evenement)
-            ->where('is_actif', 1)
+            ->where('is_actif', true)
             ->get()
             ->map(function ($course) {
                 return [
@@ -77,14 +77,13 @@ class CourseController extends Controller
     // GET (Admin / Participant)
     public function show($id): JsonResponse
     {
-        // Chargement de la course avec toutes les relations nécessaires pour le formulaire
         $course = Course::with([
             'categorie', 
             'sousCategorie', 
             'evenement', 
             'avertissement',
-            'options.quantifiable', // Charge les détails si quantifiable
-            'options.cochable'     // Charge les détails si cochable
+            'options.quantifiable',
+            'options.cochable'
         ])->find($id);
 
         if (!$course) {
@@ -105,7 +104,7 @@ class CourseController extends Controller
             'id_evenement'      => 'required|integer|exists:Evenement,id',
             'id_categorie'      => 'nullable|integer|exists:Categorie,id',
             'id_sous_categorie' => 'nullable|integer|exists:SousCategorie,id',
-            'id_avertissement'  => 'nullable|integer|exists:Avertissement,id',
+            'id_avertissement'  => 'nullable|integer|exists:Avertissement,id', // Ajouté pour fixer ton bug
             'nom'               => 'required|string|max:120',
             'date_debut'        => 'required|date',
             'date_fin'          => 'required|date',
@@ -118,16 +117,15 @@ class CourseController extends Controller
             'distance'          => 'nullable|numeric|min:0',
             'premier_dossard'   => 'required|integer|min:1',
             'dernier_dossard'   => 'required|integer|gte:premier_dossard',
-            'heure_depart'      => 'nullable|date_format:H:i',
-            'heure_fin'         => 'nullable|date_format:H:i|after:heure_depart',
+            'heure_depart'      => 'nullable|string', // Format H:i
+            'heure_fin'         => 'nullable|string',
             'age_minimum'       => 'required|integer|min:0',
             'age_maximum'       => 'nullable|integer|gte:age_minimum',
-            'challenge'         => 'boolean',
+            'is_challenge'      => 'boolean',
             'is_actif'          => 'boolean',
+            'is_dossard'        => 'boolean',
+            'is_avertissement'  => 'boolean',
         ]);
-
-        $validatedData['challenge'] = $validatedData['challenge'] ?? false;
-        $validatedData['is_actif']  = $validatedData['is_actif'] ?? true;
 
         $course = Course::create($validatedData);
 
@@ -148,24 +146,27 @@ class CourseController extends Controller
 
         $validatedData = $request->validate([
             'id_evenement'      => 'sometimes|required|integer|exists:Evenement,id',
-            'id_categorie'      => 'sometimes|required|integer|exists:Categorie,id',
+            'id_categorie'      => 'nullable|integer|exists:Categorie,id',
             'id_sous_categorie' => 'nullable|integer|exists:SousCategorie,id',
-            'id_avertissement'  => 'nullable|integer|exists:Avertissement,id',
+            'id_avertissement'  => 'nullable|integer|exists:Avertissement,id', // Ajouté ici aussi
             'nom'               => 'sometimes|required|string|max:120',
             'date_debut'        => 'sometimes|required|date',
             'date_fin'          => 'sometimes|required|date',
             'debut_inscription' => 'sometimes|required|date',
             'fin_inscription'   => 'sometimes|required|date|after_or_equal:debut_inscription',
             'tarif'             => 'sometimes|required|numeric|min:0',
-            'is_actif'          => 'sometimes|required|boolean',
             'max_inscription'   => 'sometimes|required|integer|min:1',
             'premier_dossard'   => 'sometimes|required|integer|min:1',
             'dernier_dossard'   => 'sometimes|required|integer|gte:premier_dossard',
             'distance'          => 'sometimes|required|numeric|min:0',
-            'heure_depart'      => 'sometimes|required|date_format:H:i',
-            'heure_fin'         => 'sometimes|required|date_format:H:i|after:heure_depart',
+            'heure_depart'      => 'sometimes|nullable|string',
+            'heure_fin'         => 'sometimes|nullable|string',
             'age_minimum'       => 'sometimes|required|integer|min:0',
-            'age_maximum'       => 'sometimes|required|integer|gte:age_minimum',
+            'age_maximum'       => 'sometimes|nullable|integer|gte:age_minimum',
+            'is_challenge'      => 'boolean',
+            'is_actif'          => 'boolean',
+            'is_dossard'        => 'boolean',
+            'is_avertissement'  => 'boolean',
         ]);
 
         $course->update($validatedData);

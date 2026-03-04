@@ -40,6 +40,7 @@ export default {
                 description: "",
                 tarif: "",
                 type: "Quantifiable",
+                modele: true,
                 quantifiable: {
                     quantiteMin: 0,
                     quantiteMax: 1,
@@ -54,6 +55,8 @@ export default {
             this.optionData.nom = option.nom;
             this.optionData.description = option.description;
             this.optionData.tarif = option.tarif;
+            this.optionData.type = option.type;
+            this.optionData.type = option.modele,
             this.optionData.quantifiable.quantiteMin = option.quantifiable.quantiteMin;
             this.optionData.quantifiable.quantiteMax = option.quantifiable.quantiteMax;
         },
@@ -73,6 +76,7 @@ export default {
                 formData.append('description', this.optionData.description);
                 formData.append('tarif', this.optionData.tarif);
                 formData.append('type', this.optionData.type);
+                formData.append('modele', this.optionData.modele);
 
                 // On n'ajoute les IDs de quantité que si c'est nécessaire
                 if (this.optionData.type === 'Quantifiable') {

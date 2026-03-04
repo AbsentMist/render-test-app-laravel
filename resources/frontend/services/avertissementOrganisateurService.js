@@ -10,6 +10,9 @@ const avertissementOrganisateurService = {
     createAvertissement(data) {
         return api.post('/organisateur/avertissements', data);
     },
+    modifyAvertissement(id, data) {
+        return api.put(`/organisateur/avertissements/${id}`, data);
+    },
     deleteAvertissement(id) {
         return api.delete(`/organisateur/avertissements/${id}`);
     }

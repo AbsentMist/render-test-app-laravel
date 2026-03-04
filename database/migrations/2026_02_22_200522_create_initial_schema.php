@@ -66,11 +66,11 @@ return new class extends Migration
 
         Schema::create('Options', function (Blueprint $table) {
             $table->id();
-            $table->string('nom', 80)->unique();
+            $table->string('nom', 80);
             $table->string('type', 100);
             $table->string('description', 255);
             $table->float('tarif')->default(0);
-            $table->binary('image')->nullable();
+            $table->boolean('modele')->default(0);
         });
 
         // Tables avec contraintes de clés étrangères
@@ -79,7 +79,7 @@ return new class extends Migration
             $table->id();
             $table->string('titre', 100);
             $table->text('contenu');
-            $table->foreignId('id_evenement')->constrained('Evenement')->onDelete('cascade');
+            $table->boolean('modele')->default(0);
         });
 
         Schema::create('Course', function (Blueprint $table) {
@@ -96,8 +96,9 @@ return new class extends Migration
             $table->float('tarif')->default(0);
             $table->string('status', 50);
             $table->string('type', 50);
-            $table->boolean('challenge')->default(0);
+            $table->boolean('is_challenge')->default(0);
             $table->boolean('is_avertissement')->default(0);
+            $table->boolean('is_dossard')->default(0);
             $table->boolean('is_actif')->default(1);
             $table->integer('max_inscription');
             $table->integer('premier_dossard');
@@ -107,7 +108,6 @@ return new class extends Migration
             $table->time('heure_fin')->nullable();
             $table->integer('age_minimum');
             $table->integer('age_maximum')->nullable();
-            $table->string('pop_info', 255)->nullable();
         });
 
         //Table d'association
