@@ -83,15 +83,15 @@ class AvertissementTest extends TestCase
     {
         $response = $this->actingAs($this->admin)
                          ->postJson('/api/organisateur/avertissements', [
-                             'titre'   => 'Nouveau avertissement',
-                             'contenu' => 'Contenu de test',
+                             'titre'   => 'Verglas',
+                             'contenu' => 'Attention au verglas.',
                              'modele'  => true,
                          ]);
 
         $response->assertStatus(201)
-                 ->assertJsonFragment(['titre' => 'Nouveau avertissement']);
+                 ->assertJsonFragment(['titre' => 'Verglas']);
 
-        $this->assertDatabaseHas('avertissement', ['titre' => 'Nouveau avertissement']);
+        $this->assertDatabaseHas('avertissement', ['titre' => 'Verglas']);
     }
 
     public function test_create_avertissement_fails_without_contenu()
@@ -110,20 +110,20 @@ class AvertissementTest extends TestCase
     public function test_admin_can_update_avertissement()
     {
         $avertissement = Avertissement::create([
-            'titre'   => 'Ancien titre',
-            'contenu' => 'Ancien contenu',
+            'titre'   => 'Verglas',
+            'contenu' => 'Attention au verglas.',
             'modele'  => true,
         ]);
 
         $response = $this->actingAs($this->admin)
                          ->putJson("/api/organisateur/avertissements/{$avertissement->id}", [
-                             'titre' => 'Nouveau titre',
+                             'titre' => 'Course des Ponts de Noel',
                          ]);
 
         $response->assertStatus(200)
-                 ->assertJsonFragment(['titre' => 'Nouveau titre']);
+                 ->assertJsonFragment(['titre' => 'Course des Ponts de Noel']);
 
-        $this->assertDatabaseHas('avertissement', ['titre' => 'Nouveau titre']);
+        $this->assertDatabaseHas('avertissement', ['titre' => 'Course des Ponts de Noel']);
     }
 
     public function test_update_avertissement_returns_404_if_not_found()
@@ -141,8 +141,8 @@ class AvertissementTest extends TestCase
     public function test_admin_can_delete_avertissement()
     {
         $avertissement = Avertissement::create([
-            'titre'   => 'A supprimer',
-            'contenu' => 'Contenu',
+            'titre'   => 'Verglas',
+            'contenu' => 'Attention au verglas.',
             'modele'  => true,
         ]);
 

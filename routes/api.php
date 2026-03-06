@@ -29,6 +29,8 @@ use App\Http\Controllers\OptionController;
 
             //Route pour la récupération des options d'une course
             Route::get('/options/{id_course}', [OptionController::class, 'indexParticipant']);
+            Route::get('/avertissements/{id_course}', [AvertissementController::class, 'indexParticipant']);
+
         });
         
         //Gestion du rôle Administrateur par Middleware (3.1)
