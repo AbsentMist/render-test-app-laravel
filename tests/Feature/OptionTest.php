@@ -207,7 +207,7 @@ class OptionTest extends TestCase
     public function test_participant_can_get_options_for_a_course()
     {
         $evenement = DB::table('Evenement')->insertGetId([
-           'nom'                => 'Course des Ponts 2025',
+            'nom'                => 'Course des Ponts 2025',
             'site'               => 'https://coursedesponts.ch',
             'couleur_primaire'   => '#ff0000',
             'couleur_secondaire' => '#ffffff',

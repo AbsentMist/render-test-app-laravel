@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Course;
 use App\Models\Evenement;
 use App\Models\User;
+use App\Models\Avertissement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -295,5 +296,66 @@ class CourseTest extends TestCase
 
         $response->assertStatus(404)
                  ->assertJsonFragment(['message' => 'Course introuvable.']);
+    }
+
+    // ===== AVERTISSEMENT DANS COURSE =====
+
+    public function test_participant_gets_avertissement_within_course()
+    {
+        $avertissement = Avertissement::create([
+            'titre'   => 'Verglas',
+            'contenu' => 'Attention au verglas.',
+            'modele'  => false,
+        ]);
+
+        Course::create([
+            'id_evenement'      => $this->evenement->id,
+            'nom'               => 'Course avec avertissement',
+            'is_actif'          => true,
+            'id_avertissement'  => $avertissement->id,
+            'tarif'             => 35,
+            'date_debut'        => '2025-05-15',
+            'date_fin'          => '2025-05-15',
+            'debut_inscription' => '2025-01-01',
+            'fin_inscription'   => '2025-05-10',
+            'status'            => 'Ouvert',
+            'type'              => 'Route',
+            'max_inscription'   => 500,
+            'premier_dossard'   => 1,
+            'dernier_dossard'   => 500,
+            'age_minimum'       => 16,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+                        ->getJson("/api/participant/courses/{$this->evenement->id}");
+
+        $response->assertStatus(200)
+                ->assertJsonFragment(['contenu' => 'Attention au verglas.']);
+    }
+
+    public function test_participant_gets_course_without_avertissement()
+    {
+        Course::create([
+            'id_evenement'      => $this->evenement->id,
+            'nom'               => 'Course sans avertissement',
+            'is_actif'          => true,
+            'tarif'             => 35,
+            'date_debut'        => '2025-05-15',
+            'date_fin'          => '2025-05-15',
+            'debut_inscription' => '2025-01-01',
+            'fin_inscription'   => '2025-05-10',
+            'status'            => 'Ouvert',
+            'type'              => 'Route',
+            'max_inscription'   => 500,
+            'premier_dossard'   => 1,
+            'dernier_dossard'   => 500,
+            'age_minimum'       => 16,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+                        ->getJson("/api/participant/courses/{$this->evenement->id}");
+
+        $response->assertStatus(200)
+                ->assertJsonFragment(['avertissement' => null]);
     }
 }

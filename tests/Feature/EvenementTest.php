@@ -172,4 +172,57 @@ class EvenementTest extends TestCase
 
         $response->assertStatus(404);
     }
+
+    // ===== INDEX PARTICIPANT =====
+
+    public function test_participant_can_get_active_evenements_only()
+    {
+        Evenement::create([
+            'nom'                => 'Evenement actif',
+            'site'               => 'https://actif.ch',
+            'couleur_primaire'   => '#ff0000',
+            'couleur_secondaire' => '#ffffff',
+            'is_actif'           => true,
+        ]);
+        Evenement::create([
+            'nom'                => 'Evenement inactif',
+            'site'               => 'https://inactif.ch',
+            'couleur_primaire'   => '#000000',
+            'couleur_secondaire' => '#ffffff',
+            'is_actif'           => false,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+                        ->getJson('/api/participant/evenements');
+
+        $response->assertStatus(200)
+                ->assertJsonFragment(['nom' => 'Evenement actif'])
+                ->assertJsonMissing(['nom' => 'Evenement inactif']);
+    }
+
+    public function test_participant_cannot_access_evenements_without_auth()
+    {
+        $response = $this->getJson('/api/participant/evenements');
+
+        $response->assertStatus(401);
+    }
+
+    public function test_participant_gets_only_selected_fields()
+    {
+        Evenement::create([
+            'nom'                => 'Evenement test',
+            'site'               => 'https://test.ch',
+            'couleur_primaire'   => '#ff0000',
+            'couleur_secondaire' => '#ffffff',
+            'is_actif'           => true,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+                        ->getJson('/api/participant/evenements');
+
+        $response->assertStatus(200)
+                ->assertJsonStructure([
+                    '*' => ['id', 'nom', 'site', 'couleur_primaire', 'couleur_secondaire']
+                ]);
+    }
 }
