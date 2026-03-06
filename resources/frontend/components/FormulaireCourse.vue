@@ -493,7 +493,7 @@ export default {
                 this.courseData.parameters.challenge = (course.challenge == 1 || course.challenge === true);
                 this.courseData.parameters.avertissement = (course.is_avertissement == 1 || course.is_avertissement === true);
 
-                if (course.is_avertissement) {
+                if (course.is_avertissement && course.avertissement) {
                     this.courseData.avertissement.contenu = course.avertissement.contenu;
                     this.courseData.avertissement.id = course.avertissement.id;
                 }
