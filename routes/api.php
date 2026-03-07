@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EvenementController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\OptionController;
+use App\Http\Controllers\GroupeController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -33,6 +34,19 @@ use App\Http\Controllers\OptionController;
             // Recherche d'un participant par email (pour inscription relais)
             Route::get('/rechercher-participant', [AuthController::class, 'rechercherParticipant']);
 
+            // CRUD Groupe
+            Route::get('/groupes', [GroupeController::class, 'index']);
+            Route::post('/groupes', [GroupeController::class, 'store']);
+            Route::get('/groupes/{id}', [GroupeController::class, 'show']);
+            Route::put('/groupes/{id}', [GroupeController::class, 'update']);
+            Route::delete('/groupes/{id}', [GroupeController::class, 'destroy']);
+
+            // Gestion des membres dans le groupe
+            Route::post('/groupes/{id}/participants', [GroupeController::class, 'addParticipant']);
+            Route::delete('/groupes/{id}/participants/{id_participant}', [GroupeController::class, 'removeParticipant']);
+
+            //Gestion du code participant
+            Route::post('/groupes/verifier-code', [GroupeController::class, 'verifierCodeEntreprise']);
         });
 
         // Gestion du rôle Administrateur par Middleware

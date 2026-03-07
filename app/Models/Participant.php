@@ -18,8 +18,14 @@ protected $fillable = [
     'nationalite', 'instagram', 'facebook', 'taille_tshirt', 'sexe', 'photo',
 ];
 
-public function user()
-{
-    return $this->belongsTo(User::class, 'id_user', 'id');
-}
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_user', 'id');
+    }
+
+    public function groupes()
+    {
+        return $this->belongsToMany(Groupe::class, 'GroupeParticipant', 'id_participant', 'id_groupe')
+                    ->withPivot('statut');
+    }
 }
