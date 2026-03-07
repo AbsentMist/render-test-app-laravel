@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\Models\Evenement;
+use App\Models\Course;
 
 class CourseSeeder extends Seeder
 {
@@ -74,7 +75,7 @@ class CourseSeeder extends Seeder
                 'type'              => 'Trail Urbain',
                 'is_challenge'      => true,
                 'is_dossard'        => true,
-                'is_avertissement'  => true, 
+                'is_avertissement'  => false, 
                 'is_actif'          => true,
                 'max_inscription'   => 1000,
                 'premier_dossard'   => 2000,
@@ -110,6 +111,12 @@ class CourseSeeder extends Seeder
             ],
         ];
 
-        DB::table('Course')->insert($courses);
+        foreach ($courses as $courseData) {
+            // On cherche par le nom (unique). S'il existe, on met à jour, sinon on crée.
+            Course::updateOrCreate(
+                ['nom' => $courseData['nom']], 
+                $courseData
+            );
+        }
     }
 }
