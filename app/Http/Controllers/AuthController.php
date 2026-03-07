@@ -34,19 +34,16 @@ class AuthController extends Controller
             'photo'          => 'nullable|image|max:2048',
         ]);
 
-        // Création du User
         $user = User::create([
             'email'    => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        // Gestion photo
         $photo = null;
         if ($request->hasFile('photo')) {
             $photo = file_get_contents($request->file('photo')->getRealPath());
         }
 
-        // Création du Participant avec le même id que User
         Participant::create([
             'id_user'        => $user->id,
             'nom'            => $request->nom,
@@ -111,5 +108,32 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return response()->json($request->user()->load('participant', 'roles'));
+    }
+
+    // ===== RECHERCHE PARTICIPANT PAR EMAIL =====
+    public function rechercherParticipant(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $request->email)
+            ->with('participant')
+            ->first();
+
+        if (!$user || !$user->participant) {
+            return response()->json([
+                'message' => 'Aucun participant trouvé avec cette adresse email.'
+            ], 404);
+        }
+
+        // Ne pas exposer les infos sensibles
+        $participant = $user->participant;
+        return response()->json([
+            'id'     => $participant->id,
+            'prenom' => $participant->prenom,
+            'nom'    => $participant->nom,
+            'email'  => $user->email,
+        ]);
     }
 }

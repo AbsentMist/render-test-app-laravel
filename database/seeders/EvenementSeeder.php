@@ -76,12 +76,25 @@ class EvenementSeeder extends Seeder
                 'is_interne'        => 1,
                 'logo'              => null,
             ],
+            // Événement de test complet — toutes les étapes activées
+            [
+                'nom'               => 'Nocturne des Evaux',
+                'site'              => 'https://nocturnedesevaux.ch',
+                'couleur_primaire'  => '#6b6b9e',
+                'couleur_secondaire'=> '#ffffff',
+                'is_actif'          => 1,
+                'is_avertissement'  => 1,
+                'is_document'       => 1,
+                'is_questionnaire'  => 1,
+                'is_rabais'         => 1,
+                'is_interne'        => 0,
+                'logo'              => null,
+            ],
         ];
 
         foreach ($evenements as $evenementData) {
-            // On cherche par le nom (unique). S'il existe, on met à jour, sinon on crée.
             Evenement::updateOrCreate(
-                ['nom' => $evenementData['nom']], 
+                ['nom' => $evenementData['nom']],
                 $evenementData
             );
         }

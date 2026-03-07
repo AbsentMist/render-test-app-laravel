@@ -67,8 +67,13 @@
       </div>
     </div>
   </div>
-  <PopupInscriptionCourse v-if="popupInscription" :course="courseSelectionnee" :couleur-primaire="evenement?.couleur_primaire" @close="popupInscription = false"/>
-</template>
+<PopupInscriptionCourse 
+    v-if="popupInscription" 
+    :course="courseSelectionnee"
+    :participants="participants"
+    :couleur-primaire="evenement?.couleur_primaire" 
+    @close="popupInscription = false"
+/></template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
@@ -78,9 +83,15 @@ import courseParticipantService from '../services/courseParticipantService';
 import { useThemeStore } from '../stores/theme'; // 👈 1. Import du store
 import Title from '../components/Title.vue';
 import PopupInscriptionCourse from '../components/PopupInscriptionCourse.vue';
+import { useAuthStore } from '../stores/auth';
 
+const authStore = useAuthStore();
+const participants = computed(() => {
+    const p = authStore.user?.participant;
+    return p ? [p] : [];
+});
 const route = useRoute();
-const themeStore = useThemeStore(); // 👈 2. Initialisation du store
+const themeStore = useThemeStore(); // 2. Initialisation du store
 const evenement = ref(null);
 const courses = ref([]);
 const chargement = ref(true);
