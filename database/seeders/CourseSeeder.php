@@ -5,17 +5,19 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\Models\Evenement;
+use App\Models\Course;
 
 class CourseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Récupération des IDs des événements pour assurer l'intégrité des clés étrangères
-        $ponts = Evenement::where('nom', 'Course des Ponts 2025')->first();
-        $antigel = Evenement::where('nom', 'Antigel Run 2025')->first();
+        $ponts    = Evenement::where('nom', 'Course des Ponts 2025')->first();
+        $antigel  = Evenement::where('nom', 'Antigel Run 2025')->first();
         $marathon = Evenement::where('nom', 'Geneva Marathon 2025')->first();
+        $nocturne = Evenement::where('nom', 'Nocturne des Evaux')->first();
 
         $courses = [
+            // ===== Courses existantes (inchangées) =====
             [
                 'id_evenement'      => $ponts->id,
                 'nom'               => '10km des Ponts',
@@ -74,7 +76,7 @@ class CourseSeeder extends Seeder
                 'type'              => 'Trail Urbain',
                 'is_challenge'      => true,
                 'is_dossard'        => true,
-                'is_avertissement'  => true, 
+                'is_avertissement'  => false,
                 'is_actif'          => true,
                 'max_inscription'   => 1000,
                 'premier_dossard'   => 2000,
@@ -108,8 +110,60 @@ class CourseSeeder extends Seeder
                 'age_minimum'       => 18,
                 'age_maximum'       => null,
             ],
+            // ===== Nocturne des Evaux — ajout JD pour tests inscription =====
+            [
+                'id_evenement'      => $nocturne->id,
+                'nom'               => 'Nocturne des Evaux - Challenge',
+                'date_debut'        => '2026-04-10',
+                'date_fin'          => '2026-04-10',
+                'debut_inscription' => '2026-01-01',
+                'fin_inscription'   => '2026-04-05',
+                'tarif'             => 45.00,
+                'status'            => 'Ouvert',
+                'type'              => 'Relais',
+                'is_challenge'      => true,
+                'is_dossard'        => true,
+                'is_avertissement'  => true,
+                'is_actif'          => true,
+                'max_inscription'   => 500,
+                'premier_dossard'   => 1,
+                'dernier_dossard'   => 500,
+                'distance'          => 10.0,
+                'heure_depart'      => '20:00:00',
+                'heure_fin'         => '23:00:00',
+                'age_minimum'       => 16,
+                'age_maximum'       => null,
+            ],
+            [
+                'id_evenement'      => $nocturne->id,
+                'nom'               => 'Nocturne des Evaux - 5km Populaire',
+                'date_debut'        => '2026-04-10',
+                'date_fin'          => '2026-04-10',
+                'debut_inscription' => '2026-01-01',
+                'fin_inscription'   => '2026-04-05',
+                'tarif'             => 20.00,
+                'status'            => 'Ouvert',
+                'type'              => 'Route',
+                'is_challenge'      => false,
+                'is_dossard'        => true,
+                'is_avertissement'  => false,
+                'is_actif'          => true,
+                'max_inscription'   => 300,
+                'premier_dossard'   => 1001,
+                'dernier_dossard'   => 1300,
+                'distance'          => 5.0,
+                'heure_depart'      => '19:00:00',
+                'heure_fin'         => '21:00:00',
+                'age_minimum'       => 12,
+                'age_maximum'       => null,
+            ],
         ];
 
-        DB::table('Course')->insert($courses);
+        foreach ($courses as $courseData) {
+            Course::updateOrCreate(
+                ['nom' => $courseData['nom']],
+                $courseData
+            );
+        }
     }
 }

@@ -1,16 +1,18 @@
 <template>
     <div class="flex flex-col gap-4 mt-4">
-        <h2 class="text-base font-semibold text-heading">Sélectionnez une personne à inscrire</h2>
+        <h2 class="text-base font-semibold text-heading">
+            {{ estRelais ? 'Sélectionnez 2 personnes à inscrire' : 'Sélectionnez une personne à inscrire' }}
+        </h2>
 
         <div v-if="chargement" class="text-sm text-gray-400 text-center py-2">Chargement...</div>
 
         <!-- Grille participants + bouton nouvelle personne -->
         <div class="grid grid-cols-2 gap-3">
             <button
-                v-for="participant in participants"
+                v-for="participant in tousLesParticipants"
                 :key="participant.id"
                 type="button"
-                @click="selectionner(participant)"
+                @click="toggleSelectionner(participant)"
                 @mouseenter="hoveredId = participant.id"
                 @mouseleave="hoveredId = null"
                 :class="[
@@ -26,6 +28,11 @@
                     :class="estSelectionne(participant.id) || hoveredId === participant.id ? 'text-tertiary-900' : 'text-gray-400'"
                 />
                 <span>{{ participant.prenom }} {{ participant.nom }}</span>
+                <!-- Badge numéro si relais -->
+                <span v-if="estRelais && estSelectionne(participant.id)"
+                    class="ml-auto text-xs bg-tertiary text-primary font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">
+                    {{ numeroSelectionne(participant.id) }}
+                </span>
             </button>
 
             <!-- Bouton nouvelle personne -->
@@ -47,7 +54,7 @@
 
         <p class="text-sm text-gray-400 text-center">La personne que vous recherchez n'existe pas ?</p>
 
-        <!-- Sous-popup création participant -->
+        <!-- Sous-popup création / recherche participant -->
         <Teleport to="body">
             <div
                 v-if="formulaireOuvert"
@@ -59,27 +66,43 @@
                     <!-- Header -->
                     <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                         <h3 class="text-base font-semibold text-heading">Rechercher une personne</h3>
-                        <button type="button" @click="fermerFormulaire" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <button type="button" @click="fermerFormulaire" class="text-gray-400 hover:text-gray-600">
                             <Icon icon="mdi:close" class="w-5 h-5" />
                         </button>
                     </div>
 
-                    <!-- Contenu scrollable -->
                     <div class="overflow-y-auto px-6 py-5 flex flex-col gap-4">
 
                         <!-- Recherche par email -->
                         <div class="flex flex-col gap-2">
                             <label class="text-sm font-medium text-gray-700">Adresse email</label>
-                            <input
-                                v-model="emailRecherche"
-                                type="email"
-                                placeholder="email@exemple.com"
-                                @input="rechercherParEmail"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40"
-                            />
-                            <p v-if="emailRecherche && !emailTrouve" class="flex items-center gap-2 text-xs text-orange-600">
+                            <div class="flex gap-2">
+                                <input
+                                    v-model="emailRecherche"
+                                    type="email"
+                                    placeholder="email@exemple.com"
+                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40"
+                                    @keyup.enter="lancerRecherche"
+                                />
+                                <button type="button" @click="lancerRecherche" class="btn-tertiary text-sm px-3">
+                                    Rechercher
+                                </button>
+                            </div>
+
+                            <!-- Résultat trouvé -->
+                            <div v-if="participantTrouve" class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                                <div class="flex items-center gap-3">
+                                    <Icon icon="mdi:account-check-outline" class="w-5 h-5 text-tertiary-900" />
+                                    <span class="text-sm font-medium">{{ participantTrouve.prenom }} {{ participantTrouve.nom }}</span>
+                                </div>
+                                <button type="button" @click="selectionnerTrouve" class="btn-tertiary text-xs px-3 py-1">
+                                    Sélectionner
+                                </button>
+                            </div>
+
+                            <p v-if="erreurRecherche" class="flex items-center gap-2 text-xs text-orange-600">
                                 <Icon icon="mdi:information-outline" class="w-4 h-4 shrink-0" />
-                                Aucune personne avec cette adresse existe. Veuillez réessayer ou en créer une nouvelle.
+                                {{ erreurRecherche }}
                             </p>
                         </div>
 
@@ -87,7 +110,6 @@
                         <div class="flex flex-col gap-3">
                             <h4 class="text-sm font-semibold text-heading border-t border-gray-100 pt-3">Nouvelle personne</h4>
 
-                            <!-- Nom / Prénom -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="flex flex-col gap-1">
                                     <label class="text-xs font-medium text-gray-600">Nom</label>
@@ -101,21 +123,18 @@
                                 </div>
                             </div>
 
-                            <!-- Date de naissance -->
                             <div class="flex flex-col gap-1">
                                 <label class="text-xs font-medium text-gray-600">Date de naissance (JJ/MM/AAAA)</label>
                                 <input v-model="form.date_naissance" type="text" placeholder="JJ/MM/AAAA"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50" />
                             </div>
 
-                            <!-- Adresse -->
                             <div class="flex flex-col gap-1">
                                 <label class="text-xs font-medium text-gray-600">Adresse</label>
                                 <input v-model="form.adresse" type="text" placeholder="Rue et numéro"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50" />
                             </div>
 
-                            <!-- Code postal / Ville / Pays -->
                             <div class="grid grid-cols-3 gap-3">
                                 <div class="flex flex-col gap-1">
                                     <label class="text-xs font-medium text-gray-600">Code postal</label>
@@ -141,7 +160,6 @@
                                 </div>
                             </div>
 
-                            <!-- Téléphone / Email -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="flex flex-col gap-1">
                                     <label class="text-xs font-medium text-gray-600">Téléphone mobile</label>
@@ -155,7 +173,6 @@
                                 </div>
                             </div>
 
-                            <!-- Taille t-shirt / Genre -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="flex flex-col gap-1">
                                     <label class="text-xs font-medium text-gray-600">Taille t-shirt</label>
@@ -182,7 +199,6 @@
                         </div>
                     </div>
 
-                    <!-- Footer sous-popup -->
                     <div class="flex justify-end px-6 py-4 border-t border-gray-100">
                         <button
                             type="button"
@@ -201,52 +217,45 @@
 
 <script>
 import { Icon } from '@iconify/vue';
+import api from '../services/api';
 
 const formVide = () => ({
-    nom: '',
-    prenom: '',
-    date_naissance: '',
-    adresse: '',
-    code_postal: '',
-    ville: '',
-    pays: 'Suisse',
-    telephone: '',
-    email: '',
-    taille_tshirt: 'L',
-    sexe: 'M',
+    nom: '', prenom: '', date_naissance: '', adresse: '',
+    code_postal: '', ville: '', pays: 'Suisse',
+    telephone: '', email: '', taille_tshirt: 'M', sexe: 'M',
 });
 
 export default {
     name: 'EtapeParticipant',
     components: { Icon },
     props: {
-        participants: {
-            type: Array,
-            default: () => [],
-        },
-        chargement: {
-            type: Boolean,
-            default: false,
-        },
-        modelValue: {
-            type: Object,
-            default: null,
-        },
+        participants:     { type: Array, default: () => [] },
+        chargement:       { type: Boolean, default: false },
+        typeSelectionne:  { type: Object, default: null },
+        modelValue:       { type: Array, default: () => [] },
     },
     emits: ['update:modelValue', 'creer-participant'],
     data() {
         return {
             formulaireOuvert: false,
             emailRecherche: '',
-            emailTrouve: false,
+            participantTrouve: null,
+            erreurRecherche: null,
             hoveredId: null,
             hoveredNouveau: false,
             form: formVide(),
         };
     },
     computed: {
-        participantSelectionne: {
-            get() { return this.modelValue ?? null; },
+        estRelais() {
+            return this.typeSelectionne?.id === 'relais';
+        },
+        // Tous les participants : ceux passés en props (déjà fusionnés dans le parent)
+        tousLesParticipants() {
+            return this.participants;
+        },
+        selectionnes: {
+            get() { return this.modelValue ?? []; },
             set(val) { this.$emit('update:modelValue', val); }
         },
         formulaireValide() {
@@ -255,10 +264,26 @@ export default {
     },
     methods: {
         estSelectionne(id) {
-            return this.participantSelectionne?.id != null && this.participantSelectionne.id === id;
+            return this.selectionnes.some(p => p.id === id);
         },
-        selectionner(participant) {
-            this.participantSelectionne = participant;
+        numeroSelectionne(id) {
+            const idx = this.selectionnes.findIndex(p => p.id === id);
+            return idx >= 0 ? idx + 1 : null;
+        },
+        toggleSelectionner(participant) {
+            const idx = this.selectionnes.findIndex(p => p.id === participant.id);
+            if (idx >= 0) {
+                // Déselectionner
+                const nouveau = [...this.selectionnes];
+                nouveau.splice(idx, 1);
+                this.selectionnes = nouveau;
+            } else {
+                // Sélectionner — max 1 si individuel, max 2 si relais
+                const max = this.estRelais ? 2 : 1;
+                if (this.selectionnes.length < max) {
+                    this.selectionnes = [...this.selectionnes, participant];
+                }
+            }
         },
         ouvrirFormulaire() {
             this.formulaireOuvert = true;
@@ -266,19 +291,33 @@ export default {
         fermerFormulaire() {
             this.formulaireOuvert = false;
             this.emailRecherche = '';
-            this.emailTrouve = false;
+            this.participantTrouve = null;
+            this.erreurRecherche = null;
             this.form = formVide();
         },
-        rechercherParEmail() {
-            this.emailTrouve = this.participants.some(
-                p => p.email && p.email.toLowerCase() === this.emailRecherche.toLowerCase()
-            );
+        async lancerRecherche() {
+            if (!this.emailRecherche) return;
+            this.participantTrouve = null;
+            this.erreurRecherche = null;
+            try {
+                const response = await api.get('/participant/rechercher-participant', {
+                    params: { email: this.emailRecherche }
+                });
+                this.participantTrouve = response.data;
+            } catch {
+                this.erreurRecherche = 'Aucun participant trouvé avec cette adresse email.';
+            }
+        },
+        selectionnerTrouve() {
+            this.$emit('creer-participant', this.participantTrouve);
+            this.toggleSelectionner(this.participantTrouve);
+            this.fermerFormulaire();
         },
         valider() {
             if (!this.formulaireValide) return;
             const nouveau = { ...this.form, id: Date.now() };
             this.$emit('creer-participant', nouveau);
-            this.participantSelectionne = nouveau;
+            this.toggleSelectionner(nouveau);
             this.fermerFormulaire();
         },
     },

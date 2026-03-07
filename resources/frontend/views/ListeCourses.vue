@@ -91,7 +91,7 @@ const participants = computed(() => {
     return p ? [p] : [];
 });
 const route = useRoute();
-const themeStore = useThemeStore(); // 👈 2. Initialisation du store
+const themeStore = useThemeStore(); // 2. Initialisation du store
 const evenement = ref(null);
 const courses = ref([]);
 const chargement = ref(true);

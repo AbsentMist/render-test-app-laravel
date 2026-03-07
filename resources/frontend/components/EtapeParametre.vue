@@ -11,8 +11,8 @@
                 :class="[
                     'flex items-center gap-3 px-6 py-4 rounded-xl border-2 text-sm font-medium transition-all flex-1 min-w-[140px]',
                     typeSelectionne?.id === type.id
-                        ? 'border-secondary bg-secondary/10 text-secondary'
-                        : 'border-gray-200 text-heading hover:border-gray-400 bg-white'
+    ? 'border-tertiary bg-tertiary text-primary'
+    : 'border-gray-200 text-primary hover:border-tertiary hover:text-tertiary-900 bg-white'
                 ]"
             >
                 <Icon :icon="type.icone" class="w-5 h-5" />

@@ -8,7 +8,6 @@ use App\Http\Controllers\EvenementController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\OptionController;
 
-
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login',    [AuthController::class, 'login']);
@@ -17,22 +16,24 @@ use App\Http\Controllers\OptionController;
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me',      [AuthController::class, 'me']);
-        
+
         // Route accessible à tous les utilisateurs (Participants + Admins)
         Route::prefix('participant')->group(function() {
-            //Route pour la récupération des évènements
-            Route::get('/evenements', [EvenementController::class, 'indexParticipant']); 
+            // Récupération des évènements
+            Route::get('/evenements', [EvenementController::class, 'indexParticipant']);
 
-            //Route pour la récupération des courses
+            // Récupération des courses
             Route::get('/courses/{id_evenement}', [CourseController::class, 'indexParticipant']);
             Route::get('/courses/course/{id}', [CourseController::class, 'show']);
 
-            //Route pour la récupération des options d'une course
+            // Récupération des options d'une course
             Route::get('/options/{id_course}', [OptionController::class, 'indexParticipant']);
+
+            // Recherche d'un participant par email (pour inscription relais)
+            Route::get('/rechercher-participant', [AuthController::class, 'rechercherParticipant']);
         });
-        
-        //Gestion du rôle Administrateur par Middleware (3.1)
-        // Disponible sur l'URL : /api/organisateur/*
+
+        // Gestion du rôle Administrateur par Middleware
         Route::middleware('is_admin')->prefix('organisateur')->group(function () {
             // Routes pour la gestion des événements (CRUD)
             Route::get('/evenements', [EvenementController::class, 'indexAdmin']);
@@ -48,7 +49,7 @@ use App\Http\Controllers\OptionController;
             Route::put('/courses/{id}', [CourseController::class, 'update']);
             Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
 
-            //Route pour la gestion des options (CRUD)
+            // Routes pour la gestion des options (CRUD)
             Route::get('/options', [OptionController::class, 'indexAdmin']);
             Route::get('/options/{id}', [OptionController::class, 'show']);
             Route::post('/options', [OptionController::class, 'store']);
@@ -60,10 +61,10 @@ use App\Http\Controllers\OptionController;
             Route::post('/avertissements', [AvertissementController::class, 'store']);
             Route::put('/avertissements/{id}', [AvertissementController::class, 'update']);
             Route::delete('/avertissements/{id}', [AvertissementController::class, 'destroy']);
-            
+
             Route::get('/optionCourse', [OptionPourCourseController::class, 'indexAdmin']);
             Route::get('/optionCourse/{id_course}/{id_option}', [OptionPourCourseController::class, 'show']);
-            Route::post('/optionCourse', [OptionPourCourseController::class, 'store']);            
+            Route::post('/optionCourse', [OptionPourCourseController::class, 'store']);
             Route::put('/optionCourse/{id_course}/{id_option}', [OptionPourCourseController::class, 'update']);
             Route::delete('/optionCourse/{id_course}/{id_option}', [OptionPourCourseController::class, 'destroy']);
             Route::delete('/optionCourse/{id_course}', [OptionPourCourseController::class, 'destroyByCourse']);

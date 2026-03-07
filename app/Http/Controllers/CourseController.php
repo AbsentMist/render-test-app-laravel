@@ -13,7 +13,7 @@ class CourseController extends Controller
     public function indexParticipant($id_evenement): JsonResponse
     {
         $evenement = Evenement::select(
-            'id', 'nom', 'logo', 'couleur_primaire', 'couleur_secondaire'
+            'id', 'nom', 'logo', 'couleur_primaire', 'couleur_secondaire', 'is_document', 'is_questionnaire'
         )->find($id_evenement);
 
         if (!$evenement) {
@@ -24,26 +24,50 @@ class CourseController extends Controller
             $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
         }
 
+        // Récupération du questionnaire de l'événement
+        $questionnaire = null;
+        if ($evenement->is_questionnaire) {
+            $questionnaire = \DB::table('EvenementQuestion')
+                ->join('Question', 'EvenementQuestion.id_question', '=', 'Question.id')
+                ->where('EvenementQuestion.id_evenement', $id_evenement)
+                ->orderBy('EvenementQuestion.ordre')
+                ->get(['Question.id', 'Question.enonce'])
+                ->map(function ($question) {
+                    $options = \DB::table('OptionQuestion')
+                        ->where('id_question', $question->id)
+                        ->get(['id', 'texte_option'])
+                        ->toArray();
+                    return [
+                        'id'       => $question->id,
+                        'question' => $question->enonce,
+                        'answers'  => array_map(fn($o) => $o->texte_option, $options),
+                    ];
+                })
+                ->toArray();
+        }
+
         $courses = Course::with(['categorie', 'sousCategorie', 'avertissement', 'evenement', 'options.quantifiable', 'options.cochable'])
             ->withCount('inscriptions')
             ->where('id_evenement', $id_evenement)
             ->where('is_actif', true)
             ->get()
-            ->map(function ($course) {
+            ->map(function ($course) use ($evenement, $questionnaire) {
                 return [
                     'id'                => $course->id,
                     'nom_course'        => $course->nom,
                     'tarif'             => $course->tarif,
                     'type'              => $course->type,
+                    'is_challenge'      => $course->is_challenge,
                     'categorie'         => $course->categorie ? $course->categorie->nom : null,
                     'sous_categorie'    => $course->sousCategorie ? $course->sousCategorie->nom : null,
                     'avertissement'     => $course->avertissement ?? null,
                     'evenement'         => $course->evenement ?? null,
                     'options'           => $course->options ?? null,
+                    'document'          => $evenement->is_document,
+                    'questionnaire'     => $questionnaire,
                     'dossards_restants' => $course->max_inscription
                         ? ($course->max_inscription - $course->inscriptions_count)
                         : 'Illimité',
-                    
                 ];
             });
 
@@ -81,9 +105,9 @@ class CourseController extends Controller
     public function show($id): JsonResponse
     {
         $course = Course::with([
-            'categorie', 
-            'sousCategorie', 
-            'evenement', 
+            'categorie',
+            'sousCategorie',
+            'evenement',
             'avertissement',
             'options.quantifiable',
             'options.cochable'
@@ -107,7 +131,7 @@ class CourseController extends Controller
             'id_evenement'      => 'required|integer|exists:Evenement,id',
             'id_categorie'      => 'nullable|integer|exists:Categorie,id',
             'id_sous_categorie' => 'nullable|integer|exists:SousCategorie,id',
-            'id_avertissement'  => 'nullable|integer|exists:Avertissement,id', // Ajouté pour fixer ton bug
+            'id_avertissement'  => 'nullable|integer|exists:Avertissement,id',
             'nom'               => 'required|string|max:120',
             'date_debut'        => 'required|date',
             'date_fin'          => 'required|date',
@@ -120,7 +144,7 @@ class CourseController extends Controller
             'distance'          => 'nullable|numeric|min:0',
             'premier_dossard'   => 'required|integer|min:1',
             'dernier_dossard'   => 'required|integer|gte:premier_dossard',
-            'heure_depart'      => 'nullable|string', // Format H:i
+            'heure_depart'      => 'nullable|string',
             'heure_fin'         => 'nullable|string',
             'age_minimum'       => 'required|integer|min:0',
             'age_maximum'       => 'nullable|integer|gte:age_minimum',
@@ -151,7 +175,7 @@ class CourseController extends Controller
             'id_evenement'      => 'sometimes|required|integer|exists:Evenement,id',
             'id_categorie'      => 'nullable|integer|exists:Categorie,id',
             'id_sous_categorie' => 'nullable|integer|exists:SousCategorie,id',
-            'id_avertissement'  => 'nullable|integer|exists:Avertissement,id', // Ajouté ici aussi
+            'id_avertissement'  => 'nullable|integer|exists:Avertissement,id',
             'nom'               => 'sometimes|required|string|max:120',
             'date_debut'        => 'sometimes|required|date',
             'date_fin'          => 'sometimes|required|date',

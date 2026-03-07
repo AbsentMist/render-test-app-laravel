@@ -40,45 +40,46 @@
                     <!-- Contenu scrollable -->
                     <div class="flex-1 overflow-y-auto px-10 pb-6">
 
-                        <!-- Étape 1 : Paramètres -->
+                        <!-- Étape 1 : Type -->
                         <EtapeParametre
-                            v-if="etape === formulaireEtape.PARAMETRE"
+                            v-show="etape === formulaireEtape.PARAMETRE"
                             :course="course"
                             v-model="inscription.type"
                         />
 
                         <!-- Étape 2 : Participant -->
                         <EtapeParticipant
-                            v-if="etape === formulaireEtape.PARTICIPANTS"
-                            :participants="participants"
+                            v-show="etape === formulaireEtape.PARTICIPANTS"
+                            :participants="tousLesParticipants"
                             :chargement="chargementParticipants"
+                            :type-selectionne="inscription.type"
                             v-model="inscription.participant"
-                            @creer-participant="creerParticipant"
+                            @creer-participant="ajouterParticipantSupplementaire"
                         />
 
                         <!-- Étape 3 : Options -->
                         <EtapeOptions
-                            v-if="etape === formulaireEtape.OPTIONS"
+                            v-show="etape === formulaireEtape.OPTIONS"
                             :options="course.options"
                             v-model="inscription.options"
                         />
 
                         <!-- Étape 4 : Document -->
                         <EtapeDocument
-                            v-if="etape === formulaireEtape.DOCUMENT"
+                            v-show="etape === formulaireEtape.DOCUMENT"
                             v-model="inscription.documents"
                         />
 
                         <!-- Étape 5 : Questionnaire -->
                         <EtapeQuestionnaire
-                            v-if="etape === formulaireEtape.QUESTIONNAIRE"
+                            v-show="etape === formulaireEtape.QUESTIONNAIRE"
                             :questions="course.questionnaire"
                             v-model="inscription.reponses"
                         />
 
                         <!-- Étape 6 : Panier -->
                         <EtapePanier
-                            v-if="etape === formulaireEtape.CONFIRMATION"
+                            v-show="etape === formulaireEtape.CONFIRMATION"
                             v-model:codeParticipation="inscription.codeParticipation"
                         />
                     </div>
@@ -102,9 +103,11 @@
                         </p>
 
                         <!-- Participant -->
-                        <div v-if="inscription.participant" class="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                            <Icon icon="mdi:account-outline" class="w-4 h-4 shrink-0" />
-                            <span>{{ inscription.participant.prenom }} {{ inscription.participant.nom }}</span>
+                        <div v-if="inscription.participant.length > 0" class="mt-3 flex flex-col gap-1">
+                            <div v-for="p in inscription.participant" :key="p.id" class="flex items-center gap-2 text-xs text-gray-500">
+                                <Icon icon="mdi:account-outline" class="w-4 h-4 shrink-0" />
+                                <span>{{ p.prenom }} {{ p.nom }}</span>
+                            </div>
                         </div>
 
                         <!-- Options sélectionnées -->
@@ -230,9 +233,10 @@ export default {
             etape: formulaireEtape.PARAMETRE,
             modalAffichage: null,
             formulaireEtapesLabels: [],
+            participantsSupplementaires: [],
             inscription: {
                 type: null,
-                participant: null,
+                participant: [],
                 options: {},
                 documents: [],
                 reponses: {},
@@ -241,6 +245,9 @@ export default {
         };
     },
     computed: {
+        tousLesParticipants() {
+            return [...this.participants, ...this.participantsSupplementaires];
+        },
         etapesActives() {
             const etapes = [formulaireEtape.PARAMETRE, formulaireEtape.PARTICIPANTS];
             const labels = ['Participant', 'Participant'];
@@ -248,7 +255,7 @@ export default {
             // Paramètre = sélection type (challenge / relais)
             // Toujours présent
             const listeEtapes = [formulaireEtape.PARAMETRE];
-            const listeLabels = ['Paramètres'];
+            const listeLabels = ['Type'];
 
             // Participants
             listeEtapes.push(formulaireEtape.PARTICIPANTS);
@@ -286,7 +293,11 @@ export default {
 
         peutContinuer() {
             if (this.etape === formulaireEtape.PARAMETRE) return !!this.inscription.type;
-            if (this.etape === formulaireEtape.PARTICIPANTS) return !!this.inscription.participant;
+            if (this.etape === formulaireEtape.PARTICIPANTS) {
+                if (this.inscription.participant.length === 0) return false;
+                if (this.inscription.type?.id === 'relais') return this.inscription.participant.length >= 2;
+                return true;
+            }
             return true;
         },
 
@@ -317,8 +328,13 @@ export default {
             if (idx > 0) this.etape = this.etapesActives[idx - 1];
         },
         creerParticipant(data) {
-            // Émettre vers le parent pour création via API, puis sélectionner
             this.$emit('creer-participant', data);
+        },
+        ajouterParticipantSupplementaire(data) {
+            // Ajoute dans la liste locale pour qu'il reste visible si on revient en arrière
+            if (!this.participantsSupplementaires.some(p => p.id === data.id)) {
+                this.participantsSupplementaires.push(data);
+            }
         },
     },
     mounted() {

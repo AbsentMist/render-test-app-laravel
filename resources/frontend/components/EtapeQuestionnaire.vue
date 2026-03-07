@@ -27,8 +27,8 @@
                             :class="[
                                 'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
                                 reponses[index] === reponse
-                                    ? 'border-secondary bg-secondary'
-                                    : 'border-gray-300 bg-white group-hover:border-secondary/50'
+    ? 'border-tertiary bg-tertiary'
+    : 'border-gray-300 bg-white group-hover:border-tertiary'
                             ]"
                         >
                             <div v-if="reponses[index] === reponse" class="w-2 h-2 rounded-full bg-white"></div>
