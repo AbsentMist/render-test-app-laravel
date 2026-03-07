@@ -11,7 +11,7 @@ class OptionSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Définition des options de type 'Quantifiable' (Pasta)
+        // 1. Options de type 'Quantifiable' (Pasta)
         $optionsQuantifiables = [
             [
                 'nom' => '1 Entrée + 1 pasta bolognaise',
@@ -30,33 +30,41 @@ class OptionSeeder extends Seeder
         ];
 
         foreach ($optionsQuantifiables as $data) {
-            $option = Option::create([
-                'nom'         => $data['nom'],
-                'description' => $data['description'],
-                'tarif'       => $data['tarif'],
-                'type'        => 'Quantifiable',
-                'modele'      => true,
-            ]);
+            // On gère la table parente 'Option'
+            $option = Option::updateOrCreate(
+                ['nom' => $data['nom']], // Clé unique
+                [
+                    'description' => $data['description'],
+                    'tarif'       => $data['tarif'],
+                    'type'        => 'Quantifiable',
+                    'modele'      => true,
+                ]
+            );
 
-            OptionQuantifiable::create([
-                'id'          => $option->id, //
-                'quantiteMin' => $data['qte_min'],
-                'quantiteMax' => $data['qte_max'],
-            ]);
+            // On gère la table fille 'OptionQuantifiable'
+            OptionQuantifiable::updateOrCreate(
+                ['id' => $option->id], // L'ID de l'option parente
+                [
+                    'quantiteMin' => $data['qte_min'],
+                    'quantiteMax' => $data['qte_max'],
+                ]
+            );
         }
 
-        // 2. Définition de l'option de type 'Cochable' (Navettes)
-        $navette = Option::create([
-            'nom'         => "J'utilise les navettes transports de l'organisation",
-            'description' => "Transport organisé par l'événement",
-            'tarif'       => 2.00,
-            'type'        => 'Cochable',
-            'modele'      => true,
-        ]);
+        // 2. Option de type 'Cochable' (Navettes)
+        $navette = Option::updateOrCreate(
+            ['nom' => "J'utilise les navettes transports de l'organisation"],
+            [
+                'description' => "Transport organisé par l'événement",
+                'tarif'       => 2.00,
+                'type'        => 'Cochable',
+                'modele'      => true,
+            ]
+        );
 
-        OptionCochable::create([
-            'id'       => $navette->id, //
-            'is_coche' => false,
-        ]);
+        OptionCochable::updateOrCreate(
+            ['id' => $navette->id],
+            ['is_coche' => false]
+        );
     }
 }

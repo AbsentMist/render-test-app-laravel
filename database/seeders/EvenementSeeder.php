@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Evenement;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -77,6 +78,12 @@ class EvenementSeeder extends Seeder
             ],
         ];
 
-        DB::table('Evenement')->insert($evenements);
+        foreach ($evenements as $evenementData) {
+            // On cherche par le nom (unique). S'il existe, on met à jour, sinon on crée.
+            Evenement::updateOrCreate(
+                ['nom' => $evenementData['nom']], 
+                $evenementData
+            );
+        }
     }
 }

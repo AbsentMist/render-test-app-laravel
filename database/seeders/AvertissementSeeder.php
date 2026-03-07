@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Avertissement;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class AvertissementSeeder extends Seeder
 {
@@ -35,6 +35,12 @@ class AvertissementSeeder extends Seeder
             ],
         ];
 
-        DB::table('Avertissement')->insert($avertissements);
+        foreach ($avertissements as $avertissementData) {
+            // On cherche par le nom (unique). S'il existe, on met à jour, sinon on crée.
+            Avertissement::updateOrCreate(
+                ['titre' => $avertissementData['titre']], 
+                $avertissementData
+            );
+        }
     }
 }
