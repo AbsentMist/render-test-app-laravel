@@ -10,12 +10,7 @@ class QuestionSeeder extends Seeder
 {
     public function run(): void
     {
-        $evenements = [
-            'Course des Ponts 2025',
-            'Geneva Marathon 2025',
-            'Nocturne des Evaux',
-        ];
-
+        // ===== 1. Créer les questions UNE SEULE FOIS =====
         $questions = [
             [
                 'enonce'  => 'Comment avez-vous connu la course ?',
@@ -27,40 +22,54 @@ class QuestionSeeder extends Seeder
             ],
         ];
 
-        $ordreGlobal = 1;
+        $questionIds = [];
+
+        foreach ($questions as $data) {
+            // Créer la question seulement si elle n'existe pas déjà
+            $question = DB::table('Question')
+                ->where('enonce', $data['enonce'])
+                ->first();
+
+            if (!$question) {
+                $questionId = DB::table('Question')->insertGetId([
+                    'enonce' => $data['enonce'],
+                ]);
+            } else {
+                $questionId = $question->id;
+            }
+
+            // Créer les options de réponse si elles n'existent pas
+            foreach ($data['options'] as $texte) {
+                $exists = DB::table('OptionQuestion')
+                    ->where('id_question', $questionId)
+                    ->where('texte_option', $texte)
+                    ->exists();
+
+                if (!$exists) {
+                    DB::table('OptionQuestion')->insert([
+                        'id_question'  => $questionId,
+                        'texte_option' => $texte,
+                    ]);
+                }
+            }
+
+            $questionIds[] = $questionId;
+        }
+
+        // ===== 2. Lier les questions aux événements =====
+        // Chaque événement repart de ordre 1 — propre et logique
+        $evenements = [
+            'Course des Ponts 2025',
+            'Geneva Marathon 2025',
+            'Nocturne des Evaux',
+        ];
 
         foreach ($evenements as $nomEvenement) {
             $evenement = Evenement::where('nom', $nomEvenement)->first();
             if (!$evenement) continue;
 
-            foreach ($questions as $data) {
-                // Créer ou retrouver la question par son énoncé
-                $questionId = DB::table('Question')
-                    ->where('enonce', $data['enonce'])
-                    ->value('id');
-
-                if (!$questionId) {
-                    $questionId = DB::table('Question')->insertGetId([
-                        'enonce' => $data['enonce'],
-                    ]);
-                }
-
-                // Créer les options de réponse si elles n'existent pas
-                foreach ($data['options'] as $texte) {
-                    $exists = DB::table('OptionQuestion')
-                        ->where('id_question', $questionId)
-                        ->where('texte_option', $texte)
-                        ->exists();
-
-                    if (!$exists) {
-                        DB::table('OptionQuestion')->insert([
-                            'id_question'  => $questionId,
-                            'texte_option' => $texte,
-                        ]);
-                    }
-                }
-
-                // Lier la question à l'événement si pas déjà lié
+            foreach ($questionIds as $ordre => $questionId) {
+                // Vérifier si le lien existe déjà
                 $lienExiste = DB::table('EvenementQuestion')
                     ->where('id_evenement', $evenement->id)
                     ->where('id_question', $questionId)
@@ -70,11 +79,9 @@ class QuestionSeeder extends Seeder
                     DB::table('EvenementQuestion')->insert([
                         'id_evenement' => $evenement->id,
                         'id_question'  => $questionId,
-                        'ordre'        => $ordreGlobal,
+                        'ordre'        => $ordre + 1, // ordre 1, 2 par événement
                     ]);
                 }
-
-                $ordreGlobal++;
             }
         }
     }
