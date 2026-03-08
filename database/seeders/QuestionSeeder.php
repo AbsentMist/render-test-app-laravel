@@ -27,7 +27,6 @@ class QuestionSeeder extends Seeder
             ],
         ];
 
-        // Compteur global d'ordre unique
         $ordreGlobal = 1;
 
         foreach ($evenements as $nomEvenement) {
@@ -35,22 +34,45 @@ class QuestionSeeder extends Seeder
             if (!$evenement) continue;
 
             foreach ($questions as $data) {
-                $questionId = DB::table('Question')->insertGetId([
-                    'enonce' => $data['enonce'],
-                ]);
+                // Créer ou retrouver la question par son énoncé
+                $questionId = DB::table('Question')
+                    ->where('enonce', $data['enonce'])
+                    ->value('id');
 
-                foreach ($data['options'] as $texte) {
-                    DB::table('OptionQuestion')->insert([
-                        'id_question'  => $questionId,
-                        'texte_option' => $texte,
+                if (!$questionId) {
+                    $questionId = DB::table('Question')->insertGetId([
+                        'enonce' => $data['enonce'],
                     ]);
                 }
 
-                DB::table('EvenementQuestion')->insert([
-                    'id_evenement' => $evenement->id,
-                    'id_question'  => $questionId,
-                    'ordre'        => $ordreGlobal,
-                ]);
+                // Créer les options de réponse si elles n'existent pas
+                foreach ($data['options'] as $texte) {
+                    $exists = DB::table('OptionQuestion')
+                        ->where('id_question', $questionId)
+                        ->where('texte_option', $texte)
+                        ->exists();
+
+                    if (!$exists) {
+                        DB::table('OptionQuestion')->insert([
+                            'id_question'  => $questionId,
+                            'texte_option' => $texte,
+                        ]);
+                    }
+                }
+
+                // Lier la question à l'événement si pas déjà lié
+                $lienExiste = DB::table('EvenementQuestion')
+                    ->where('id_evenement', $evenement->id)
+                    ->where('id_question', $questionId)
+                    ->exists();
+
+                if (!$lienExiste) {
+                    DB::table('EvenementQuestion')->insert([
+                        'id_evenement' => $evenement->id,
+                        'id_question'  => $questionId,
+                        'ordre'        => $ordreGlobal,
+                    ]);
+                }
 
                 $ordreGlobal++;
             }
