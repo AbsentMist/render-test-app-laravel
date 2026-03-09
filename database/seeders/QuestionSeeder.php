@@ -1,11 +1,8 @@
 <?php
-
 namespace Database\Seeders;
-
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use App\Models\Evenement;
-
+use App\Models\Course;
 class QuestionSeeder extends Seeder
 {
     public function run(): void
@@ -22,13 +19,10 @@ class QuestionSeeder extends Seeder
         ];
 
         $questionIds = [];
-
         foreach ($questions as $data) {
-            // updateOrCreate — comme les autres seeders
-            $questionId = DB::table('Question')
-                ->updateOrInsert(
-                    ['enonce' => $data['enonce']]
-                );
+            DB::table('Question')->updateOrInsert(
+                ['enonce' => $data['enonce']]
+            );
 
             $question = DB::table('Question')->where('enonce', $data['enonce'])->first();
 
@@ -41,16 +35,16 @@ class QuestionSeeder extends Seeder
             $questionIds[] = $question->id;
         }
 
-        // Lier les questions aux événements
-        $evenements = ['Course des Ponts 2025', 'Geneva Marathon 2025', 'Nocturne des Evaux'];
+        // Lier les questions aux courses
+        $courses = ['Course des Ponts 2025', 'Geneva Marathon 2025', 'Nocturne des Evaux'];
 
-        foreach ($evenements as $nomEvenement) {
-            $evenement = Evenement::where('nom', $nomEvenement)->first();
-            if (!$evenement) continue;
+        foreach ($courses as $nomCourse) {
+            $course = Course::where('nom', $nomCourse)->first();
+            if (!$course) continue;
 
             foreach ($questionIds as $ordre => $questionId) {
-                DB::table('EvenementQuestion')->updateOrInsert(
-                    ['id_evenement' => $evenement->id, 'id_question' => $questionId],
+                DB::table('CourseQuestion')->updateOrInsert(
+                    ['id_course' => $course->id, 'id_question' => $questionId],
                     ['ordre' => $ordre + 1]
                 );
             }

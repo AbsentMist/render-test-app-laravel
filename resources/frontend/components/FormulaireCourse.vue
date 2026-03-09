@@ -166,6 +166,7 @@
             
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
+            <!-- PARAMÈTRES -->
             <div class="flex flex-col m-4 gap-2">
                 <div class="flex flex-row justify-between items-center mb-4">
                     <label class="text-sm font-medium text-heading">Actif</label>
@@ -195,6 +196,20 @@
                         <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
                     </label>
                 </div>
+                <div class="flex flex-row justify-between items-center mb-4">
+                    <label class="text-sm font-medium text-heading">Documents</label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" v-model="courseData.parameters.document" class="sr-only peer">
+                        <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
+                    </label>
+                </div>
+                <div class="flex flex-row justify-between items-center mb-4">
+                    <label class="text-sm font-medium text-heading">Questionnaire</label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" v-model="courseData.parameters.questionnaire" class="sr-only peer">
+                        <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
+                    </label>
+                </div>
             </div>
 
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
@@ -204,7 +219,7 @@
                     <label for="dropdown" class="text-sm font-medium text-heading">Catégorie</label>
                     <div class="relative">
                         <button data-dropdown-toggle="dropdownCategory" class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5" type="button">
-                            {{courseData.category.name || "Sélectionner une catégorie"}}
+                            {{courseData.category.nom || "Sélectionner une catégorie"}}
                             <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
                         </button>
                         <div id="dropdownCategory" class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
@@ -212,7 +227,7 @@
                                 <li v-for="category in categories" :key="category.id">
                                     <button type="button" @click="selectCategory(category);" 
                                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
-                                        {{ category.name }}
+                                        {{ category.nom }}
                                     </button>
                                 </li>
                             </ul>
@@ -223,7 +238,7 @@
                     <label for="dropdownSubcategory" class="text-sm font-medium text-heading">Sous-catégorie</label>
                     <div class="relative">
                         <button data-dropdown-toggle="dropdownSubcategory" class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5" type="button">
-                            {{courseData.subCategory.name || "Sélectionner une sous-catégorie"}}
+                            {{courseData.subCategory.nom || "Sélectionner une sous-catégorie"}}
                             <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
                         </button>
                         <div id="dropdownSubcategory" class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
@@ -231,7 +246,7 @@
                                 <li v-for="subCategory in subCategories" :key="subCategory.id">
                                     <button type="button" @click="selectSubCategory(subCategory);" 
                                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
-                                        {{ subCategory.name }}
+                                        {{ subCategory.nom }}
                                     </button>
                                 </li>
                             </ul>
@@ -279,6 +294,45 @@
             </div>
         </div>
 
+            <!-- ETAPE DOCUMENT -->
+        <div v-if="etape==formulaireEtape.DOCUMENT">
+            <p class="text-subtitle mt-4">Documents</p>
+            <p class="mb-4">Décrivez quels documents doivent être fournis et quels type de personnes sont concernées.</p>
+            <div class="flex flex-col-2 gap-4 h-128">
+                <textarea type="text" id="documents" v-model="courseData.document.description" class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                <div class="basis-1/3">
+                    <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
+                    <button v-for="documentModel in documentModels" :key="documentModel.name" type="button" @click="courseData.document.description = documentModel.description" class="btn-model">
+                        {{ documentModel.name }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ETAPE QUESTIONNAIRE -->
+        <div v-if="etape==formulaireEtape.QUESTIONNAIRE">
+            <p class="text-subtitle my-4">Questionnaires</p>
+            <div v-for="(question, index) in courseData.questions" class="my-4">
+                <QuestionTemplate :questionModel="question" @remove-question="courseData.questions.splice(index, 1)"/>
+            </div>
+            <div class="flex pt-4 items-center">
+                <div class="flex-grow border-t border-gray-700 "></div>
+                <span class="mx-4">
+                    <button type="button" @click="handleModalState" class="bg-tertiary border border-default-medium text-heading text-sm rounded-full focus:border-tertiary-900 px-2.5 py-2.5">
+                        <Icon icon="mdi:plus" class="w-4 h-4" />
+                    </button>
+                </span>
+                <div class="flex-grow border-t border-gray-700"></div>
+            </div>
+            <div v-if="modal==optionModal.SELECTION" class="flex items-center justify-center z-50">
+                <OptionList :elements="this.optionElements" @select-item="handleOptionSelection"/>
+            </div>
+            <div v-if="modal==optionModal.EXISTANT" class="flex items-center justify-center z-50">
+                <OptionList :elements="questionModels.map(q => q.question)" @select-item="handleOptionSelection"/>
+            </div>
+        </div>
+
+
         <!-- NAVIGATION ETAPES -->
         <div class="flex flex-row mt-6 gap-4">
             <button v-if="etapesActives.indexOf(etape) > 0" class="btn-accent-300" @click="etape = etapesActives[etapesActives.indexOf(etape) - 1]">
@@ -303,17 +357,22 @@ import { initDatepickers, initDropdowns } from 'flowbite';
 import PopupConfirmation from './PopupConfirmation.vue';
 import OptionList from './OptionList.vue';
 import OptionTemplate from './OptionTemplate.vue';
+import QuestionTemplate from "./QuestionTemplate.vue";
 import evenementOrganisateurService from '../services/evenementOrganisateurService';
 import courseOrganisateurService from '../services/courseOrganisateurService';
 import optionOrganisateurService from '../services/optionOrganisateurService';
 import IndicateurEtapes from './IndicateurEtapes.vue';
 import avertissementOrganisateurService from '../services/avertissementOrganisateurService';
 import optionCourseService from '../services/optionCourseService';
+import categorieOrganisateurService from '../services/categorieOrganisateurService';
+import sousCategorieOrganisateurService from '../services/sousCategorieOrganisateurService';
 
 const formulaireEtape = {
     GENERAL: 1,
     OPTIONS: 2,
     AVERTISSEMENT: 3,
+    DOCUMENT: 4,
+    QUESTION: 5,
 };
 
 const optionModal = {
@@ -328,6 +387,7 @@ export default {
         PopupConfirmation,
         OptionList,
         OptionTemplate,
+        QuestionTemplate,
         IndicateurEtapes,
     },
     data() {
@@ -344,13 +404,23 @@ export default {
                 { name: "Type de course 1", id: 1 },
                 { name: "Type de course 2", id: 2 },
             ],
-            categories: [
-                { name: "Catégorie 1", id: 1 },
-                { name: "Catégorie 2", id: 2 },
+            categories: [],
+            subCategories: [],
+            questionModels: [
+                {
+                    question: "Comment avez-vous connu l'évènement ?",
+                    answers: ["Réseaux sociaux", "Bouche à oreille", "Autre"]
+                }
             ],
-            subCategories: [
-                { name: "Sous-catégorie 1", id: 1 },
-                { name: "Sous-catégorie 2", id: 2 },
+            documentModels: [
+                {
+                    name: "Etudiant",
+                    description: "Si vous êtes étudiant, veuillez fournir l'attestation de scolarité."
+                }, 
+                {
+                    name: "Etudiant + santé",
+                    description: "Étudiant inscrit à un cours avec attestation de santé."
+                }
             ],
             optionElements: ["Existant", "Nouveau"],
             optionModels: [],
@@ -374,11 +444,18 @@ export default {
                     dossardPersonalise: false,
                     challenge: false,
                     avertissement: false,
+                    document: false,
+                    questionnaire: false,
+
                 },
-                category: { name: "", id: "" },
-                subCategory: { name: "", id: "" },
+                category: { nom: "", id: "" },
+                subCategory: { nom: "", id: "" },
                 options: [],
                 avertissement: { contenu: "", id:"" },
+                questions: [],
+                document: {
+                    description: '',
+                },
             },
         };
     },
@@ -399,6 +476,14 @@ export default {
                 etapes.push(formulaireEtape.AVERTISSEMENT);
                 labels.push("Avertissement");
             }
+            if (this.courseData.parameters.document) {
+                etapes.push(formulaireEtape.DOCUMENT);
+                labels.push("Documents");
+            }
+            if (this.courseData.parameters.questionnaire) {
+                etapes.push(formulaireEtape.QUESTIONNAIRE);
+                labels.push("Questionnaire");
+            }
             this.formulaireEtapesLabels = labels;
             return etapes.sort((a, b) => a - b);
         }
@@ -406,6 +491,12 @@ export default {
     watch: {
         'courseData.parameters.avertissement'(val) {
             if (!val) this.courseData.avertissement = { contenu: '' };
+        },
+           'courseData.parameters.document'(val) {
+            if (!val) this.courseData.document = { name: '', description: '' };
+        },
+        'courseData.parameters.questionnaire'(val) {
+            if (!val) this.courseData.questions = [];
         },
         courseId(newId) {
             if (newId) {
@@ -426,10 +517,11 @@ export default {
                 dossard: { first: "", last: "" },
                 age: { min: "", max: "", conditionMineur: "" },
                 tempsMoyen: "",
-                parameters: { actif: false, dossardPersonalise: false, challenge: false, avertissement: false },
-                category: { name: "", id: "" }, subCategory: { name: "", id: "" },
+                parameters: { actif: false, dossardPersonalise: false, challenge: false, avertissement: false, document: false, questionnaire: false, },
+                category: { nom: "", id: "" }, subCategory: { nom: "", id: "" },
                 options: [],
                 avertissement: { contenu: "", id: ""},
+                document: { description: '' },
             };
             this.etape = formulaireEtape.GENERAL;
             ['datepicker-start', 'datepicker-end', 'inscriptionpicker-start', 'inscriptionpicker-end'].forEach(id => {
@@ -458,6 +550,8 @@ export default {
                 this.courseData.age.max = course.age_maximum || "";
                 this.courseData.distance = course.distance || "";
                 this.courseData.popupInfo = course.pop_info || "";
+                this.courseData.category = course.categorie || "";
+                this.courseData.subCategory = course.sous_categorie || "";
 
                 if (course.type) {
                     this.courseData.type = { name: course.type, id: "" };
@@ -492,6 +586,8 @@ export default {
                 this.courseData.parameters.actif = (course.is_actif == 1 || course.is_actif === true);
                 this.courseData.parameters.challenge = (course.challenge == 1 || course.challenge === true);
                 this.courseData.parameters.avertissement = (course.is_avertissement == 1 || course.is_avertissement === true);
+                this.courseData.parameters.document = (course.is_document == 1 || course.is_document === true);
+                this.courseData.parameters.questionnaire = (course.is_questionnaire == 1 || course.is_questionnaire === true);
 
                 if (course.is_avertissement && course.avertissement) {
                     this.courseData.avertissement.contenu = course.avertissement.contenu;
@@ -519,45 +615,52 @@ export default {
                     console.log("Options injectées dans le formulaire :", this.courseData.options);
                 }
 
+                if (course.is_document === 1 && course.document_description) {
+                    this.courseData.document.description = course.document_description;
+                }
+
                 console.log("Course chargée avec succès :", course);
             } catch (e) {
                 console.error("Erreur globale chargement course:", e);
             }
         },
-
-        handleModalState() {
-            this.modal = this.modal === optionModal.FERMEE ? optionModal.SELECTION : optionModal.FERMEE;
-        },
-        handleOptionSelection(option) {
-            if (option === "Existant") {
-                this.modal = optionModal.EXISTANT;
-            } else if (option === "Nouveau") {
-                this.courseData.options.push({
-                    nom: '',
-                    description: '',
-                    tarif: '',
-                    type: 'Quantifiable',
-                    modele: false,
-                    quantifiable: { quantiteMin: 0, quantiteMax: 1 },
-                });
-                this.modal = optionModal.FERMEE;
-            } else if (this.modal === optionModal.EXISTANT) {
-                const modele = this.optionModels.find(o => o.nom === option);
-                this.courseData.options.push({
-                    nom: modele.nom,
-                    description: modele.description,
-                    tarif: modele.tarif,
-                    type: modele.type,
-                    modele: false,
-                    quantifiable: modele.type === 'Quantifiable' ? {
-                        quantiteMin: parseInt(modele.quantifiable?.quantiteMin) || 0,
-                        quantiteMax: parseInt(modele.quantifiable?.quantiteMax) || 0,
-                    } : null,
-                });
+        handleModalState(){
+            if(this.modal === optionModal.FERMEE) {
+                this.modal = optionModal.SELECTION;
+            }
+            else {
                 this.modal = optionModal.FERMEE;
             }
         },
-
+        handleOptionSelection(option) {
+            console.log("Option sélectionnée :", option);
+            if(option === "Existant") {
+                this.modal = optionModal.EXISTANT;
+            }
+            else if(option === "Nouveau") {
+                if(this.etape === formulaireEtape.OPTIONS)
+                    this.courseData.options.push({
+                        name: '',
+                        description: '',
+                        prix: '',
+                        quantiteMin: '',
+                        quantiteMax: '',
+                    });
+                else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
+                    this.courseData.questions.push({
+                        question: '',
+                        answers: []
+                    });
+                this.modal = optionModal.FERMEE; 
+            }
+            else if(this.modal === optionModal.EXISTANT) {
+                if(this.etape === formulaireEtape.OPTIONS)
+                    this.courseData.options.push(this.optionModels.find(o => o.name === option)); 
+                else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
+                    this.courseData.questions.push(this.questionModels.find(q => q.question === option));
+                this.modal = optionModal.FERMEE;
+            }
+        },
         selectEvent(event) {
             this.courseData.event = event;
             FlowbiteInstances.getInstance('Dropdown', 'dropdownEvent').hide();
@@ -640,7 +743,11 @@ export default {
                     is_dossard:        Boolean(this.courseData.parameters.dossardPersonalise),
                     is_avertissement:  Boolean(this.courseData.parameters.avertissement),
                     is_challenge:      Boolean(this.courseData.parameters.challenge),
+                    is_document:       Boolean(this.courseData.parameters.document),
+                    is_questionnaire:  Boolean(this.courseData.parameters.questionnaire),
                     id_avertissement:  id_avertissement,
+                    id_categorie:      this.courseData.category.id,
+                    id_sous_categorie: this.courseData.subCategory.id,
                 };
 
                 // 3. Création ou modification de la course
@@ -723,6 +830,19 @@ export default {
             this.optionModels = response.data;
         } catch (e) {
             console.error("Erreur lors de la récupération des options: ", e);
+        }
+
+        try {
+            const response = await categorieOrganisateurService.getAllCategorie();
+            this.categories = response.data;
+        } catch (e) {
+            console.error("Erreur lors de la récupération des categories: ", e);
+        }
+        try {
+            const response = await sousCategorieOrganisateurService.getAllSousCategorie();
+            this.subCategories = response.data;
+        } catch (e) {
+            console.error("Erreur lors de la récupération des sous categories: ", e);
         }
 
         try{

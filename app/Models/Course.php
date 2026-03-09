@@ -16,16 +16,19 @@ class Course extends Model
     protected $fillable = [
         'id_evenement', 'id_categorie', 'id_sous_categorie', 'id_avertissement', 'nom', 'date_debut', 'date_fin', 
         'debut_inscription', 'fin_inscription', 'tarif', 'status', 'type', 
-        'is_challenge', 'is_actif', 'is_dossard', 'is_avertissement', 'max_inscription', 'premier_dossard', 
+        'is_challenge', 'is_actif', 'is_dossard', 'is_avertissement', 'is_document', 'is_questionnaire', 'max_inscription', 'premier_dossard', 
         'dernier_dossard', 'distance', 'heure_depart', 'heure_fin', 
         'age_minimum', 'age_maximum'
     ];
 
     protected $casts = [
-        'is_challenge' => 'boolean',
-        'is_actif' => 'boolean',
-        'is_avertissement' => 'boolean',
-        'is_dossard' => 'boolean',
+        'is_challenge'      => 'boolean',
+        'is_actif'          => 'boolean',
+        'is_avertissement'  => 'boolean',
+        'is_dossard'        => 'boolean',
+        'is_document'       => 'boolean',
+        'is_questionnaire'  => 'boolean',
+
         'tarif' => 'float',
         'distance' => 'float',
     ];

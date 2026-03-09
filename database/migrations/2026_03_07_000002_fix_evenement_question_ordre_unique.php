@@ -8,19 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('EvenementQuestion', function (Blueprint $table) {
+        Schema::table('CourseQuestion', function (Blueprint $table) {
             // Supprimer l'ancienne contrainte unique globale sur ordre
             $table->dropUnique(['ordre']);
 
             // Ajouter la nouvelle contrainte unique par événement
-            $table->unique(['id_evenement', 'ordre'], 'evenementquestion_evenement_ordre_unique');
+            $table->unique(['id_course', 'ordre'], 'coursequestion_course_ordre_unique');
         });
     }
 
     public function down(): void
     {
-        Schema::table('EvenementQuestion', function (Blueprint $table) {
-            $table->dropUnique('evenementquestion_evenement_ordre_unique');
+        Schema::table('CourseQuestion', function (Blueprint $table) {
+            $table->dropUnique('coursequestion_course_ordre_unique');
             $table->unique(['ordre']);
         });
     }

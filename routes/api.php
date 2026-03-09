@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\AvertissementController;
+use App\Http\Controllers\CategorieController;
 use App\Http\Controllers\OptionPourCourseController;
+use App\Http\Controllers\SousCategorieController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EvenementController;
@@ -31,6 +33,8 @@ use App\Http\Controllers\GroupeController;
             Route::get('/options/{id_course}', [OptionController::class, 'indexParticipant']);
 
             Route::get('/avertissements/{id_course}', [AvertissementController::class, 'indexParticipant']);
+            Route::get('/categories/{id_course}', [CategorieController::class, 'indexParticipant']);
+            Route::get('/sous-categories/{id_course}', [SousCategorieController::class, 'indexParticipant']);
             // Recherche d'un participant par email (pour inscription relais)
             Route::get('/rechercher-participant', [AuthController::class, 'rechercherParticipant']);
 
@@ -77,6 +81,19 @@ use App\Http\Controllers\GroupeController;
             Route::post('/avertissements', [AvertissementController::class, 'store']);
             Route::put('/avertissements/{id}', [AvertissementController::class, 'update']);
             Route::delete('/avertissements/{id}', [AvertissementController::class, 'destroy']);
+
+            Route::get('/categories', [CategorieController::class, 'indexAdmin']);
+            Route::get('/categories/{id}', [CategorieController::class, 'show']);
+            Route::post('/categories', [CategorieController::class, 'store']);
+            Route::put('/categories/{id}', [CategorieController::class, 'update']);
+            Route::delete('/categories/{id}', [CategorieController::class, 'destroy']);
+
+
+            Route::get('/sous-categories', [SousCategorieController::class, 'indexAdmin']);
+            Route::get('/sous-categories/{id}', [SousCategorieController::class, 'show']);
+            Route::post('/sous-categories', [SousCategorieController::class, 'store']);
+            Route::put('/sous-categories/{id}', [SousCategorieController::class, 'update']);
+            Route::delete('/sous-categories/{id}', [SousCategorieController::class, 'destroy']);
 
             Route::get('/optionCourse', [OptionPourCourseController::class, 'indexAdmin']);
             Route::get('/optionCourse/{id_course}/{id_option}', [OptionPourCourseController::class, 'show']);
