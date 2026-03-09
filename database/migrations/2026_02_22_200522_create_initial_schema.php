@@ -98,6 +98,8 @@ return new class extends Migration
             $table->string('type', 50);
             $table->boolean('is_challenge')->default(0);
             $table->boolean('is_avertissement')->default(0);
+            $table->boolean('is_document')->default(0);
+            $table->boolean('is_questionnaire')->default(0);
             $table->boolean('is_dossard')->default(0);
             $table->boolean('is_actif')->default(1);
             $table->integer('max_inscription');
@@ -111,11 +113,11 @@ return new class extends Migration
         });
 
         //Table d'association
-        Schema::create('EvenementQuestion', function (Blueprint $table) {
-            $table->foreignId('id_evenement')->constrained('Evenement')->onDelete('cascade');
+        Schema::create('CourseQuestion', function (Blueprint $table) {
+            $table->foreignId('id_course')->constrained('Course')->onDelete('cascade');
             $table->foreignId('id_question')->constrained('Question')->onDelete('cascade');
             $table->integer('ordre')->unique();
-            $table->primary(['id_evenement', 'id_question']);
+            $table->primary(['id_course', 'id_question']);
         });
 
         Schema::create('OptionQuestion', function (Blueprint $table) {

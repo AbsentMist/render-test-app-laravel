@@ -219,7 +219,7 @@
                     <label for="dropdown" class="text-sm font-medium text-heading">Catégorie</label>
                     <div class="relative">
                         <button data-dropdown-toggle="dropdownCategory" class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5" type="button">
-                            {{courseData.category.name || "Sélectionner une catégorie"}}
+                            {{courseData.category.nom || "Sélectionner une catégorie"}}
                             <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
                         </button>
                         <div id="dropdownCategory" class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
@@ -227,7 +227,7 @@
                                 <li v-for="category in categories" :key="category.id">
                                     <button type="button" @click="selectCategory(category);" 
                                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
-                                        {{ category.name }}
+                                        {{ category.nom }}
                                     </button>
                                 </li>
                             </ul>
@@ -238,7 +238,7 @@
                     <label for="dropdownSubcategory" class="text-sm font-medium text-heading">Sous-catégorie</label>
                     <div class="relative">
                         <button data-dropdown-toggle="dropdownSubcategory" class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5" type="button">
-                            {{courseData.subCategory.name || "Sélectionner une sous-catégorie"}}
+                            {{courseData.subCategory.nom || "Sélectionner une sous-catégorie"}}
                             <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
                         </button>
                         <div id="dropdownSubcategory" class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
@@ -246,7 +246,7 @@
                                 <li v-for="subCategory in subCategories" :key="subCategory.id">
                                     <button type="button" @click="selectSubCategory(subCategory);" 
                                         class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
-                                        {{ subCategory.name }}
+                                        {{ subCategory.nom }}
                                     </button>
                                 </li>
                             </ul>
@@ -404,14 +404,8 @@ export default {
                 { name: "Type de course 1", id: 1 },
                 { name: "Type de course 2", id: 2 },
             ],
-            categories: [
-                { name: "Catégorie 1", id: 1 },
-                { name: "Catégorie 2", id: 2 },
-            ],
-            subCategories: [
-                { name: "Sous-catégorie 1", id: 1 },
-                { name: "Sous-catégorie 2", id: 2 },
-            ],
+            categories: [],
+            subCategories: [],
             questionModels: [
                 {
                     question: "Comment avez-vous connu l'évènement ?",
@@ -454,8 +448,8 @@ export default {
                     questionnaire: false,
 
                 },
-                category: { name: "", id: "" },
-                subCategory: { name: "", id: "" },
+                category: { nom: "", id: "" },
+                subCategory: { nom: "", id: "" },
                 options: [],
                 avertissement: { contenu: "", id:"" },
                 questions: [],
@@ -524,7 +518,7 @@ export default {
                 age: { min: "", max: "", conditionMineur: "" },
                 tempsMoyen: "",
                 parameters: { actif: false, dossardPersonalise: false, challenge: false, avertissement: false, document: false, questionnaire: false, },
-                category: { name: "", id: "" }, subCategory: { name: "", id: "" },
+                category: { nom: "", id: "" }, subCategory: { nom: "", id: "" },
                 options: [],
                 avertissement: { contenu: "", id: ""},
                 document: { description: '' },
@@ -556,6 +550,8 @@ export default {
                 this.courseData.age.max = course.age_maximum || "";
                 this.courseData.distance = course.distance || "";
                 this.courseData.popupInfo = course.pop_info || "";
+                this.courseData.category = course.categorie || "";
+                this.courseData.subCategory = course.sous_categorie || "";
 
                 if (course.type) {
                     this.courseData.type = { name: course.type, id: "" };
@@ -750,7 +746,8 @@ export default {
                     is_document:       Boolean(this.courseData.parameters.document),
                     is_questionnaire:  Boolean(this.courseData.parameters.questionnaire),
                     id_avertissement:  id_avertissement,
-
+                    id_categorie:      this.courseData.category.id,
+                    id_sous_categorie: this.courseData.subCategory.id,
                 };
 
                 // 3. Création ou modification de la course

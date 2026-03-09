@@ -152,6 +152,8 @@ class CourseController extends Controller
             'is_actif'          => 'boolean',
             'is_dossard'        => 'boolean',
             'is_avertissement'  => 'boolean',
+            'is_document'       => 'boolean',
+            'is_questionnaire'  => 'boolean',
         ]);
 
         $course = Course::create($validatedData);
@@ -194,6 +196,9 @@ class CourseController extends Controller
             'is_actif'          => 'boolean',
             'is_dossard'        => 'boolean',
             'is_avertissement'  => 'boolean',
+            'is_document'       => 'boolean',
+            'is_questionnaire'  => 'boolean',
+
         ]);
 
         $course->update($validatedData);
