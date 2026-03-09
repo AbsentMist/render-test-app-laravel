@@ -364,6 +364,8 @@ import optionOrganisateurService from '../services/optionOrganisateurService';
 import IndicateurEtapes from './IndicateurEtapes.vue';
 import avertissementOrganisateurService from '../services/avertissementOrganisateurService';
 import optionCourseService from '../services/optionCourseService';
+import categorieOrganisateurService from '../services/categorieOrganisateurService';
+import sousCategorieOrganisateurService from '../services/sousCategorieOrganisateurService';
 
 const formulaireEtape = {
     GENERAL: 1,
@@ -663,7 +665,6 @@ export default {
                 this.modal = optionModal.FERMEE;
             }
         },
-
         selectEvent(event) {
             this.courseData.event = event;
             FlowbiteInstances.getInstance('Dropdown', 'dropdownEvent').hide();
@@ -832,6 +833,19 @@ export default {
             this.optionModels = response.data;
         } catch (e) {
             console.error("Erreur lors de la récupération des options: ", e);
+        }
+
+        try {
+            const response = await categorieOrganisateurService.getAllCategorie();
+            this.categories = response.data;
+        } catch (e) {
+            console.error("Erreur lors de la récupération des categories: ", e);
+        }
+        try {
+            const response = await sousCategorieOrganisateurService.getAllSousCategorie();
+            this.subCategories = response.data;
+        } catch (e) {
+            console.error("Erreur lors de la récupération des sous categories: ", e);
         }
 
         try{
