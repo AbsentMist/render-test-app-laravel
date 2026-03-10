@@ -3,10 +3,10 @@ import { Icon } from '@iconify/vue';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { useRouter } from 'vue-router';
-import { computed } from 'vue'; 
+import { computed } from 'vue';
 
 const authStore = useAuthStore();
-const themeStore = useThemeStore(); 
+const themeStore = useThemeStore();
 const router = useRouter();
 
 const handleToggleMode = async () => {
@@ -29,13 +29,13 @@ const userDisplayName = computed(() => {
 </script>
 
 <template>
-  <nav 
+  <nav
     class="fixed top-0 z-50 w-full border-b shadow-sm h-20 transition-colors duration-300"
     :class="themeStore.primaryColor ? '' : 'bg-primary-900 border-primary-900'"
     :style="themeStore.primaryColor ? { backgroundColor: themeStore.primaryColor, borderBottomColor: themeStore.secondaryColor } : {}"
   >
     <div class="px-3 lg:px-5 lg:pl-3 h-full flex items-center justify-between">
-      
+
       <div class="flex items-center justify-start">
         <button data-drawer-target="separator-sidebar" data-drawer-toggle="separator-sidebar" aria-controls="separator-sidebar" type="button" class="inline-flex items-center p-2 text-sm text-secondary rounded-lg sm:hidden hover:bg-primary-300 focus:outline-none focus:ring-2 focus:ring-tertiary">
           <Icon icon="lucide:menu" class="w-6 h-6" />
@@ -46,24 +46,35 @@ const userDisplayName = computed(() => {
       </div>
 
       <div class="flex items-center gap-8 pr-4">
-        
-        <button 
-          v-if="authStore.isAdmin"
-          @click="handleToggleMode()" 
-          class="hidden md:flex items-center gap-2 bg-secondary hover:bg-secondary-600 text-primary-900 px-4 py-2 rounded-xl transition-colors font-bold text-sm"
-        >
-          <Icon :icon="authStore.showAdminLayout ? 'lucide:eye' : 'lucide:settings'" class="w-4 h-4" />
-          {{ authStore.showAdminLayout ? 'Vue Participant' : 'Vue Organisateur' }}
-        </button>
+
+        <div class="flex items-center gap-2">
+          <router-link
+            v-if="!authStore.showAdminLayout"
+            to="/panier"
+            class="hidden md:flex items-center gap-2 bg-tertiary hover:bg-tertiary/90 text-primary px-4 py-2 rounded-xl transition-colors font-bold text-sm"
+          >
+            <Icon icon="lucide:shopping-cart" class="w-4 h-4" />
+            Panier
+          </router-link>
+
+          <button
+            v-if="authStore.isAdmin"
+            @click="handleToggleMode()"
+            class="hidden md:flex items-center gap-2 bg-secondary hover:bg-secondary-600 text-primary-900 px-4 py-2 rounded-xl transition-colors font-bold text-sm"
+          >
+            <Icon :icon="authStore.showAdminLayout ? 'lucide:eye' : 'lucide:settings'" class="w-4 h-4" />
+            {{ authStore.showAdminLayout ? 'Vue Participant' : 'Vue Organisateur' }}
+          </button>
+        </div>
 
         <router-link to="/profil" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
           <div class="flex flex-col items-start hidden sm:flex">
-            <div 
-                class="w-8 h-[2px] mb-1" 
+            <div
+                class="w-8 h-[2px] mb-1"
                 :class="themeStore.secondaryColor ? '' : 'bg-tertiary'"
                 :style="themeStore.secondaryColor ? { backgroundColor: themeStore.secondaryColor } : {}"
             ></div>
-            
+
             <span class="text-[15px] leading-tight font-medium" :class="themeStore.primaryColor ? 'text-white' : 'text-secondary'">
               {{ userDisplayName.top }}
             </span>
@@ -71,8 +82,8 @@ const userDisplayName = computed(() => {
               {{ userDisplayName.bottom }}
             </span>
           </div>
-          
-          <div 
+
+          <div
             class="w-11 h-11 rounded-full flex items-center justify-center border shadow-inner transition-colors duration-300"
             :class="themeStore.primaryColor ? 'text-white border-white bg-transparent' : 'bg-[#EAE6F5] text-primary-900 border-primary-900'"
           >
