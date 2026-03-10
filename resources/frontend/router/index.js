@@ -43,6 +43,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: "/panier",
+    name: "Panier",
+    component: () => import("../views/Panier.vue"),
+    meta: { requiresAuth: true }
+  },
+  {
     path: "/evenements",
     name: "Événements",
     component: () => import("../views/Evenements.vue"),
