@@ -10,6 +10,7 @@ use App\Http\Controllers\EvenementController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\GroupeController;
+use App\Http\Controllers\InscriptionController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -51,6 +52,13 @@ use App\Http\Controllers\GroupeController;
 
             //Gestion du code participant
             Route::post('/groupes/verifier-code', [GroupeController::class, 'verifierCodeEntreprise']);
+
+            //CRUD Inscription
+            Route::get('/inscriptions', [InscriptionController::class, 'indexParticipant']);
+            Route::post('/inscriptions', [InscriptionController::class, 'store']);
+            Route::get('/inscriptions/{id}', [InscriptionController::class, 'show']);
+            Route::put('/inscriptions/{id}', [InscriptionController::class, 'updateParticipant']);
+            Route::delete('/inscriptions/{id}', [InscriptionController::class, 'destroyParticipant']);
         });
 
         // Gestion du rôle Administrateur par Middleware
@@ -68,6 +76,12 @@ use App\Http\Controllers\GroupeController;
             Route::post('/courses', [CourseController::class, 'store']);
             Route::put('/courses/{id}', [CourseController::class, 'update']);
             Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
+
+            // Routes pour la gestion des inscriptions (CRUD)
+            Route::get('/inscriptions', [InscriptionController::class, 'indexAdmin']);
+            Route::get('/inscriptions/{id}', [InscriptionController::class, 'show']);
+            Route::put('/inscriptions/{id}', [InscriptionController::class, 'updateAdmin']);
+            Route::delete('/inscriptions/{id}', [InscriptionController::class, 'destroyAdmin']);
 
             // Routes pour la gestion des options (CRUD)
             Route::get('/options', [OptionController::class, 'indexAdmin']);
