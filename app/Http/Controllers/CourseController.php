@@ -24,34 +24,34 @@ class CourseController extends Controller
             $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
         }
 
-        // Récupération du questionnaire de l'événement
-        $questionnaire = null;
-        if ($evenement->is_questionnaire) {
-            $questionnaire = \DB::table('EvenementQuestion')
-                ->join('Question', 'EvenementQuestion.id_question', '=', 'Question.id')
-                ->where('EvenementQuestion.id_evenement', $id_evenement)
-                ->orderBy('EvenementQuestion.ordre')
-                ->get(['Question.id', 'Question.enonce'])
-                ->map(function ($question) {
-                    $options = \DB::table('OptionQuestion')
-                        ->where('id_question', $question->id)
-                        ->get(['id', 'texte_option'])
-                        ->toArray();
-                    return [
-                        'id'       => $question->id,
-                        'question' => $question->enonce,
-                        'answers'  => array_map(fn($o) => $o->texte_option, $options),
-                    ];
-                })
-                ->toArray();
-        }
-
         $courses = Course::with(['categorie', 'sousCategorie', 'avertissement', 'evenement', 'options.quantifiable', 'options.cochable'])
             ->withCount('inscriptions')
             ->where('id_evenement', $id_evenement)
             ->where('is_actif', true)
             ->get()
-            ->map(function ($course) use ($evenement, $questionnaire) {
+            ->map(function ($course) use ($evenement) {
+
+                $questionnaire = null;
+                if ($course->is_questionnaire) {
+                    $questionnaire = \DB::table('CourseQuestion')
+                        ->join('Question', 'CourseQuestion.id_question', '=', 'Question.id')
+                        ->where('CourseQuestion.id_course', $course->id) // ✅ bon id
+                        ->orderBy('CourseQuestion.ordre')
+                        ->get(['Question.id', 'Question.enonce'])
+                        ->map(function ($question) {
+                            $options = \DB::table('OptionQuestion')
+                                ->where('id_question', $question->id)
+                                ->get(['id', 'texte_option'])
+                                ->toArray();
+                            return [
+                                'id'      => $question->id,
+                                'question' => $question->enonce,
+                                'answers' => array_map(fn($o) => $o->texte_option, $options),
+                            ];
+                        })
+                        ->toArray();
+                }
+
                 return [
                     'id'                => $course->id,
                     'nom_course'        => $course->nom,
