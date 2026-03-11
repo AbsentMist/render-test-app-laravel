@@ -33,7 +33,7 @@ class InscriptionController extends Controller
         $idParticipant = $user->participant->id;
         
         //Renvoie uniquement les inscriptions du participant
-        $inscriptions = Inscription::with(['course.evenement', 'dossard', 'groupe'])
+        $inscriptions = Inscription::with(['course.evenement', 'dossard', 'groupe', 'participant'])
             ->where('id_participant', $idParticipant)
             ->get();
 

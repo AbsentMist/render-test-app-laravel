@@ -151,16 +151,16 @@ export default {
             });
         },
         async chargerCourses() {
-        this.chargement = true
-        this.erreur = ''
-        try {
-            const response = await courseOrganisateurService.getAllCourses(this.idEvenement)
-            this.courses = response.data?.courses ?? []
-        } catch (e) {
-            this.erreur = 'Impossible de charger les courses.'
-        } finally {
-            this.chargement = false
-        }
+            this.chargement = true
+            this.erreur = ''
+            try {
+                const response = await courseOrganisateurService.getAllCourses(this.idEvenement)
+                this.courses = response.data?.courses ?? []
+            } catch (e) {
+                this.erreur = 'Impossible de charger les courses.'
+            } finally {
+                this.chargement = false
+            }
         },
         modifierCourse(course) {
         this.$router.push(`/organisateur/formulaires?onglet=Course&id=${course.id}&idEvenement=${this.idEvenement}`);
