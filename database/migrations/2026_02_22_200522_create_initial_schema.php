@@ -24,9 +24,6 @@ return new class extends Migration
             $table->string('site', 255);
             $table->string('couleur_primaire', 10);
             $table->string('couleur_secondaire', 10);
-            $table->boolean('is_avertissement')->default(0);
-            $table->boolean('is_document')->default(0);
-            $table->boolean('is_questionnaire')->default(0);
             $table->boolean('is_rabais')->default(0);
             $table->boolean('is_actif')->default(0);
             $table->boolean('is_interne')->default(0);

@@ -25,7 +25,7 @@ return new class extends Migration
 
         if (!empty($idsASupprimer)) {
             // Supprimer les liens EvenementQuestion vers les doublons
-            DB::table('EvenementQuestion')
+            DB::table('CourseQuestion')
                 ->whereIn('id_question', $idsASupprimer)
                 ->delete();
 
