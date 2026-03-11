@@ -27,8 +27,8 @@ use App\Http\Controllers\InscriptionController;
             Route::get('/evenements', [EvenementController::class, 'indexParticipant']);
 
             // Récupération des courses
-            Route::get('/courses/{id_evenement}', [CourseController::class, 'indexParticipant']);
-            Route::get('/courses/course/{id}', [CourseController::class, 'show']);
+            Route::get('/evenements/{id_evenement}/courses', [CourseController::class, 'indexParticipant']);
+            Route::get('/courses/{id}', [CourseController::class, 'show']);
 
             // Récupération des options d'une course
             Route::get('/options/{id_course}', [OptionController::class, 'indexParticipant']);
