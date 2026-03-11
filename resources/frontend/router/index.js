@@ -33,7 +33,7 @@ const routes = [
   {
     path: "/inscriptions",
     name: "Mes inscriptions",
-    component: () => import("../views/Inscriptions.vue"),
+    component: () => import("../views/ParticipantInscriptions.vue"),
     meta: { requiresAuth: true }
   },
   {
