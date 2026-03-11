@@ -105,10 +105,6 @@
                     <input type="text" id="tarifInfo" v-model="courseData.tarifInfo" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
                 </div>
             </div>
-            <div>
-                <label for="popupInfo" class="block mb-2.5 text-sm font-medium text-heading">Popup info course</label>
-                <textarea id="popupInfo" v-model="courseData.popupInfo" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required></textarea>
-            </div>
             <div class="flex justify-between items-center gap-4 my-4">
                 <label for="dropdown" class="text-sm font-medium text-heading">Type de course</label>
                 <div class="relative">
