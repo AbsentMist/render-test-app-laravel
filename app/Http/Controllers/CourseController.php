@@ -13,7 +13,7 @@ class CourseController extends Controller
     public function indexParticipant($id_evenement): JsonResponse
     {
         $evenement = Evenement::select(
-            'id', 'nom', 'logo', 'couleur_primaire', 'couleur_secondaire', 'is_document', 'is_questionnaire'
+            'id', 'nom', 'logo', 'couleur_primaire', 'couleur_secondaire',
         )->find($id_evenement);
 
         if (!$evenement) {
@@ -63,7 +63,7 @@ class CourseController extends Controller
                     'avertissement'     => $course->avertissement ?? null,
                     'evenement'         => $course->evenement ?? null,
                     'options'           => $course->options ?? null,
-                    'document'          => $evenement->is_document,
+                    'document'          => $course->is_document,
                     'questionnaire'     => $questionnaire,
                     'dossards_restants' => $course->max_inscription
                         ? ($course->max_inscription - $course->inscriptions_count)
