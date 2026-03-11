@@ -17,7 +17,9 @@
                 <div>
                     <span class="px-6 text-subtitle font-medium text-secondary">Inscription</span>
                     <span class="text-subtitle font-medium text-secondary"> &nbsp; {{ course.nom_course }}</span>
-                    <div class="h-1 w-24 ml-6 rounded-r-full mb-2" :style="{ backgroundColor: course.evenement?.couleur_secondaire }"></div>
+                    <div class="h-1 w-24 ml-6 rounded-r-full mb-2" :style="{ backgroundColor: course.evenement?.couleur_secondaire }"></div>                                   
+                    <span class="mx-6 px-2 py-0.5 text-base font-medium text-secondary rounded-full" :style="{color: course.evenement.couleur_secondaire, backgroundColor: course.evenement.couleur_primaire, borderColor: course.evenement.couleur_secondaire}">{{ course.evenement.nom }}</span>
+
                 </div>
                 <button @click="$emit('close')" class="text-secondary hover:text-gray-600 transition-colors mr-1">
                     <Icon icon="mdi:close" class="w-5 h-5" />

@@ -73,20 +73,6 @@
                             </label>
                         </div>
                         <div class="flex flex-row justify-between items-center">
-                            <label class="text-sm font-medium text-heading">Document</label>
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" v-model="eventData.parameters.document" value="" class="sr-only peer">
-                                <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
-                            </label>
-                        </div>
-                        <div class="flex flex-row justify-between items-center">
-                            <label class="text-sm font-medium text-heading">Questionnaire</label>
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" v-model="eventData.parameters.questionnaire" value="" class="sr-only peer">
-                                <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
-                            </label>
-                        </div>
-                        <div class="flex flex-row justify-between items-center">
                             <label class="text-sm font-medium text-heading">Rabais</label>
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" v-model="eventData.parameters.rabais" value="" class="sr-only peer">
@@ -236,12 +222,6 @@ export default {
 
                 if (this.eventData.logo) {
                     formData.append('logo', this.eventData.logo);
-                }
-                if (this.eventData.parameters.document) {
-                    formData.append('document_description', this.eventData.document.description);
-                }
-                if (this.eventData.parameters.questionnaire) {
-                    formData.append('questions', JSON.stringify(this.eventData.questions));
                 }
 
                 let response;
