@@ -61,14 +61,6 @@
               class="border-t border-default-medium bg-neutral-secondary-medium"
             >
               <td colspan="9" class="px-6 py-4 relative">
-                <div class="absolute right-5">
-                  <button
-                      @click="changerInscription(inscription)"
-                      class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg btn-accent-300 text-xs font-medium transition-colors"
-                    >
-                      Changer de course
-                  </button>
-                </div>
                 <div class="grid grid-cols-2 gap-x-12 gap-y-2 text-sm max-w-2xl">
                   <div class="flex items-center gap-2">
                     <span class="text-body font-medium">Date paiement</span>
@@ -95,6 +87,14 @@
                     <span class="text-heading">{{ inscription.equipe_challenge ?? '—' }}</span>
                   </div>
                 </div>
+                <div class="flex flex-row">
+                    <button
+                        @click="changerInscription(inscription)"
+                        class="ml-auto items-center gap-1.5 px-4 my-2 py-1.5 rounded-lg btn-accent-300 text-xs font-medium transition-colors"
+                      >
+                        Changer de course
+                    </button>
+                  </div>
               </td>
             </tr>
           </template>
@@ -102,25 +102,43 @@
       </table>
     </div>
   </div>
+  <PopupAvertissementCourse v-if="popupAvertissement"
+    :texte="texteInfo"
+    @confirmer="afficherPopupChangement"
+    @close="$emit('close')"
+  />
+  <PopupChangementCourse v-if="popupChangement" :inscription="inscription.actuel" @close="$emit('close')"/>
 </template>
 
 <script>
 import { Icon } from '@iconify/vue';
 import Title from '../components/Title.vue'
 import inscriptionService from '../services/inscriptionService.js'
+import PopupAvertissementCourse from '../components/PopupAvertissementCourse.vue';
+import PopupChangementCourse from '../components/PopupChangementCourse.vue';
 
 export default {
   components: { 
     Title,
-    Icon
+    Icon,
+    PopupAvertissementCourse,
+    PopupChangementCourse
   },
+  emits: ['close'],
   data() {
     return {
       inscriptions: [],
       chargement: true,
       erreur: '',
       evenementASupprimer: null,
-      expandedRows: [], // IDs des lignes actuellement ouvertes
+      expandedRows: [],
+      popupAvertissement: false,
+      popupChangement: false,
+      inscription:{
+        actuel: null,
+        nouvel: null,
+      },
+      texteInfo: "En cas de sélection de course où le montant est supérieur à la course actuel, la différence devra être réglée.",
     }
   },
   methods: {
@@ -151,7 +169,13 @@ export default {
     changerInscription(inscription) {
       // À implémenter selon votre logique métier
       console.log('Changer inscription', inscription.id);
+      this.inscription.actuel = inscription;
+      this.popupAvertissement = true;
     },
+    afficherPopupChangement(){
+      this.popupAvertissement = false;
+      this.popupChangement = true;
+    }
   },
 
   async mounted() {
