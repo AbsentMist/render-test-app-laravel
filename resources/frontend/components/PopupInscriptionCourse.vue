@@ -330,7 +330,7 @@ export default {
         etapeSuivante() {
             if (!this.peutContinuer) return;
             if (this.estDerniereEtape) {
-                this.$emit('ajouter-panier', { ...this.inscription });
+                this.$emit('ajouter-panier', { ...this.inscription, tarif: this.totalInscription });
                 return;
             }
             const idx = this.etapesActives.indexOf(this.etape);
