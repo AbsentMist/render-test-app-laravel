@@ -9,7 +9,9 @@
     <div
       class="absolute top-4 right-4 w-6 h-6 rounded-full border flex items-center justify-center text-xs font-medium"
       :style="{ borderColor: evt.couleur_secondaire, color: evt.couleur_secondaire }"
-    />
+    >
+      <Icon icon="mdi:exclamation-thick" class="w-4 h-4" />
+    </div>
     <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-6">
       <img
         v-if="evt.logo_colorise"
@@ -34,6 +36,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { Icon } from '@iconify/vue';
 
 const props = defineProps({
   evenements: {

@@ -18,17 +18,35 @@
     <div class="px-6 py-3 border-b border-gray-300 flex gap-4 flex-col">
         <div>
             <span class="font-semibold">Course actuel</span>
-            <div class="flex flex-row gap-4 items-center justify-center">
+            <div class="flex flex-row gap-8 items-center justify-center">
+              <div class="flex items-center gap-4">
+                <img :src="logoPreview"
+                  class="max-h-24 max-w-48 object-contain"
+                  alt="Logo évènement"
+                />
                 <div class="flex flex-col">
                     <span>{{ inscription.course.nom }}</span>
                     <span>{{ inscription.course.evenement.nom }}</span>
                 </div>
-                <span>{{ inscription.course.date_debut }}</span>
-                <span>{{ inscription.course.date_fin }}</span>
-                <span>{{ inscription.tarif }}</span>
+              </div>
+                <div v-if="inscription.course.date_debut != inscription.course.date_fin">
+                  <div class="flex flex-col items-center">
+                    <span class="">Date début</span>
+                    <span>{{ inscription.course.date_debut }}</span>
+                  </div>
+                  <div class="flex flex-col items-center">
+                    <span>Date fin</span>
+                    <span>{{ inscription.course.date_fin }}</span>
+                  </div>
+                </div>
+                <div v-else class="flex flex-col items-center">
+                    <Icon icon="mdi:calendar" class="w-6 h-6"/>
+                    <span>{{ inscription.course.date_debut }}</span>
+                </div>
+                <span>{{ inscription.tarif }} Chf</span>
                 <span>{{ inscription.groupe }}</span>
                 <div class="flex flex-col items-center">
-                    <Icon icon="mdi:person" class="w-5 h-5"/>
+                    <Icon icon="mdi:person" class="w-6 h-6"/>
                     <span>{{ inscription.participant.nom }} {{ inscription.participant.prenom }}</span>
                 </div>
             </div>
@@ -115,6 +133,7 @@ export default {
       etape: ETAPES.EVENEMENT,
       evenementSelectionne: null,
       courseSelectionnee: null,
+      logoPreview: null,
     };
   },
   methods: {
@@ -142,6 +161,30 @@ export default {
         nouvelleInscription,
       });
     },
+    async coloriserLogo(logoSrc, couleur) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          ctx.globalCompositeOperation = 'source-atop';
+          ctx.fillStyle = couleur;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL());
+        };
+        img.src = logoSrc;
+      });
+    },
   },
+  async mounted() {
+    const logo = this.inscription.course.evenement.logo_base64;
+    if (logo) {
+      const src = logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;
+      this.logoPreview = await this.coloriserLogo(src, this.inscription.course.evenement.couleur_secondaire);
+    }
+}
 };
 </script>
