@@ -17,8 +17,8 @@
         <div 
         :class="inline 
             ? 'flex flex-col h-full w-full' 
-            : 'relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col overflow-hidden'"
-        :style="inline ? '' : 'height: 75vh'"
+            : 'relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl mx-4 flex flex-col overflow-hidden'"
+        :style="inline ? '' : 'height: 90vh'"
         >
      <!-- Header -->
             <div v-if="inline==false" class="flex items-center justify-between px-6 pt-5 pb-2 border-b border-gray-100 bg-primary-300">

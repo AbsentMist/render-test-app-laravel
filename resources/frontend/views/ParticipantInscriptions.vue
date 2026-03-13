@@ -105,9 +105,9 @@
   <PopupAvertissementCourse v-if="popupAvertissement"
     :texte="texteInfo"
     @confirmer="afficherPopupChangement"
-    @close="$emit('close')"
+    @close="popupAvertissement = false"
   />
-  <PopupChangementCourse v-if="popupChangement" :inscription="inscription.actuel" @close="$emit('close')"/>
+  <PopupChangementCourse v-if="popupChangement" :inscription="inscription.actuel" @close="popupChangement = false"/>
 </template>
 
 <script>

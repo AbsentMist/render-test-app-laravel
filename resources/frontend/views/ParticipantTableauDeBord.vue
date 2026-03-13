@@ -30,21 +30,9 @@
               Chargement des évènements...
             </div>
 
+            
             <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              <div
-                v-for="evt in evenements.slice(0, 3)"
-                :key="evt.id"
-                @click="goToListeCourses(evt.id)"
-                class="relative h-32 md:h-40 rounded-xl p-4 flex flex-col justify-end cursor-pointer transition-transform hover:-translate-y-1 shadow-sm"
-                :style="{ backgroundColor: evt.couleur_primaire || '#53687e' }"
-              >
-                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-4">
-                  <img v-if="evt.logo" :src="evt.logo" class="max-h-16 object-contain" alt="Logo évènement" />
-                  <span v-else class="text-lg font-black tracking-widest text-center uppercase" :style="{ color: evt.couleur_secondaire }">
-                    {{ evt.nom }}
-                  </span>
-                </div>
-              </div>
+              <MiniatureEvenement :evenements="evenements.slice(0, 3)" />
             </div>
 
             <div class="mt-auto pt-6 flex justify-end">
@@ -98,6 +86,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import evenementParticipantService from '../services/evenementParticipantService';
 import Title from '../components/Title.vue'; // Assure-toi que le chemin est correct
+import MiniatureEvenement from '../components/MiniatureEvenement.vue';
 
 const router = useRouter();
 const evenements = ref([]);
@@ -120,8 +109,13 @@ const groupes = ref([
 async function chargerEvenements() {
   try {
     const response = await evenementParticipantService.getAllEvenements();
-    // Gérer l'éventuelle structure imbriquée de l'API (ex: response.data.data si paginé)
-    evenements.value = response.data.data || response.data;
+    const data = response.data.data || response.data;
+
+    // MiniatureEvenement attend logo_base64 décodé
+    evenements.value = data.map(evt => ({
+      ...evt,
+      logo_base64: evt.logo_base64 ? atob(evt.logo_base64.split(',')[1]) : null
+    }));
   } catch (error) {
     console.error("Erreur lors du chargement des évènements :", error);
   } finally {
