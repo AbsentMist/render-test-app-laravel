@@ -10,12 +10,13 @@
         <thead class="bg-neutral-secondary-medium text-heading text-xs uppercase">
           <tr>
             <th class="px-4 py-3 w-8"></th>
-            <th class="px-4 py-3">Evènement</th>
-            <th class="px-4 py-3">Groupe</th>
-            <th class="px-4 py-3">Equipe/club</th>
+            <th class="px-4 py-3 text-center">Evènement</th>
+            <th class="px-4 py-3 text-center">Groupe</th>
+            <th class="px-4 py-3 text-center">Equipe/club</th>
             <th class="px-4 py-3 text-center">Tarif</th>
-            <th class="px-4 py-3">N° Dossard</th>
-            <th class="px-4 py-3">Participant</th>
+            <th class="px-4 py-3 text-center">Status</th>
+            <th class="px-4 py-3 text-center">N° Dossard</th>
+            <th class="px-4 py-3 text-center">Participant</th>
           </tr>
         </thead>
         <tbody>
@@ -29,6 +30,7 @@
             <!-- Ligne principale -->
             <tr
               class="border-t border-default-medium hover:bg-neutral-secondary-medium transition-colors"
+              :class="inscription.status_paiement=='Annulé' ? 'bg-accent-600' : ''"
             >
               <!-- Bouton + / - -->
               <td class="px-4 py-3">
@@ -51,6 +53,7 @@
               <td class="px-4 py-3">{{ inscription.groupe ?? '—' }}</td>
               <td class="px-4 py-3">{{ inscription.equipe ?? '—' }}</td>
               <td class="px-4 py-3 text-center">CHF {{ inscription.tarif }}</td>
+              <td class="px-4 py-3">{{ inscription.status_paiement ?? '—' }}</td>
               <td class="px-4 py-3">{{ inscription.dossard ?? '—' }}</td>
               <td class="px-4 py-3">{{ inscription.participant.nom }} {{ inscription.participant.prenom }}</td>
             </tr>
@@ -87,7 +90,7 @@
                     <span class="text-heading">{{ inscription.equipe_challenge ?? '—' }}</span>
                   </div>
                 </div>
-                <div class="flex flex-row">
+                <div v-if="inscription.status_paiement!='Annulé'" class="flex flex-row">
                     <button
                         @click="changerInscription(inscription)"
                         class="ml-auto items-center gap-1.5 px-4 my-2 py-1.5 rounded-lg btn-accent-300 text-xs font-medium transition-colors"
@@ -107,7 +110,11 @@
     @confirmer="afficherPopupChangement"
     @close="popupAvertissement = false"
   />
-  <PopupChangementCourse v-if="popupChangement" :inscription="inscription.actuel" @close="popupChangement = false"/>
+  <PopupChangementCourse v-if="popupChangement" 
+    :inscription="inscription.actuel"
+    :participants="participants" 
+    @close="popupChangement = false"
+  />
 </template>
 
 <script>
@@ -128,6 +135,7 @@ export default {
   data() {
     return {
       inscriptions: [],
+      participants: [],
       chargement: true,
       erreur: '',
       evenementASupprimer: null,
@@ -136,7 +144,6 @@ export default {
       popupChangement: false,
       inscription:{
         actuel: null,
-        nouvel: null,
       },
       texteInfo: "En cas de sélection de course où le montant est supérieur à la course actuel, la différence devra être réglée.",
     }
@@ -148,6 +155,7 @@ export default {
       try {
         const response = await inscriptionService.getMesInscriptions();
         this.inscriptions = response.data;
+        this.participants = this.inscriptions.map(i => i.participant);
         console.log(response?.data);
       } catch (e) {
         console.error(e);
