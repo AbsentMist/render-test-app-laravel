@@ -8,16 +8,25 @@
     />
 
     <!-- Popup inscription -->
-    <div v-if="modalAffichage == modals.INSCRIPTION"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col overflow-hidden" style="height: 75vh">
-
-            <!-- Header -->
-            <div class="flex items-center justify-between px-6 pt-5 pb-2 border-b border-gray-100 bg-primary-300">
+     <div 
+        v-if="modalAffichage == modals.INSCRIPTION"
+        :class="inline 
+        ? 'flex flex-col h-full' 
+        : 'fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm'"
+    >
+        <div 
+        :class="inline 
+            ? 'flex flex-col h-full w-full' 
+            : 'relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl mx-4 flex flex-col overflow-hidden'"
+        :style="inline ? '' : 'height: 90vh'"
+        >
+     <!-- Header -->
+            <div v-if="inline==false" class="flex items-center justify-between px-6 pt-5 pb-2 border-b border-gray-100 bg-primary-300">
                 <div>
                     <span class="px-6 text-subtitle font-medium text-secondary">Inscription</span>
                     <span class="text-subtitle font-medium text-secondary"> &nbsp; {{ course.nom_course }}</span>
-                    <div class="h-1 w-24 ml-6 rounded-r-full mb-2" :style="{ backgroundColor: course.evenement?.couleur_secondaire }"></div>
+                    <div class="h-1 w-24 ml-6 rounded-r-full mb-2" :style="{ backgroundColor: course.evenement?.couleur_secondaire }"></div>                                   
+                    <span class="mx-6 px-2 py-0.5 text-base font-medium text-secondary rounded-full" :style="{color: course.evenement.couleur_secondaire, backgroundColor: course.evenement.couleur_primaire, borderColor: course.evenement.couleur_secondaire}">{{ course.evenement.nom }}</span>
                 </div>
                 <button @click="$emit('close')" class="text-secondary hover:text-gray-600 transition-colors mr-1">
                     <Icon icon="mdi:close" class="w-5 h-5" />
@@ -225,6 +234,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        inline: {
+            type: Boolean,
+            default: false,
+        }
     },
     data() {
         return {
@@ -317,7 +330,7 @@ export default {
         etapeSuivante() {
             if (!this.peutContinuer) return;
             if (this.estDerniereEtape) {
-                this.$emit('ajouter-panier', { ...this.inscription });
+                this.$emit('ajouter-panier', { ...this.inscription, tarif: this.totalInscription });
                 return;
             }
             const idx = this.etapesActives.indexOf(this.etape);

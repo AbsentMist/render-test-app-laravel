@@ -19,7 +19,8 @@ class DatabaseSeeder extends Seeder
             EvenementSeeder::class,
             CourseSeeder::class,
             OptionSeeder::class,
-            QuestionSeeder::class,       
+            QuestionSeeder::class,   
+            InscriptionSeeder::class,    
             InitialDataSeeder::class,
         ]);
     }
