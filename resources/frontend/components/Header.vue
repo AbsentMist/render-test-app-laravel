@@ -2,11 +2,13 @@
 import { Icon } from '@iconify/vue';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
+import { useCartStore } from '../stores/cart'; 
 import { useRouter } from 'vue-router';
 import { computed } from 'vue';
 
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
+const cartStore = useCartStore(); 
 const router = useRouter();
 
 const handleToggleMode = async () => {
@@ -26,6 +28,11 @@ const userDisplayName = computed(() => {
   const nom = authStore.user?.participant?.nom || '';
   return { top: prenom, bottom: nom.toUpperCase() };
 });
+
+const allerAuPanier = () => {
+  cartStore.fermerDropdown();
+  router.push('/panier');
+};
 </script>
 
 <template>
@@ -47,25 +54,112 @@ const userDisplayName = computed(() => {
 
       <div class="flex items-center gap-8 pr-4">
 
-        <div class="flex items-center gap-2">
-          <router-link
-            v-if="!authStore.showAdminLayout"
-            to="/panier"
-            class="hidden md:flex items-center gap-2 bg-tertiary hover:bg-tertiary/90 text-primary px-4 py-2 rounded-xl transition-colors font-bold text-sm"
-          >
-            <Icon icon="lucide:shopping-cart" class="w-4 h-4" />
-            Panier
-          </router-link>
+        <div class="relative hidden md:flex items-center">
+          
+          <div class="flex items-stretch shadow-sm rounded-xl transition-transform hover:scale-105">
+            <button
+              v-if="!authStore.showAdminLayout"
+              @click="allerAuPanier"
+              class="flex items-center gap-2 bg-tertiary hover:bg-tertiary/90 text-primary px-4 py-2 rounded-l-xl transition-colors font-bold text-sm"
+            >
+              <Icon icon="lucide:shopping-cart" class="w-4 h-4" />
+              Panier
+            </button>
+            
+            <button
+              v-if="!authStore.showAdminLayout"
+              @click="cartStore.toggleDropdown()"
+              class="flex items-center justify-center bg-tertiary hover:bg-tertiary/90 text-primary px-2 rounded-r-xl border-l border-primary/20 transition-colors"
+            >
+              <Icon icon="lucide:chevron-down" class="w-4 h-4 transition-transform" :class="cartStore.isDropdownOpen ? 'rotate-180' : ''" />
+            </button>
+          </div>
 
-          <button
-            v-if="authStore.isAdmin"
-            @click="handleToggleMode()"
-            class="hidden md:flex items-center gap-2 bg-secondary hover:bg-secondary-600 text-primary-900 px-4 py-2 rounded-xl transition-colors font-bold text-sm"
+          <span 
+            v-if="cartStore.cartCount > 0 && !authStore.showAdminLayout" 
+            class="absolute -top-2 -right-2 bg-white text-tertiary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold border-2 border-tertiary shadow-sm pointer-events-none z-10"
           >
-            <Icon :icon="authStore.showAdminLayout ? 'lucide:eye' : 'lucide:settings'" class="w-4 h-4" />
-            {{ authStore.showAdminLayout ? 'Vue Participant' : 'Vue Organisateur' }}
-          </button>
+            {{ cartStore.cartCount }}
+          </span>
+
+          <div 
+            v-if="cartStore.isDropdownOpen && !authStore.showAdminLayout" 
+            class="absolute top-full right-0 mt-4 w-[400px] bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 z-50 cursor-default text-left"
+          >
+            <div class="absolute -top-2 right-8 w-4 h-4 bg-white rotate-45 border-l border-t border-gray-100"></div>
+
+            <h2 class="text-[1.35rem] font-medium text-[#0e0f54] mb-1">Ajouté au panier</h2>
+            <div class="h-1 w-12 rounded-r-full bg-red-200 mb-6"></div>
+
+            <div v-if="cartStore.cartCount === 0" class="text-center py-6">
+              <Icon icon="lucide:shopping-bag" class="w-12 h-12 text-gray-300 mx-auto mb-2" />
+              <p class="text-gray-500 font-medium">Votre panier est vide.</p>
+            </div>
+            
+            <div v-else class="flex flex-col">
+              
+                <div class="max-h-[300px] overflow-y-auto mb-2 space-y-4 pr-2 pt-1">
+                  <div v-for="(item, index) in cartStore.inscriptions" :key="index" class="flex gap-4 items-stretch border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                    
+                    <div 
+                      class="w-[72px] h-[72px] rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-sm relative"
+                      :style="{ backgroundColor: item.courseDetails?.evenement?.couleur_primaire || '#5C8E9A' }"
+                    >
+                      <img v-if="item.courseDetails?.evenement?.logo_base64" :src="'data:image/png;base64,' + item.courseDetails.evenement.logo_base64" class="absolute inset-0 w-full h-full object-contain p-1.5" />
+                      <span v-else class="text-[10px] text-white font-bold text-center px-1 leading-tight relative z-10">{{ item.courseDetails?.evenement?.nom || 'Course' }}</span>
+                    </div>
+                    
+                    <div class="flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 class="text-[1.1rem] font-medium text-[#0e0f54] leading-tight mb-1">{{ item.courseDetails?.nom_course || 'Nouvelle inscription' }}</h3>
+                        <p class="text-[0.8rem] text-[#0e0f54] font-semibold">
+                          - {{ item.courseDetails?.categorie || 'Catégorie' }} <span v-if="item.courseDetails?.sous_categorie">• {{ item.courseDetails?.sous_categorie }}</span>
+                        </p>
+                        <div v-if="item.options && Object.keys(item.options).length > 0">
+                          <p v-for="(opt, key) in item.options" :key="key" class="text-[0.8rem] text-[#0e0f54] font-semibold mt-0.5">
+                            - {{ opt.quantite ? opt.quantite + ' ' : '1x ' }}{{ opt.option?.nom }}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="text-right mt-2">
+                        <span class="text-lg font-medium text-[#0e0f54]">{{ item.tarif || 0 }}.-</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-6 pt-4 border-t border-gray-200">
+                    <span class="text-sm font-medium text-gray-500">Total</span>
+                    <span class="text-xl font-bold text-[#0e0f54]">{{ cartStore.cartTotal.toFixed(2) }}.-</span>
+                </div>
+
+                <div class="flex gap-3">
+                  <button 
+                    @click="cartStore.fermerDropdown()" 
+                    class="flex-1 bg-[#0e0f54] text-white py-2.5 rounded-xl text-[0.95rem] font-medium hover:bg-[#0e0f54]/90 transition-colors"
+                  >
+                    Fermer
+                  </button>
+                  <button 
+                    @click="allerAuPanier" 
+                    class="flex-1 bg-[#d9f20b] text-[#0e0f54] py-2.5 rounded-xl text-[0.95rem] font-medium hover:bg-[#c4da0a] transition-colors shadow-sm"
+                  >
+                    Voir le panier
+                  </button>
+                </div>
+            </div>
+          </div>
         </div>
+
+        <button
+          v-if="authStore.isAdmin"
+          @click="handleToggleMode()"
+          class="hidden md:flex items-center gap-2 bg-secondary hover:bg-secondary-600 text-primary-900 px-4 py-2 rounded-xl transition-colors font-bold text-sm"
+        >
+          <Icon :icon="authStore.showAdminLayout ? 'lucide:eye' : 'lucide:settings'" class="w-4 h-4" />
+          {{ authStore.showAdminLayout ? 'Vue Participant' : 'Vue Organisateur' }}
+        </button>
 
         <router-link to="/profil" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
           <div class="flex flex-col items-start hidden sm:flex">

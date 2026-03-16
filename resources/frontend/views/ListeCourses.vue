@@ -1,4 +1,3 @@
-
 <template>
   <div class="flex flex-col md:flex-row md:items-center justify-between">
     <Title :texte="evenement?.nom ?? ''" :couleur="evenement?.couleur_secondaire" />
@@ -26,32 +25,38 @@
       />
     </div>
   </div>
-<PopupInscriptionCourse 
+
+  <PopupInscriptionCourse 
     v-if="popupInscription" 
     :course="courseSelectionnee"
     :participants="participants"
     :couleur-primaire="evenement?.couleur_primaire" 
     @close="popupInscription = false"
-/></template>
+    @ajouter-panier="gererAjoutPanier"
+  />
+</template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { Icon } from '@iconify/vue';
 import courseParticipantService from '../services/courseParticipantService';
-import { useThemeStore } from '../stores/theme'; // 👈 1. Import du store
+import { useThemeStore } from '../stores/theme'; 
 import Title from '../components/Title.vue';
 import PopupInscriptionCourse from '../components/PopupInscriptionCourse.vue';
 import { useAuthStore } from '../stores/auth';
+import { useCartStore } from '../stores/cart'; 
 import MiniatureCourse from '../components/MiniatureCourse.vue';
 
 const authStore = useAuthStore();
+const cartStore = useCartStore(); 
+
 const participants = computed(() => {
     const p = authStore.user?.participant;
     return p ? [p] : [];
 });
 const route = useRoute();
-const themeStore = useThemeStore(); // 2. Initialisation du store
+const themeStore = useThemeStore(); 
 const evenement = ref(null);
 const courses = ref([]);
 const chargement = ref(true);
@@ -65,17 +70,24 @@ const courseSelectionnee = ref(null);
 function ouvrirInscription(course) {
     courseSelectionnee.value = course;
     popupInscription.value = true;
-    console.log(course);
 }
-// ===== CHARGEMENT DES COURSES =====
+
+//Transmission des données d'inscription aux stores pour les afficher dans le panier et les sauvegarder
+function gererAjoutPanier(donneesInscription) {
+    // On sauvegarde avec les détails de la course pour la miniature dynamique
+    cartStore.ajouterInscription(donneesInscription, courseSelectionnee.value);
+    
+    // On ferme la grande modale
+    popupInscription.value = false;
+}
+
+// Chargement des courses
 async function chargerDonnees() {
   try {
     const response = await courseParticipantService.getAllCourses(idEvenement.value);
     evenement.value = response.data.evenement;
     courses.value = response.data.courses;
 
-    // ✨ 3. C'EST ICI QUE LA MAGIE OPÈRE : 
-    // On indique au Store les couleurs de l'évènement pour que la Sidebar et le Header changent !
     if (evenement.value) {
         themeStore.setTheme(
             evenement.value.couleur_primaire,
