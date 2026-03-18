@@ -13,10 +13,11 @@ class Groupe extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'nom',
-        'code_entreprise',
-        'type' //ENUM dans la DB
-    ];
+    'nom',
+    'type',
+    'code_entreprise',
+    'id_course', // nouveau pour permettre utilier même nom de groupe pour des courses différentes mais pas dans la même course
+];
 
     //Relation avec les participants
     public function participants()

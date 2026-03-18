@@ -31,9 +31,10 @@ class GroupeController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'nom' => 'required|string|max:100',
-            'type' => 'required|string', 
-        ]);
+    'nom'       => 'required|string|max:100',
+    'type'      => 'required|string',
+    'id_course' => 'nullable|exists:Course,id', // ← ajouter
+]);
 
         // Générer le code entreprise automatiquement si type "Entreprise"
         if ($validatedData['type'] === 'Entreprise') {

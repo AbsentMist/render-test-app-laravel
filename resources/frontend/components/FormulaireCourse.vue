@@ -397,8 +397,9 @@ export default {
             evenements: [],
             formulaireEtapesLabels: ["Général", "Options supplémentaires"],
             typesCourse: [
-                { name: "Type de course 1", id: 1 },
-                { name: "Type de course 2", id: 2 },
+                { name: "Individuel", id: 1 },
+                { name: "Relais",     id: 2 },
+                { name: "Groupe",     id: 3 },
             ],
             categories: [],
             subCategories: [],
