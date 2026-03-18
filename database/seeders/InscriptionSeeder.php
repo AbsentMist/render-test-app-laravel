@@ -16,15 +16,13 @@ class InscriptionSeeder extends Seeder
         $participants = User::has('participant')->with('participant')->get();
 
         if ($participants->isEmpty()) {
-            $this->command->warn('Aucun participant trouvé. Lance d\'abord le UserSeeder.');
-            return;
+           return;
         }
 
         // Récupère toutes les courses actives
         $courses = Course::where('is_actif', true)->get();
 
         if ($courses->isEmpty()) {
-            $this->command->warn('Aucune course active trouvée. Lance d\'abord le CourseSeeder.');
             return;
         }
 
@@ -57,6 +55,5 @@ class InscriptionSeeder extends Seeder
             }
         }
 
-        $this->command->info('InscriptionSeeder exécuté avec succès.');
     }
 }

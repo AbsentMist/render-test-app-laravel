@@ -120,8 +120,10 @@ import ChangementEvenement from './ChangementEvenement.vue';
 import PopupInscriptionCourse from './PopupInscriptionCourse.vue';
 import PopupConfirmation from './PopupConfirmation.vue';
 import inscriptionService from '../services/inscriptionService';
-
+import { useCartStore } from '../stores/cart';
 const ETAPES = { EVENEMENT: 1, COURSE: 2, INSCRIPTION: 3 };
+
+const cartStore = useCartStore;
 
 export default {
   name: 'PopupChangementCourse',
@@ -170,9 +172,7 @@ export default {
       this.etape = ETAPES.COURSE;
     },
     confirmerChangement(nouvelleInscription) {
-      this.nouvelleInscriptionData = nouvelleInscription;
-      if(nouvelleInscription.tarif <= this.inscription.tarif)
-        this.confirmation = true;
+      this.confirmation = true;
       console.log(nouvelleInscription)
     },
     async coloriserLogo(logoSrc, couleur) {
@@ -194,6 +194,7 @@ export default {
     },
     async confirmPopup() {
       try {
+        if(this.nouvelleInscription.tarif <= this.inscription.tarif){
           // 1. Créer la nouvelle inscription
           await inscriptionService.createInscription({
               id_course:            this.nouvelleInscription.course.id,
@@ -209,7 +210,10 @@ export default {
 
           // 2. Annuler l'ancienne inscription
           await inscriptionService.cancelInscription(this.inscription.id);
-
+        }
+        else if(this.nouvelleInscription.tarif > this.inscription.tarif){
+          cartStore.ajouterInscription(donneesInscription, this.nouvelleInscription);
+        }
           // 3. Afficher confirmation et recharger
           this.confirmation = false;
           this.dataInserted = true;
