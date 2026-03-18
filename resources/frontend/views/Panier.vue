@@ -207,6 +207,7 @@ const procederPaiement = async () => {
         id_participant: article.participant[0].id, 
         avertissement_valide: accepteConditions.value,
         id_groupe: article.id_groupe || null,
+        status_paiement: 'Validé',
         // Si un document est attaché, on envoie son ID
         id_document: article.documents && article.documents.length > 0 ? article.documents[0].id : null,
         code_participant: article.codeParticipation || null,

@@ -108,7 +108,7 @@
 
       </div>
       <PopupConfirmation v-if="confirmation" message="Etes-vous sûr de vouloir changer votre course?" @confirm="confirmPopup"/>
-      <PopupConfirmation v-if="dataInserted" message="Votre inscription a été confirmée! L'ancienne course est annulée." :showButtons="false"/>
+      <PopupConfirmation v-if="dataInserted" :showButtons="false" :message="messageConfirmation"/>
     </div>
   </div>
 </template>
@@ -122,8 +122,6 @@ import PopupConfirmation from './PopupConfirmation.vue';
 import inscriptionService from '../services/inscriptionService';
 import { useCartStore } from '../stores/cart';
 const ETAPES = { EVENEMENT: 1, COURSE: 2, INSCRIPTION: 3 };
-
-const cartStore = useCartStore;
 
 export default {
   name: 'PopupChangementCourse',
@@ -151,6 +149,8 @@ export default {
       confirmation: false,
       dataInserted: false,
       nouvelleInscriptionData: null,
+      messageConfirmation: '',
+      cartStore: null,
     };
   },
   methods: {
@@ -172,6 +172,7 @@ export default {
       this.etape = ETAPES.COURSE;
     },
     confirmerChangement(nouvelleInscription) {
+      this.nouvelleInscriptionData = nouvelleInscription;
       this.confirmation = true;
       console.log(nouvelleInscription)
     },
@@ -193,8 +194,20 @@ export default {
       });
     },
     async confirmPopup() {
+      const memeEvenement = this.nouvelleInscription.evenement?.id === this.inscription.course.evenement.id;
+      const memeCourse    = this.nouvelleInscription.course?.id    === this.inscription.course.id;
+
+      if (memeEvenement && memeCourse) {
+        this.confirmation = false;
+        this.messageConfirmation = "Vous ne pouvez pas sélectionner la même course!"  
+        this.dataInserted = true;
+        setTimeout(() => {
+          this.dataInserted = false;
+          }, 2000);  
+        return;
+      }      
       try {
-        if(this.nouvelleInscription.tarif <= this.inscription.tarif){
+        if(this.nouvelleInscriptionData.tarif <= this.inscription.tarif){
           // 1. Créer la nouvelle inscription
           await inscriptionService.createInscription({
               id_course:            this.nouvelleInscription.course.id,
@@ -210,9 +223,11 @@ export default {
 
           // 2. Annuler l'ancienne inscription
           await inscriptionService.cancelInscription(this.inscription.id);
+          this.messageConfirmation = 'Votre inscription a été confirmée ! L\'ancienne course est annulée.';
         }
-        else if(this.nouvelleInscription.tarif > this.inscription.tarif){
-          cartStore.ajouterInscription(donneesInscription, this.nouvelleInscription);
+        else if(this.nouvelleInscriptionData.tarif > this.inscription.tarif){
+          this.cartStore.ajouterInscription(this.nouvelleInscriptionData, this.nouvelleInscription.course);
+          this.messageConfirmation = 'La nouvelle course a été ajoutée au panier.';
         }
           // 3. Afficher confirmation et recharger
           this.confirmation = false;
@@ -227,6 +242,7 @@ export default {
     },
   },
   async mounted() {
+    this.cartStore =  useCartStore();
     const logo = this.inscription.course.evenement.logo_base64;
     if (logo) {
       const src = logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;

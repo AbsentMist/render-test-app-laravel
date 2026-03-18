@@ -50,7 +50,7 @@ class InscriptionController extends Controller
             'id_document' => 'nullable|exists:Document,id',
             'code_participant' => 'nullable|string|unique:Inscription,code_participant',
             'avertissement_valide' => 'sometimes|boolean',
-            'status_paiement'     => 'sometimes|in:Validé,En attente,Annulé',
+            'status_paiement'     => 'sometimes|in:Validé,Annulé',
         ]);
 
         $idParticipant = Auth::user()->participant->id;
@@ -83,7 +83,7 @@ class InscriptionController extends Controller
                     'id_document' => $validatedData['id_document'] ?? null,
                     'code_participant' => $validatedData['code_participant'] ?? null,
                     'tarif' => $course->tarif,
-                    'status_paiement' => 'En attente',
+                    'status_paiement' => 'Validé',
                     'montant_rabais' => 0,
                     'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
                 ]);
@@ -101,7 +101,7 @@ class InscriptionController extends Controller
             'id_document' => $validatedData['id_document'] ?? null,
             'code_participant' => $validatedData['code_participant'] ?? null,
             'tarif' => $course->tarif,
-            'status_paiement' => $validatedData['status_paiement'] ?? 'En attente',
+            'status_paiement' => $validatedData['status_paiement'] ?? 'Validé',
             'montant_rabais' => 0,
             'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
         ]);
