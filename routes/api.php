@@ -11,6 +11,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\GroupeController;
 use App\Http\Controllers\InscriptionController;
+use App\Http\Controllers\PayrexxController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -20,6 +21,7 @@ use App\Http\Controllers\InscriptionController;
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me',      [AuthController::class, 'me']);
+        Route::post('/paiement/gateway', [PayrexxController::class, 'creerGateway']);
 
         // Route accessible à tous les utilisateurs (Participants + Admins)
         Route::prefix('participant')->group(function() {

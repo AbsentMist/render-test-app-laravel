@@ -50,7 +50,7 @@
                 {{ inscription.course.evenement.nom }} -
                 {{ inscription.course.nom }}
               </td>
-              <td class="px-4 py-3">{{ inscription.groupe ?? '—' }}</td>
+              <td class="px-4 py-3">{{ inscription.groupe?.nom ?? '—' }}</td>
               <td class="px-4 py-3">{{ inscription.equipe ?? '—' }}</td>
               <td class="px-4 py-3 text-center">CHF {{ inscription.tarif }}</td>
               <td class="px-4 py-3">{{ inscription.status_paiement ?? '—' }}</td>

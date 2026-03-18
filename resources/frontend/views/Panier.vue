@@ -166,6 +166,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../stores/cart';
 import inscriptionService from '../services/inscriptionService'; 
+import api from '../services/api';
 
 const router = useRouter();
 const cartStore = useCartStore();
@@ -197,43 +198,48 @@ const procederPaiement = async () => {
   isProcessing.value = true;
 
   try {
-    // 1. On boucle sur chaque inscription du panier pour créer les requêtes API
+    console.log('Contenu panier:', JSON.stringify(panier.value));
+    // 1. Enregistrer les inscriptions en backend
     const promessesInscriptions = panier.value.map(article => {
-      
-      // On prépare le "payload" attendu par InscriptionController@store
-      const donneesAEnvoyer = {
-        id_course: article.courseDetails.id,
-        // On récupère le premier participant (le fonctionnement classique pour l'instant)
-        id_participant: article.participant[0].id, 
+    // Pour une inscription groupe, le participant principal est le fondateur
+    const participantPrincipal = article.participant[0] 
+        ?? article.groupeEphemere?.participants[0];
+    
+    const donneesAEnvoyer = {
+        id_course:            article.courseDetails.id,
+        id_participant:       participantPrincipal.id,
         avertissement_valide: accepteConditions.value,
-        id_groupe: article.id_groupe || null,
-        status_paiement: 'Validé',
-        // Si un document est attaché, on envoie son ID
-        id_document: article.documents && article.documents.length > 0 ? article.documents[0].id : null,
-        code_participant: article.codeParticipation || null,
-      };
+        id_groupe:            article.id_groupe || null,
+        id_document:          article.documents?.length > 0 ? article.documents[0].id : null,
+        code_participant:     article.codeParticipation || null,
+    };
+    return inscriptionService.createInscription(donneesAEnvoyer);
+});
 
-      // On lance la requête POST via notre service
-      return inscriptionService.createInscription(donneesAEnvoyer);
-    });
-
-    // 2. On attend que TOUTES les inscriptions soient validées par le backend
     await Promise.all(promessesInscriptions);
 
-    // 3. Succès ! On vide le panier Pinia
-    cartStore.viderPanier();
+    // 2. Créer la Gateway Payrexx avec le montant total
+    const montantTotal = parseFloat(total.value);
+    const gatewayResponse = await api.post('/paiement/gateway', {
+      montant: montantTotal,
+    });
 
-    // 4. On redirige l'utilisateur vers son tableau de bord d'inscriptions
-    router.push('/inscriptions');
+    const urlPaiement = gatewayResponse.data.url;
+
+    if (!urlPaiement) {
+      throw new Error('URL de paiement manquante');
+    }
+
+    // 3. Vider le panier et rediriger vers Payrexx
+    cartStore.viderPanier();
+    window.location.href = urlPaiement;
 
   } catch (error) {
-    console.error("Erreur lors de l'enregistrement des inscriptions :", error);
-    
-    // Si l'erreur vient du backend (ex: erreur 409 Déjà inscrit, ou 422 Validation)
-    if (error.response && error.response.data && error.response.data.message) {
-        alert("Erreur: " + error.response.data.message);
+    console.error('Erreur lors du paiement :', error);
+    if (error.response?.data?.message) {
+      alert('Erreur : ' + error.response.data.message);
     } else {
-        alert("Une erreur inattendue est survenue lors de l'enregistrement de vos inscriptions.");
+      alert('Une erreur inattendue est survenue.');
     }
   } finally {
     isProcessing.value = false;
