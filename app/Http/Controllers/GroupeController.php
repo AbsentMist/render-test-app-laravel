@@ -54,12 +54,6 @@ class GroupeController extends Controller
 
         $idParticipant = Auth::user()->participant->id;
 
-        //Conversion type "relais" du frontend en "Groupe" pour la base de données 
-        $typeReel = $request->type;
-        if (strtolower($typeReel) === 'relais') {
-            $typeReel = 'Groupe';
-        }
-
         $groupe = Groupe::create($validatedData);
 
         // Obtiens automatiquement le statut fondateur du groupe
