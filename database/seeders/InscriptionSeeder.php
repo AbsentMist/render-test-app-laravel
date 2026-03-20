@@ -26,7 +26,7 @@ class InscriptionSeeder extends Seeder
             return;
         }
 
-        $statuts = ['Validé', 'En attente', 'Annulé'];
+        $statuts = ['Validé'];
 
         foreach ($participants as $user) {
             if (!$user->participant) continue;

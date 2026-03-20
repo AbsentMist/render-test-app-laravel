@@ -113,7 +113,7 @@
   <PopupChangementCourse v-if="popupChangement" 
     :inscription="inscription.actuel"
     :participants="participants" 
-    @close="popupChangement = false"
+    @close="fermerPopupChangement"
   />
 </template>
 
@@ -156,10 +156,10 @@ export default {
         const response = await inscriptionService.getMesInscriptions();
         this.inscriptions = response.data;
         // Dédoublonner par id
-const tousParticipants = this.inscriptions.map(i => i.participant);
-this.participants = tousParticipants.filter(
-    (p, index, self) => self.findIndex(x => x.id === p.id) === index
-);
+      const tousParticipants = this.inscriptions.map(i => i.participant);
+      this.participants = tousParticipants.filter(
+          (p, index, self) => self.findIndex(x => x.id === p.id) === index
+      );
         console.log(response?.data);
       } catch (e) {
         console.error(e);
@@ -167,6 +167,10 @@ this.participants = tousParticipants.filter(
       } finally {
         this.chargement = false
       }
+    },
+    async fermerPopupChangement(){
+      this.popupChangement = false;
+      await this.chargerInscriptions();
     },
 
     toggleExpand(id) {

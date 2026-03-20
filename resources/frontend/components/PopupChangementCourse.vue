@@ -3,7 +3,7 @@
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl mx-4 flex flex-col overflow-hidden" style="height: 90vh">
       
       <!-- Header -->
-        <div class="flex items-center justify-between px-6 pt-5 pb-2 border-b border-gray-100 bg-primary-300">
+        <div class="flex items-center justify-between px-6 pt-5 pb-2 bg-primary-300">
             <div>
                 <span class="px-6 text-subtitle font-medium text-secondary">Changement de course</span>
                 <!-- Bandeau inscription actuelle -->
@@ -15,46 +15,70 @@
         </div>
     
     <!-- Inscription actuelle -->
-    <div class="px-6 py-3 border-b border-gray-300 flex gap-4 flex-col">
-        <div>
-            <span class="font-semibold">Course actuel</span>
-            <div class="flex flex-row gap-8 items-center justify-center">
-              <div class="flex items-center gap-4">
-                <img :src="logoPreview" v-if="inscription.course.evenement.logo_base64"
-                  class="max-h-24 max-w-48 object-contain"
-                  alt="Logo évènement"
-                />
-                <div class="flex flex-col">
-                    <span>{{ inscription.course.nom }}</span>
-                    <span>{{ inscription.course.evenement.nom }}</span>
-                </div>
-              </div>
-                <div v-if="inscription.course.date_debut != inscription.course.date_fin">
-                  <div class="flex flex-col items-center">
-                    <span class="">Date début</span>
-                    <span>{{ inscription.course.date_debut }}</span>
-                  </div>
-                  <div class="flex flex-col items-center">
-                    <span>Date fin</span>
-                    <span>{{ inscription.course.date_fin }}</span>
-                  </div>
-                </div>
-                <div v-else class="flex flex-col items-center">
-                    <Icon icon="mdi:calendar" class="w-6 h-6"/>
-                    <span>{{ inscription.course.date_debut }}</span>
-                </div>
-                <span v-if="inscription.groupe">{{ inscription.groupe }}</span>
-                <div class="flex flex-col items-center">
-                  <Icon icon="mdi:person" class="w-6 h-6"/>
-                  <span>{{ inscription.participant.nom }} {{ inscription.participant.prenom }}</span>
-                </div>
-                <span>{{ inscription.tarif }} Chf</span>
-            </div>
+    <div class="px-8 py-6 flex flex-col gap-4" :style="{backgroundColor: inscription.course.evenement.couleur_secondaire + '26'}">
+    <div class="flex items-center gap-2">
+        <div class="bg-primary-900 p-1.5 rounded-lg">
+            <Icon icon="mdi:ticket-confirmation" class="w-4 h-4 text-accent-600" />
         </div>
-        <div class="flex justify-center items-center">
-            <Icon icon="mdi:swap-horizontal" class="w-8 h-8 text-gray-400 shrink-0" />
+        <span class="text-body text-primary font-bold uppercase">Inscription actuelle</span>
+    </div>
+
+    <div class="flex flex-row items-center bg-white rounded-2xl border border-gray-200 shadow-sm py-2 gap-8 overflow-hidden">
+    <div class="flex items-center gap-5 border-r border-gray-100 pr-8 min-w-[280px] -mx-4 -my-4 px-4 py-8 mr-0 rounded-l-2xl"
+    :style="{backgroundColor: inscription.course.evenement.couleur_primaire}">
+        <div class="rounded-xl p-2 shrink-0">
+            <img :src="logoPreview" v-if="inscription.course.evenement.logo_base64"
+                class="h-12 w-24 object-contain"
+                alt="Logo évènement"
+            />
+        </div>
+        <div class="flex flex-col" :style="{color: inscription.course.evenement.couleur_secondaire}">
+            <span class="text-lg font-black leading-tight">{{ inscription.course.nom }}</span>
+            <span class="text-xs font-bold uppercase tracking-tight">{{ inscription.course.evenement.nom }}</span>
         </div>
     </div>
+
+        <div class="flex flex-col items-center border-r border-gray-100 px-8">
+            <div class="flex items-center gap-1.5 text-gray-400 mb-1">
+                <Icon icon="mdi:calendar-month" class="w-6 h-6" :style="{color: inscription.course.evenement.couleur_primaire}"/>
+            </div>
+            <div class="flex flex-col items-center">
+                <span v-if="inscription.course.date_debut != inscription.course.date_fin" class="text-sm font-bold text-gray-700 text-center leading-tight">
+                    Du {{ inscription.course.date_debut }}<br>au {{ inscription.course.date_fin }}
+                </span>
+                <span v-else class="text-sm font-bold text-gray-700 leading-tight">
+                    {{ inscription.course.date_debut }}
+                </span>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center border-r border-gray-100 flex-1">
+          <span v-if="inscription.groupe" class="-mt-2 self-start text-label">
+            <b>Groupe:</b> {{ inscription.groupe.nom }}
+          </span>
+          <div class="flex flex-col items-center">
+            <div class="flex flex-col items-center gap-1.5">
+                <Icon icon="mdi:account-circle" class="w-6 h-6" :style="{color: inscription.course.evenement.couleur_primaire}"/>
+                <span class="text-sm font-bold text-gray-700 leading-tight">{{ inscription.participant.prenom }} {{ inscription.participant.nom }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-end pr-6 min-w-[100px]">
+            <span class="text-label font-bold mb-1" :style="{color: inscription.course.evenement.couleur_primaire}">Total payé</span>
+            <div class="flex items-baseline gap-1">
+                <span class="text-2xl font-black text-primary-900">{{ inscription.tarif }}</span>
+                <span class="text-xs font-bold text-primary-900">CHF</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-center -mb-9 z-10" :style="{color: inscription.course.evenement.couleur_primaire}">
+        <div class="bg-white border border-gray-200 shadow-md rounded-full p-2">
+            <Icon icon="mdi:swap-vertical" class="w-6 h-6" />
+        </div>
+    </div>
+</div>
     
     <!-- Fil d'Ariane-->
     <div class="flex items-center gap-2 px-6 mt-1">
@@ -226,14 +250,16 @@ export default {
           this.messageConfirmation = 'Votre inscription a été confirmée ! L\'ancienne course est annulée.';
         }
         else if(this.nouvelleInscriptionData.tarif > this.inscription.tarif){
-          this.cartStore.ajouterInscription(this.nouvelleInscriptionData, this.nouvelleInscription.course);
+          this.cartStore.ajouterInscription({...this.nouvelleInscriptionData, ancienneInscriptionId: this.inscription.id}, this.nouvelleInscription.course);
           this.messageConfirmation = 'La nouvelle course a été ajoutée au panier.';
+          console.log("nouvelle inscription: ", this.nouvelleInscriptionData, this.inscription.id)
         }
+
           // 3. Afficher confirmation et recharger
           this.confirmation = false;
           this.dataInserted = true;
           setTimeout(() => {
-              window.location.reload();
+              this.$emit('close');
           }, 2000);
 
       } catch (error) {
