@@ -17,7 +17,19 @@ class Groupe extends Model
     'type',
     'code_entreprise',
     'id_course', // nouveau pour permettre utilier même nom de groupe pour des courses différentes mais pas dans la même course
-];
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        //Forcer le type "Groupe" pour les groupes de type "Relais"
+        static::creating(function ($groupe) {
+            if (strtolower($groupe->type) === 'relais') {
+                $groupe->type = 'Groupe';
+            }
+        });
+    }
 
     //Relation avec les participants
     public function participants()

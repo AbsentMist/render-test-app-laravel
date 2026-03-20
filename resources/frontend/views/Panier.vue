@@ -166,6 +166,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../stores/cart';
 import inscriptionService from '../services/inscriptionService'; 
+import groupeService from '../services/groupeService'; 
 import api from '../services/api';
 
 const router = useRouter();
@@ -174,11 +175,9 @@ const cartStore = useCartStore();
 // Données du panier via le store Pinia
 const panier = computed(() => cartStore.inscriptions);
 
-
 const accepteConditions = ref(false);
 const isProcessing = ref(false); 
 const fraisServiceFixe = 2.50;
-
 
 const sousTotal = computed(() => cartStore.cartTotal);
 
@@ -191,7 +190,7 @@ const total = computed(() => {
   return tot.toFixed(2);
 });
 
-// --- ACTIONS : LIAISON BACKEND (Tâche 3.9) ---
+// LIAISON BACKEND (Tâche 3.9) 
 const procederPaiement = async () => {
   if (!accepteConditions.value || panier.value.length === 0) return;
 
@@ -199,26 +198,62 @@ const procederPaiement = async () => {
 
   try {
     console.log('Contenu panier:', JSON.stringify(panier.value));
-    // 1. Enregistrer les inscriptions en backend
-    const promessesInscriptions = panier.value.map(article => {
-    // Pour une inscription groupe, le participant principal est le fondateur
-    const participantPrincipal = article.participant[0] 
-        ?? article.groupeEphemere?.participants[0];
     
-    const donneesAEnvoyer = {
-        id_course:            article.courseDetails.id,
-        id_participant:       participantPrincipal.id,
-        avertissement_valide: accepteConditions.value,
-        id_groupe:            article.id_groupe || null,
-        id_document:          article.documents?.length > 0 ? article.documents[0].id : null,
-        code_participant:     article.codeParticipation || null,
-    };
-    return inscriptionService.createInscription(donneesAEnvoyer);
-});
+    // Enregistrer les inscriptions en backend (challenge / relais)
+    const promessesInscriptions = panier.value.map(async (article) => {
+      
+      let idGroupe = article.id_groupe || null;
 
+      // LOGIQUE RELAIS & ENTREPRISES :
+      // On force la création si on a un nom d'équipe OU si on détecte le mot "relais"
+      const typeEstRelais = article.type?.id === 'relais' || article.type?.nom?.toLowerCase() === 'relais';
+      
+      if (!idGroupe && (article.nom_equipe || typeEstRelais) && article.participant && article.participant.length > 1) {
+        
+        // Si l'user n'a pas mis de nom de groupe --> génération automatique
+        const nomEquipeFinal = article.nom_equipe || `Équipe de ${article.participant[0].prenom}`;
+        
+        // Création du groupe (le backend ajoute le fondateur automatiquement)
+        const typeGroupe = typeEstRelais ? 'Relais' : 'Entreprise';
+        const groupeReponse = await groupeService.createGroupe({
+          nom: nomEquipeFinal,
+          type: typeGroupe,
+          id_course: article.courseDetails.id
+        });
+        
+        // On récupère l'ID de manière ultra-sécurisée peu importe la forme de la réponse de l'API
+        idGroupe = groupeReponse.data?.groupe?.id || groupeReponse.data?.id || groupeReponse.data?.data?.id;
+
+        // Ajout des autres membres au groupe
+        if (idGroupe) {
+          for (let i = 1; i < article.participant.length; i++) {
+            await groupeService.addParticipant(idGroupe, article.participant[i].id);
+          }
+        } else {
+          console.error("Erreur critique : l'API n'a pas retourné l'ID du groupe !", groupeReponse);
+        }
+      }
+
+      //ENREGISTREMENT DES INSCRIPTIONS POUR TOUS LES PARTICIPANTS DU PANIER
+      const promessesParticipants = article.participant.map(p => {
+        const donneesAEnvoyer = {
+          id_course:            article.courseDetails.id,
+          id_participant:       p.id, // ID du participant en cours dans la boucle
+          avertissement_valide: accepteConditions.value,
+          id_groupe:            idGroupe,
+          id_document:          article.documents?.length > 0 ? article.documents[0].id : null,
+          code_participant:     article.codeParticipation || null,
+        };
+        return inscriptionService.createInscription(donneesAEnvoyer);
+      });
+
+      return Promise.all(promessesParticipants);
+    });
+
+    
     await Promise.all(promessesInscriptions);
 
-    // 2. Créer la Gateway Payrexx avec le montant total
+    // Créer la Gateway Payrexx avec le montant total
     const montantTotal = parseFloat(total.value);
     const gatewayResponse = await api.post('/paiement/gateway', {
       montant: montantTotal,
@@ -230,7 +265,7 @@ const procederPaiement = async () => {
       throw new Error('URL de paiement manquante');
     }
 
-    // 3. Vider le panier et rediriger vers Payrexx
+    // Vider le panier et rediriger vers Payrexx
     cartStore.viderPanier();
     window.location.href = urlPaiement;
 

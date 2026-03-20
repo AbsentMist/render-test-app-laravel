@@ -155,7 +155,11 @@ export default {
       try {
         const response = await inscriptionService.getMesInscriptions();
         this.inscriptions = response.data;
-        this.participants = this.inscriptions.map(i => i.participant);
+        // Dédoublonner par id
+const tousParticipants = this.inscriptions.map(i => i.participant);
+this.participants = tousParticipants.filter(
+    (p, index, self) => self.findIndex(x => x.id === p.id) === index
+);
         console.log(response?.data);
       } catch (e) {
         console.error(e);
