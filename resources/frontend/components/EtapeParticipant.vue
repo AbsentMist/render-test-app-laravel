@@ -129,7 +129,7 @@
                         <input v-model="nomEquipeSaisi" type="text" placeholder="Ex: Les Éclairs, Team GVA..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40" />
                     </div>
                     <div v-else class="text-xs text-gray-400 italic">
-                        Le nom par défaut sera : "{{ selectionnes.map(p => p.prenom).join(' & ') }}"
+                        Le nom par défaut sera : "Équipe de {{ selectionnes.length > 0 ? selectionnes[0].prenom : '' }}"
                     </div>
 
                     <div class="flex justify-end gap-3 mt-2 border-t border-gray-100 pt-4">
@@ -355,8 +355,12 @@ export default {
             if (this.veutNomEquipe && this.nomEquipeSaisi.trim()) {
                 this.nomEquipeFinal = this.nomEquipeSaisi.trim();
             } else {
-                // nom de groupe par défaut : Prenom1 & Prenom2
-                this.nomEquipeFinal = this.selectionnes.map(p => p.prenom).join(' & ');
+                // nom de groupe par défaut "Équipe de Prénom1"
+                if (this.selectionnes && this.selectionnes.length > 0) {
+                    this.nomEquipeFinal = `Équipe de ${this.selectionnes[0].prenom}`;
+                } else {
+                    this.nomEquipeFinal = '';
+                }
             }
             this.$emit('update:nomEquipe', this.nomEquipeFinal);
             this.modalNomEquipeOuvert = false;
