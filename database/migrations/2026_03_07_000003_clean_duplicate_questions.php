@@ -7,6 +7,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('CourseQuestion')) {
+            return;
+        }
         // 1. Récupérer toutes les questions
         $questions = DB::table('Question')->get();
 
