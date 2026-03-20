@@ -47,14 +47,23 @@ import PopupInscriptionCourse from '../components/PopupInscriptionCourse.vue';
 import { useAuthStore } from '../stores/auth';
 import { useCartStore } from '../stores/cart'; 
 import MiniatureCourse from '../components/MiniatureCourse.vue';
+import participantService from '../services/participantService';
 
 const authStore = useAuthStore();
 const cartStore = useCartStore(); 
 
-const participants = computed(() => {
-    const p = authStore.user?.participant;
-    return p ? [p] : [];
-});
+const participants = ref([]);
+
+async function chargerParticipants() {
+    try {
+        const response = await participantService.getMesParticipants();
+        participants.value = response.data;
+    } catch (e) {
+        // Fallback sur le participant principal du compte
+        const p = authStore.user?.participant;
+        participants.value = p ? [p] : [];
+    }
+}
 const route = useRoute();
 const themeStore = useThemeStore(); 
 const evenement = ref(null);
@@ -115,7 +124,8 @@ function formaterDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('fr-CH');
 }
 
-onMounted(() => {
+onMounted(async () => {
+    await chargerParticipants();
   chargerDonnees();
 });
 </script>

@@ -60,7 +60,10 @@ use App\Http\Controllers\PayrexxController;
             Route::post('/groupes/{id}/participants', [GroupeController::class, 'addParticipant']); //peut-être à supprimer
             Route::delete('/groupes/{id}/participants/{id_participant}', [GroupeController::class, 'removeParticipant']); //peut-être à supprimer
             
-
+            // Gestion des participants liés au compte
+            Route::get('/participants', [AuthController::class, 'mesParticipants']);
+            Route::post('/participants', [AuthController::class, 'creerParticipant']);
+            
             //Gestion du code participant
             Route::post('/groupes/verifier-code', [GroupeController::class, 'verifierCodeEntreprise']);
 

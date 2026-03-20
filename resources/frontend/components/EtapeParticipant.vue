@@ -260,7 +260,7 @@
 <script>
 import { Icon } from '@iconify/vue';
 import api from '../services/api';
-
+import participantService from '../services/participantService';
 const formVide = () => ({
     nom: '', prenom: '', date_naissance: '', adresse: '',
     code_postal: '', ville: '', pays: 'Suisse',
@@ -397,21 +397,32 @@ export default {
             }
             this.fermerFormulaire();
         },
-        valider() {
-            if (!this.formulaireValide) return;
-            const nouveau = { ...this.form, id: Date.now() };
-            if (this.estGroupe || this.estRelais) {
-                const max = this.limiteGroupe?.max ?? Infinity;
-                if (this.groupeData.participants.length < max) {
-                    this.groupeData.participants.push(nouveau);
-                    this.emitGroupe();
-                }
-            } else {
-                this.$emit('creer-participant', nouveau);
-                this.toggleSelectionner(nouveau);
-            }
-            this.fermerFormulaire();
-        },
+        async valider() {
+    if (!this.formulaireValide) return;
+
+    let nouveau;
+    try {
+        // Tenter de créer le participant en DB
+        const response = await participantService.creerParticipant(this.form);
+        nouveau = response.data; // participant avec vrai ID DB
+    } catch (e) {
+        // Si ça échoue (ex: téléphone déjà pris), on crée localement
+        console.warn('Participant non sauvegardé en DB, création locale :', e);
+        nouveau = { ...this.form, id: Date.now() };
+    }
+
+    if (this.estGroupe || this.estRelais) {
+        const max = this.limiteGroupe?.max ?? Infinity;
+        if (this.groupeData.participants.length < max) {
+            this.groupeData.participants.push(nouveau);
+            this.emitGroupe();
+        }
+    } else {
+        this.$emit('creer-participant', nouveau);
+        this.toggleSelectionner(nouveau);
+    }
+    this.fermerFormulaire();
+},
     },
     watch: {
         typeSelectionne: {

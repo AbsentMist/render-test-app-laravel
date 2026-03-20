@@ -206,4 +206,47 @@ class AuthController extends Controller
             ]
         ], 201);
     }
+    // Récupère tous les participants liés au compte connecté
+public function mesParticipants(Request $request)
+{
+    $user = $request->user();
+    $participants = Participant::where('id_user', $user->id)->get();
+    return response()->json($participants);
+}
+
+// Crée un nouveau participant lié au compte connecté
+public function creerParticipant(Request $request)
+{
+    $request->validate([
+        'nom'            => 'required|string|max:100',
+        'prenom'         => 'required|string|max:100',
+        'date_naissance' => 'nullable|string|max:20',
+        'adresse'        => 'nullable|string|max:100',
+        'code_postal'    => 'nullable|string|max:10',
+        'ville'          => 'nullable|string|max:100',
+        'pays'           => 'nullable|string|max:100',
+        'telephone'      => 'nullable|string|max:20|unique:Participant,telephone',
+        'email'          => 'nullable|string|max:80',
+        'taille_tshirt'  => 'nullable|string|max:10',
+        'sexe'           => 'nullable|string|max:10',
+    ]);
+
+    $participant = Participant::create([
+        'id_user'        => $request->user()->id,
+        'nom'            => $request->nom,
+        'prenom'         => $request->prenom,
+        'date_naissance' => $request->date_naissance ?? '2000-01-01',
+        'adresse'        => $request->adresse ?? '',
+        'code_postal'    => $request->code_postal ?? '',
+        'ville'          => $request->ville ?? '',
+        'pays'           => $request->pays ?? 'Suisse',
+        'telephone'      => $request->telephone ?? null,
+        'taille_tshirt'  => $request->taille_tshirt ?? 'M',
+        'sexe'           => $request->sexe ?? 'M',
+        'nationalite'    => 'Suisse',
+    ]);
+
+    return response()->json($participant, 201);
+}
+    
 }
