@@ -291,7 +291,8 @@ export default {
                 let id_groupe = null;
 
                 // Si mode groupe : créer le groupe en DB maintenant
-                if (this.inscription.type?.id === 'groupe' && this.inscription.groupeEphemere) {
+                if ((this.inscription.type?.id === 'groupe' || this.inscription.type?.id === 'relais') 
+    && this.inscription.groupeEphemere) {
                     this.creationGroupe = true;
                     try {
                         // 1. Créer le groupe
@@ -337,7 +338,8 @@ export default {
                 this.$emit('ajouter-panier', {
                     ...this.inscription,
                     id_groupe,
-                    tarif: this.totalInscription,
+                    nom_equipe: this.inscription.groupeEphemere?.nom ?? null,
+    tarif: this.totalInscription,
                 });
                 return;
             }
