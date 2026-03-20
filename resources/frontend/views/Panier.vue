@@ -247,11 +247,17 @@ const procederPaiement = async () => {
         return inscriptionService.createInscription(donneesAEnvoyer);
       });
 
+      
       return Promise.all(promessesParticipants);
     });
-
+    
     
     await Promise.all(promessesInscriptions);
+    
+    console.log("Id: ", article.ancienneInscriptionId);
+
+    if(article.ancienneInscriptionId)
+      await inscriptionService.cancelInscription(article.ancienneInscriptionId)
 
     // Créer la Gateway Payrexx avec le montant total
     const montantTotal = parseFloat(total.value);
