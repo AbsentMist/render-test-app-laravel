@@ -205,22 +205,32 @@ const procederPaiement = async () => {
       let idGroupe = article.id_groupe || null;
 
       // LOGIQUE RELAIS & ENTREPRISES :
-      // Si on a plusieurs participants on crée d'abord le groupe
-      if (!idGroupe && article.nom_equipe && article.participant && article.participant.length > 1) {
+      // On force la création si on a un nom d'équipe OU si on détecte le mot "relais"
+      const typeEstRelais = article.type?.id === 'relais' || article.type?.nom?.toLowerCase() === 'relais';
+      
+      if (!idGroupe && (article.nom_equipe || typeEstRelais) && article.participant && article.participant.length > 1) {
+        
+        // Si l'user n'a pas mis de nom de groupe --> génération automatique
+        const nomEquipeFinal = article.nom_equipe || `Équipe de ${article.participant[0].prenom}`;
         
         // Création du groupe (le backend ajoute le fondateur automatiquement)
-        const typeGroupe = article.type?.id === 'relais' ? 'Relais' : 'Entreprise';
+        const typeGroupe = typeEstRelais ? 'Relais' : 'Entreprise';
         const groupeReponse = await groupeService.createGroupe({
-          nom: article.nom_equipe,
+          nom: nomEquipeFinal,
           type: typeGroupe,
           id_course: article.courseDetails.id
         });
         
-        idGroupe = groupeReponse.data?.groupe?.id || groupeReponse.data?.id;
+        // On récupère l'ID de manière ultra-sécurisée peu importe la forme de la réponse de l'API
+        idGroupe = groupeReponse.data?.groupe?.id || groupeReponse.data?.id || groupeReponse.data?.data?.id;
 
         // Ajout des autres membres au groupe
-        for (let i = 1; i < article.participant.length; i++) {
-          await groupeService.addParticipant(idGroupe, article.participant[i].id);
+        if (idGroupe) {
+          for (let i = 1; i < article.participant.length; i++) {
+            await groupeService.addParticipant(idGroupe, article.participant[i].id);
+          }
+        } else {
+          console.error("Erreur critique : l'API n'a pas retourné l'ID du groupe !", groupeReponse);
         }
       }
 
