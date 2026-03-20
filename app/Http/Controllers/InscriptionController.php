@@ -46,15 +46,22 @@ class InscriptionController extends Controller
         // Validation des données selon la DB
         $validatedData = $request->validate([
             'id_course' => 'required|exists:Course,id',
+            'id_participant' => 'nullable|exists:Participant,id',
             'id_groupe' => 'nullable|exists:Groupe,id',
             'id_document' => 'nullable|exists:Document,id',
             'code_participant' => 'nullable|string|unique:Inscription,code_participant',
             'avertissement_valide' => 'sometimes|boolean',
-            'status_paiement'     => 'sometimes|in:Validé,Annulé',
+            //Ajout du champ "en attente" pour les inscriptions relais / entreprises
+            'status_paiement'     => 'sometimes|in:Validé,Annulé,En attente', 
         ]);
 
-        $idParticipant = Auth::user()->participant->id;
+        $idParticipantConnecte = Auth::user()->participant->id;
+        $idParticipant = $request->id_participant ?? $idParticipantConnecte;
         $course = Course::findOrFail($validatedData['id_course']);
+
+        // Lorsque l'inscription est en groupe, tout le monde commence "En attente" jusqu'à ce que chaque membre accepte l'invitation 
+        $statutInscription = !empty($validatedData['id_groupe']) ? 'En attente' : 'Validé';
+        $statutPaiementFinal = $validatedData['status_paiement'] ?? $statutInscription;
 
         // Gestion erreur si la course à un avertissement obligatoire
         if ($course->is_avertissement == 1 && empty($validatedData['avertissement_valide'])) {
@@ -83,7 +90,7 @@ class InscriptionController extends Controller
                     'id_document' => $validatedData['id_document'] ?? null,
                     'code_participant' => $validatedData['code_participant'] ?? null,
                     'tarif' => $course->tarif,
-                    'status_paiement' => 'Validé',
+                    'status_paiement' => $statutPaiementFinal, // Application du statut dynamique
                     'montant_rabais' => 0,
                     'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
                 ]);
@@ -101,7 +108,7 @@ class InscriptionController extends Controller
             'id_document' => $validatedData['id_document'] ?? null,
             'code_participant' => $validatedData['code_participant'] ?? null,
             'tarif' => $course->tarif,
-            'status_paiement' => $validatedData['status_paiement'] ?? 'Validé',
+            'status_paiement' => $statutPaiementFinal, // Application du statut dynamique
             'montant_rabais' => 0,
             'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
         ]);

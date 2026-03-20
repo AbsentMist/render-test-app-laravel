@@ -41,6 +41,11 @@ use App\Http\Controllers\PayrexxController;
             // Recherche d'un participant par email (pour inscription relais)
             Route::get('/rechercher-participant', [AuthController::class, 'rechercherParticipant']);
 
+            // Invitation de participants à rejoindre un groupe
+            Route::get('/groupes/mes-invitations', [GroupeController::class, 'getInvitations']);
+            Route::post('/groupes/{id}/accepter', [GroupeController::class, 'accepterInvitation']);
+            Route::post('/groupes/{id}/refuser', [GroupeController::class, 'refuserInvitation']);
+            
             // CRUD Groupe
             Route::get('/groupes', [GroupeController::class, 'index']);
             Route::post('/groupes', [GroupeController::class, 'store']);
@@ -48,9 +53,13 @@ use App\Http\Controllers\PayrexxController;
             Route::put('/groupes/{id}', [GroupeController::class, 'update']);
             Route::delete('/groupes/{id}', [GroupeController::class, 'destroy']);
 
+            //Invitation de participants à rejoindre un groupe (pour inscription relais, Inscription fantôme)
+            Route::post('/inviter-participant', [AuthController::class, 'createInvitedUser']);
+
             // Gestion des membres dans le groupe
-            Route::post('/groupes/{id}/participants', [GroupeController::class, 'addParticipant']);
-            Route::delete('/groupes/{id}/participants/{id_participant}', [GroupeController::class, 'removeParticipant']);
+            Route::post('/groupes/{id}/participants', [GroupeController::class, 'addParticipant']); //peut-être à supprimer
+            Route::delete('/groupes/{id}/participants/{id_participant}', [GroupeController::class, 'removeParticipant']); //peut-être à supprimer
+            
 
             //Gestion du code participant
             Route::post('/groupes/verifier-code', [GroupeController::class, 'verifierCodeEntreprise']);
