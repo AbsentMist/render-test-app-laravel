@@ -54,7 +54,12 @@ class GroupeController extends Controller
 
         $idParticipant = Auth::user()->participant->id;
 
-        
+        //Conversion type "relais" du frontend en "Groupe" pour la base de données 
+        $typeReel = $request->type;
+        if (strtolower($typeReel) === 'relais') {
+            $typeReel = 'Groupe';
+        }
+
         $groupe = Groupe::create($validatedData);
 
         // Obtiens automatiquement le statut fondateur du groupe
@@ -228,7 +233,7 @@ class GroupeController extends Controller
             'statut' => 'Membre' //Passe de "En attente" à "Membre"
         ]);
 
-        // 🚨 NOUVEAU : On met à jour le statut des inscriptions liées au groupe(Fondateur ET Membre)
+        // On met à jour le statut des inscriptions liées au groupe(Fondateur ET Membre)
         \App\Models\Inscription::where('id_groupe', $idGroupe)
             ->update(['status_paiement' => 'Validé']);
 
