@@ -7,6 +7,9 @@ use App\Models\Participant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Mail\InvitationParticipantMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -135,5 +138,72 @@ class AuthController extends Controller
             'nom'    => $participant->nom,
             'email'  => $user->email,
         ]);
+    }
+
+    //Invite un utilisateur (sans mot de passe) et créer un participant associé
+    public function createInvitedUser(Request $request)
+    {
+        // Validation (sans password)
+        $request->validate([
+            'email'          => 'required|email|max:80|unique:User,email',
+            'nom'            => 'required|string|max:100',
+            'prenom'         => 'required|string|max:100',
+            'date_naissance' => 'required|date',
+            'telephone'      => 'required|string|max:20|unique:Participant,telephone',
+            'nationalite'    => 'nullable|string|max:100', //nullable car pas demandé dans le formulaire frontend
+            'adresse'        => 'required|string|max:100',
+            'code_postal'    => 'required|string|max:10',
+            'ville'          => 'required|string|max:100',
+            'pays'           => 'required|string|max:100',
+            'taille_tshirt'  => 'required|string|max:10',
+            'sexe'           => 'required|string|max:10',
+        ]);
+
+        // Création d'un User avec un mot de passe aléatoire sécurisé
+        $randomPassword = \Illuminate\Support\Str::password(16, true, true, true, false);
+        
+        $user = User::create([
+            'email'    => $request->email,
+            'password' => Hash::make($randomPassword),
+        ]);
+
+        // Création du Participant associé
+        $participant = Participant::create([
+            'id_user'        => $user->id,
+            'nom'            => $request->nom,
+            'prenom'         => $request->prenom,
+            'date_naissance' => $request->date_naissance,
+            'telephone'      => $request->telephone,
+            //On met la nationalité à celle du pays par défaut, le frontend demandera la nationalité lors de la validation du participant
+            'nationalite'    => $request->nationalite ?? $request->pays, 
+            'adresse'        => $request->adresse,
+            'code_postal'    => $request->code_postal,
+            'ville'          => $request->ville,
+            'pays'           => $request->pays,
+            'taille_tshirt'  => $request->taille_tshirt,
+            'sexe'           => $request->sexe,
+        ]);
+
+        // Envoi de l'email avec le lien pour définir le mot de passe 
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(
+                new \App\Mail\InvitationParticipantMail($participant->load('user'), $randomPassword)
+            );
+        } catch (\Exception $e) {
+            // Si l'email échoue à être envoyé, on ne bloque pas la création du participant, mais log d'erreur.
+            // On se contente d'écrire l'erreur dans les logs pour le débogage.
+            \Illuminate\Support\Facades\Log::error("Erreur d'envoi d'email d'invitation : " . $e->getMessage());
+        }
+
+        //Renvoie les infos du participant invité au frontend
+        return response()->json([
+            'message' => 'Utilisateur invité créé avec succès.',
+            'participant' => [
+                'id'     => $participant->id,
+                'prenom' => $participant->prenom,
+                'nom'    => $participant->nom,
+                'email'  => $user->email,
+            ]
+        ], 201);
     }
 }
