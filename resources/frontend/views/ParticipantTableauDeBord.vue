@@ -55,8 +55,8 @@
             </div>
             <ul class="space-y-4">
               <li v-for="participant in participants" :key="participant.id" class="text-sm font-semibold text-gray-800">
-                {{ participant.nom }}
-              </li>
+    {{ participant.prenom }} {{ participant.nom }}
+</li>
             </ul>
           </div>
 
@@ -92,12 +92,19 @@ const router = useRouter();
 const evenements = ref([]);
 const chargement = ref(true);
 
-// Données fictives en attendant les futurs appels API
-const participants = ref([
-  { id: 1, nom: 'Alessandro Neris Garcia' },
-  { id: 2, nom: 'Jean-Daniel Guillermet' },
-  { id: 3, nom: 'Steven Ngoie' }
-]);
+// chargemnt dynamiques des participants
+import participantService from '../services/participantService';
+
+const participants = ref([]);
+
+async function chargerParticipants() {
+  try {
+    const response = await participantService.getMesParticipants();
+    participants.value = response.data;
+  } catch (e) {
+    console.error('Impossible de charger les participants :', e);
+  }
+}
 
 const groupes = ref([
   { id: 1, nom: 'Les peroquets' },
@@ -141,6 +148,7 @@ function goToResultats() {
 }
 
 onMounted(() => {
+  chargerParticipants();
   chargerEvenements();
 });
 </script>
