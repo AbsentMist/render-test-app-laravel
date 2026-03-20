@@ -220,8 +220,10 @@ export default {
     },
     computed: {
         tousLesParticipants() {
-            return [...this.participants, ...this.participantsSupplementaires];
-        },
+    const ids = new Set(this.participants.map(p => p.id));
+    const extras = (this.inscription.groupeEphemere?.participants ?? []).filter(p => !ids.has(p.id));
+    return [...this.participants, ...extras];
+},
         estCourseGroupe() {
             return this.course.type === 'Groupe';
         },
@@ -242,18 +244,28 @@ export default {
             return this.etapesActives.indexOf(this.etape) === this.etapesActives.length - 1;
         },
         peutContinuer() {
-            if (this.etape === formulaireEtape.PARAMETRE) return !!this.inscription.type;
-            if (this.etape === formulaireEtape.PARTICIPANTS) {
-                if (this.inscription.type?.id === 'groupe') {
-                    // Groupe valide = nom non vide + au moins 1 membre
-                    return !!(this.inscription.groupeEphemere?.nom?.trim()) &&
-                           (this.inscription.groupeEphemere?.participants?.length ?? 0) > 0;
-                }
-                if (this.inscription.type?.id === 'relais') return this.inscription.participant.length >= 2;
-                return this.inscription.participant.length > 0;
+    if (this.etape === formulaireEtape.PARAMETRE) {
+        return !!this.inscription.type;
+    }
+    if (this.etape === formulaireEtape.PARTICIPANTS) {
+        if (this.inscription.type?.id === 'groupe' || this.inscription.type?.id === 'relais') {
+            const nom = !!(this.inscription.groupeEphemere?.nom?.trim());
+            const membres = this.inscription.groupeEphemere?.participants?.length ?? 0;
+            if (this.inscription.type?.id === 'relais') {
+                return nom && membres >= 2 && membres <= 2;
             }
-            return true;
-        },
+            const match = this.inscription.type?.nom?.match(/\((\d+)-(\d+)\)/);
+            if (match) {
+                const min = parseInt(match[1]);
+                const max = parseInt(match[2]);
+                return nom && membres >= min && membres <= max;
+            }
+            return nom && membres >= 2;
+        }
+        return this.inscription.participant.length > 0;
+    }
+    return true;
+},
         optionsSelectionnees() {
             return Object.values(this.inscription.options || {});
         },
