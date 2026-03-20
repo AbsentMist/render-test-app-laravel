@@ -166,6 +166,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../stores/cart';
 import inscriptionService from '../services/inscriptionService'; 
+import groupeService from '../services/groupeService'; 
 import api from '../services/api';
 
 const router = useRouter();
@@ -174,11 +175,9 @@ const cartStore = useCartStore();
 // Données du panier via le store Pinia
 const panier = computed(() => cartStore.inscriptions);
 
-
 const accepteConditions = ref(false);
 const isProcessing = ref(false); 
 const fraisServiceFixe = 2.50;
-
 
 const sousTotal = computed(() => cartStore.cartTotal);
 
@@ -191,7 +190,7 @@ const total = computed(() => {
   return tot.toFixed(2);
 });
 
-// --- ACTIONS : LIAISON BACKEND (Tâche 3.9) ---
+// LIAISON BACKEND (Tâche 3.9) 
 const procederPaiement = async () => {
   if (!accepteConditions.value || panier.value.length === 0) return;
 
@@ -199,26 +198,52 @@ const procederPaiement = async () => {
 
   try {
     console.log('Contenu panier:', JSON.stringify(panier.value));
-    // 1. Enregistrer les inscriptions en backend
-    const promessesInscriptions = panier.value.map(article => {
-    // Pour une inscription groupe, le participant principal est le fondateur
-    const participantPrincipal = article.participant[0] 
-        ?? article.groupeEphemere?.participants[0];
     
-    const donneesAEnvoyer = {
-        id_course:            article.courseDetails.id,
-        id_participant:       participantPrincipal.id,
-        avertissement_valide: accepteConditions.value,
-        id_groupe:            article.id_groupe || null,
-        id_document:          article.documents?.length > 0 ? article.documents[0].id : null,
-        code_participant:     article.codeParticipation || null,
-    };
-    return inscriptionService.createInscription(donneesAEnvoyer);
-});
+    // Enregistrer les inscriptions en backend (challenge / relais)
+    const promessesInscriptions = panier.value.map(async (article) => {
+      
+      let idGroupe = article.id_groupe || null;
 
+      // LOGIQUE RELAIS & ENTREPRISES :
+      // Si on a plusieurs participants on crée d'abord le groupe
+      if (!idGroupe && article.nom_equipe && article.participant && article.participant.length > 1) {
+        
+        // Création du groupe (le backend ajoute le fondateur automatiquement)
+        const typeGroupe = article.type?.id === 'relais' ? 'Relais' : 'Entreprise';
+        const groupeReponse = await groupeService.createGroupe({
+          nom: article.nom_equipe,
+          type: typeGroupe,
+          id_course: article.courseDetails.id
+        });
+        
+        idGroupe = groupeReponse.data?.groupe?.id || groupeReponse.data?.id;
+
+        // Ajout des autres membres au groupe
+        for (let i = 1; i < article.participant.length; i++) {
+          await groupeService.addParticipant(idGroupe, article.participant[i].id);
+        }
+      }
+
+      //ENREGISTREMENT DES INSCRIPTIONS POUR TOUS LES PARTICIPANTS DU PANIER
+      const promessesParticipants = article.participant.map(p => {
+        const donneesAEnvoyer = {
+          id_course:            article.courseDetails.id,
+          id_participant:       p.id, // ID du participant en cours dans la boucle
+          avertissement_valide: accepteConditions.value,
+          id_groupe:            idGroupe,
+          id_document:          article.documents?.length > 0 ? article.documents[0].id : null,
+          code_participant:     article.codeParticipation || null,
+        };
+        return inscriptionService.createInscription(donneesAEnvoyer);
+      });
+
+      return Promise.all(promessesParticipants);
+    });
+
+    
     await Promise.all(promessesInscriptions);
 
-    // 2. Créer la Gateway Payrexx avec le montant total
+    // Créer la Gateway Payrexx avec le montant total
     const montantTotal = parseFloat(total.value);
     const gatewayResponse = await api.post('/paiement/gateway', {
       montant: montantTotal,
@@ -230,7 +255,7 @@ const procederPaiement = async () => {
       throw new Error('URL de paiement manquante');
     }
 
-    // 3. Vider le panier et rediriger vers Payrexx
+    // Vider le panier et rediriger vers Payrexx
     cartStore.viderPanier();
     window.location.href = urlPaiement;
 

@@ -1,13 +1,9 @@
 <template>
     <div class="flex flex-col gap-4 mt-4">
 
-        <!-- ============================================================
-             MODE GROUPE : constituer un groupe éphémère pour cette course
-             ============================================================ -->
         <template v-if="estGroupe">
             <h2 class="text-base font-semibold text-heading">Constituez votre groupe</h2>
 
-            <!-- Nom du groupe -->
             <div class="flex flex-col gap-1">
                 <label class="text-sm font-medium text-gray-700">Nom du groupe</label>
                 <input
@@ -19,7 +15,6 @@
                 />
             </div>
 
-            <!-- Membres ajoutés -->
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-medium text-gray-700">
                     Membres du groupe
@@ -42,7 +37,6 @@
                     </div>
                 </div>
 
-                <!-- Bouton ajouter un membre -->
                 <button
                     type="button"
                     @click="ouvrirFormulaire"
@@ -56,24 +50,25 @@
                 </button>
             </div>
 
-            <!-- Note éphémère -->
             <div class="flex items-start gap-2 text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2">
                 <Icon icon="mdi:information-outline" class="w-4 h-4 shrink-0 mt-0.5" />
                 <p>Ce groupe est créé uniquement pour cette inscription. Pour une prochaine course, vous devrez constituer un nouveau groupe.</p>
             </div>
         </template>
 
-        <!-- ============================================================
-             MODE INDIVIDUEL / RELAIS (comportement original inchangé)
-             ============================================================ -->
         <template v-else>
-            <h2 class="text-base font-semibold text-heading">
-                {{ estRelais ? 'Sélectionnez 2 personnes à inscrire' : 'Sélectionnez une personne à inscrire' }}
-            </h2>
+            <div class="flex justify-between items-end">
+                <h2 class="text-base font-semibold text-heading">
+                    {{ estRelais ? 'Sélectionnez 2 personnes à inscrire' : 'Sélectionnez une personne à inscrire' }}
+                </h2>
+                <span v-if="estRelais && nomEquipeFinal" class="text-xs font-bold text-tertiary-900 bg-tertiary/20 px-2 py-1 rounded-md">
+                    Équipe : {{ nomEquipeFinal }}
+                </span>
+            </div>
 
             <div v-if="chargement" class="text-sm text-gray-400 text-center py-2">Chargement...</div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-3 mt-2">
                 <button
                     v-for="participant in tousLesParticipants"
                     :key="participant.id"
@@ -110,12 +105,42 @@
                 </button>
             </div>
 
-            <p class="text-sm text-gray-400 text-center">La personne que vous recherchez n'existe pas ?</p>
+            <p class="text-sm text-gray-400 text-center mt-2">La personne que vous recherchez n'existe pas ?</p>
         </template>
 
-        <!-- ============================================================
-             SOUS-POPUP : Recherche / Création participant (mode partagé)
-             ============================================================ -->
+        <Teleport to="body">
+            <div v-if="modalNomEquipeOuvert" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-sm" @click.self="validerNomEquipe">
+                <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 flex flex-col gap-4">
+                    <h3 class="text-lg font-semibold text-[#0e0f54]">Nom de l'équipe</h3>
+                    <p class="text-sm text-gray-600">Voulez-vous donner un nom à votre équipe de relais ?</p>
+                    
+                    <div class="flex gap-6 mb-2">
+                        <label class="flex items-center gap-2 cursor-pointer text-sm font-medium">
+                            <input type="radio" v-model="veutNomEquipe" :value="true" class="text-[#d9f20b] focus:ring-[#c4da0a] w-4 h-4">
+                            Oui
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm font-medium">
+                            <input type="radio" v-model="veutNomEquipe" :value="false" class="text-[#d9f20b] focus:ring-[#c4da0a] w-4 h-4">
+                            Non
+                        </label>
+                    </div>
+
+                    <div v-if="veutNomEquipe" class="flex flex-col gap-1">
+                        <input v-model="nomEquipeSaisi" type="text" placeholder="Ex: Les Éclairs, Team GVA..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40" />
+                    </div>
+                    <div v-else class="text-xs text-gray-400 italic">
+                        Le nom par défaut sera : "{{ selectionnes.map(p => p.prenom).join(' & ') }}"
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-2 border-t border-gray-100 pt-4">
+                        <button type="button" @click="validerNomEquipe" class="bg-[#d9f20b] text-[#0e0f54] px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#c4da0a] transition-colors">
+                            Valider
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
         <Teleport to="body">
             <div v-if="formulaireOuvert" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/30" @click.self="fermerFormulaire">
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col overflow-hidden max-h-[90vh]">
@@ -250,7 +275,7 @@ export default {
         modelValue:      { type: Array,   default: () => [] },  // individuel/relais
         groupeValue:     { type: Object,  default: null },      // groupe éphémère
     },
-    emits: ['update:modelValue', 'update:groupeValue', 'creer-participant'],
+    emits: ['update:modelValue', 'update:groupeValue', 'creer-participant', 'update:nomEquipe'],
     data() {
         return {
             groupeData: { nom: '', participants: [] },
@@ -261,6 +286,11 @@ export default {
             hoveredId: null,
             hoveredNouveau: false,
             form: formVide(),
+
+            modalNomEquipeOuvert: false,
+            veutNomEquipe: false,
+            nomEquipeSaisi: '',
+            nomEquipeFinal: '',
         };
     },
     computed: {
@@ -294,11 +324,42 @@ export default {
         toggleSelectionner(participant) {
             const idx = this.selectionnes.findIndex(p => p.id === participant.id);
             if (idx >= 0) {
-                const n = [...this.selectionnes]; n.splice(idx, 1); this.selectionnes = n;
+                const n = [...this.selectionnes]; 
+                n.splice(idx, 1); 
+                this.selectionnes = n;
+                // Si on passe sous la barre des 2 en relais, on annule le nom d'équipe
+                if (this.estRelais && n.length < 2) {
+                    this.nomEquipeFinal = '';
+                    this.$emit('update:nomEquipe', '');
+                }
             } else {
                 const max = this.estRelais ? 2 : 1;
-                if (this.selectionnes.length < max) this.selectionnes = [...this.selectionnes, participant];
+                if (this.selectionnes.length < max) {
+                    // On stocke la nouvelle sélection dans une variable temporaire
+                    const nouvelleSelection = [...this.selectionnes, participant];
+                    
+                    // On met à jour (ce qui déclenche l'émission vers le parent)
+                    this.selectionnes = nouvelleSelection;
+                    
+                    // On vérifie la taille de la VARIABLE TEMPORAIRE, pas de this.selectionnes !
+                    if (this.estRelais && nouvelleSelection.length === 2) {
+                        this.veutNomEquipe = false;
+                        this.nomEquipeSaisi = '';
+                        this.modalNomEquipeOuvert = true;
+                    }
+                }
             }
+        },
+
+        validerNomEquipe() {
+            if (this.veutNomEquipe && this.nomEquipeSaisi.trim()) {
+                this.nomEquipeFinal = this.nomEquipeSaisi.trim();
+            } else {
+                // nom de groupe par défaut : Prenom1 & Prenom2
+                this.nomEquipeFinal = this.selectionnes.map(p => p.prenom).join(' & ');
+            }
+            this.$emit('update:nomEquipe', this.nomEquipeFinal);
+            this.modalNomEquipeOuvert = false;
         },
 
         // ─── Sous-popup partagée ──────────────────────────────────────────
@@ -333,22 +394,33 @@ export default {
             }
             this.fermerFormulaire();
         },
-        valider() {
+        async valider() {
             if (!this.formulaireValide) return;
-            const nouveau = { ...this.form, id: Date.now() };
-            if (this.estGroupe) {
-                this.groupeData.participants.push(nouveau);
-                this.emitGroupe();
-            } else {
-                this.$emit('creer-participant', nouveau);
-                this.toggleSelectionner(nouveau);
+            
+            try {
+                // Si ce n'est pas un groupe, inviter le participant via l'API pour qu'il soit créé en base
+                if (!this.estGroupe) {
+                    const response = await api.post('/participant/inviter-participant', this.form);
+                    const nouveauParticipantFantome = response.data.participant;
+                    
+                    this.$emit('creer-participant', nouveauParticipantFantome);
+                    this.toggleSelectionner(nouveauParticipantFantome);
+                } else {
+                    // Logique groupe normale
+                    const nouveau = { ...this.form, id: Date.now() };
+                    this.groupeData.participants.push(nouveau);
+                    this.emitGroupe();
+                }
+                this.fermerFormulaire();
+            } catch (error) {
+                console.error("Erreur lors de la création du participant invité", error);
+                alert("Erreur lors de la création de la personne. Vérifiez les informations (email ou téléphone déjà utilisés).");
             }
-            this.fermerFormulaire();
         },
     },
     watch: {
     typeSelectionne: {
-        immediate: true, // ← se déclenche aussi au montage
+        immediate: true, 
         handler(newType, oldType) {
             if (newType?.id === 'groupe' && oldType?.id !== 'groupe') {
                 // Pré-remplir avec les participants de l'utilisateur
