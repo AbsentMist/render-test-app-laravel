@@ -31,10 +31,10 @@ class GroupeController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-    'nom'       => 'required|string|max:100',
-    'type'      => 'required|string',
-    'id_course' => 'nullable|exists:Course,id', // ← ajouter
-]);
+            'nom'       => 'required|string|max:100',
+            'type'      => 'required|string',
+            'id_course' => 'nullable|exists:Course,id', // ← ajouter
+        ]);
 
         // Générer le code entreprise automatiquement si type "Entreprise"
         if ($validatedData['type'] === 'Entreprise') {
@@ -197,5 +197,58 @@ class GroupeController extends Controller
         ], 200);
     }
 
-    //Gérer le cas où le participant n'existe pas dans le système (2.4)
+    // GESTION DES INVITATIONS 2.4
+
+    // Récupère les invitations en attente pour l'utilisateur connecté
+    public function getInvitations()
+    {
+        $idParticipant = Auth::user()->participant->id;
+
+        
+        $invitations = Groupe::whereIn('id', function($query) use ($idParticipant) {
+            $query->select('id_groupe')
+                  ->from('GroupeParticipant') // On cible explicitement la table pivot
+                  ->where('id_participant', $idParticipant)
+                  ->where('statut', StatutParticipant::EN_ATTENTE->value);
+        })
+        ->with('participants') 
+        ->get();
+
+        return response()->json($invitations);
+    }
+
+    // Acceptation d'une invitation
+    public function accepterInvitation($idGroupe)
+    {
+        $idParticipant = Auth::user()->participant->id;
+        $groupe = Groupe::findOrFail($idGroupe);
+
+        // On met à jour le statut dans la table d'association
+        $groupe->participants()->updateExistingPivot($idParticipant, [
+            'statut' => 'Membre' //Passe de "En attente" à "Membre"
+        ]);
+
+        // 🚨 NOUVEAU : On met à jour le statut des inscriptions liées au groupe(Fondateur ET Membre)
+        \App\Models\Inscription::where('id_groupe', $idGroupe)
+            ->update(['status_paiement' => 'Validé']);
+
+        return response()->json([
+            'message' => 'Invitation acceptée avec succès.',
+            'groupe' => $groupe
+        ], 200);
+    }
+
+    // Refus d'une invitation
+    public function refuserInvitation($idGroupe)
+    {
+        $idParticipant = Auth::user()->participant->id;
+        $groupe = Groupe::findOrFail($idGroupe);
+
+        //Détachement du groupe --> on supprime la ligne dans la table d'association
+        $groupe->participants()->detach($idParticipant);
+
+        return response()->json([
+            'message' => 'Invitation refusée.'
+        ], 200);
+    }
 }

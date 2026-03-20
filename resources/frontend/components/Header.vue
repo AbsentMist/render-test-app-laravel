@@ -4,12 +4,18 @@ import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { useCartStore } from '../stores/cart'; 
 import { useRouter } from 'vue-router';
-import { computed } from 'vue';
+// NOUVEAUX IMPORTS POUR LES INVITATIONS
+import { ref, computed, onMounted } from 'vue';
+import groupeService from '../services/groupeService';
 
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
 const cartStore = useCartStore(); 
 const router = useRouter();
+
+// --- NOUVEAUX ÉTATS POUR LES INVITATIONS ---
+const invitations = ref([]);
+const isProfileDropdownOpen = ref(false);
 
 const handleToggleMode = async () => {
   authStore.toggleAdminMode();
@@ -31,7 +37,66 @@ const userDisplayName = computed(() => {
 
 const allerAuPanier = () => {
   cartStore.fermerDropdown();
+  isProfileDropdownOpen.value = false; // Ferme le profil si ouvert
   router.push('/panier');
+};
+
+// --- NOUVELLES ACTIONS : INVITATIONS ---
+
+// 1. Récupérer les invitations au chargement du Header
+const chargerInvitations = async () => {
+  // On s'assure que l'utilisateur possède bien un ID participant
+  if (authStore.user?.participant) {
+    try {
+      const res = await groupeService.getMesInvitations();
+      invitations.value = res.data;
+    } catch (e) {
+      console.error("Erreur lors du chargement des invitations", e);
+    }
+  }
+};
+
+onMounted(() => {
+  chargerInvitations();
+});
+
+// 2. Gérer l'ouverture du menu de profil (et fermer le panier si besoin)
+const toggleProfileDropdown = () => {
+  isProfileDropdownOpen.value = !isProfileDropdownOpen.value;
+  if (isProfileDropdownOpen.value) {
+    cartStore.fermerDropdown();
+  }
+};
+
+// 3. Gérer l'ouverture du menu panier (et fermer le profil si besoin)
+const toggleCartDropdown = () => {
+  cartStore.toggleDropdown();
+  if (cartStore.isDropdownOpen) {
+    isProfileDropdownOpen.value = false;
+  }
+};
+
+// 4. Accepter une invitation
+const accepterInvitation = async (idGroupe) => {
+  try {
+    await groupeService.accepterInvitation(idGroupe);
+    // On retire l'invitation de la liste affichée
+    invitations.value = invitations.value.filter(g => g.id !== idGroupe);
+    alert("Invitation acceptée ! Vous êtes maintenant validé dans le groupe.");
+  } catch (error) {
+    console.error("Erreur lors de l'acceptation :", error);
+  }
+};
+
+// 5. Refuser une invitation
+const refuserInvitation = async (idGroupe) => {
+  try {
+    await groupeService.refuserInvitation(idGroupe);
+    // On retire l'invitation de la liste affichée
+    invitations.value = invitations.value.filter(g => g.id !== idGroupe);
+  } catch (error) {
+    console.error("Erreur lors du refus :", error);
+  }
 };
 </script>
 
@@ -68,7 +133,7 @@ const allerAuPanier = () => {
             
             <button
               v-if="!authStore.showAdminLayout"
-              @click="cartStore.toggleDropdown()"
+              @click="toggleCartDropdown"
               class="flex items-center justify-center bg-tertiary hover:bg-tertiary/90 text-primary px-2 rounded-r-xl border-l border-primary/20 transition-colors"
             >
               <Icon icon="lucide:chevron-down" class="w-4 h-4 transition-transform" :class="cartStore.isDropdownOpen ? 'rotate-180' : ''" />
@@ -161,8 +226,10 @@ const allerAuPanier = () => {
           {{ authStore.showAdminLayout ? 'Vue Participant' : 'Vue Organisateur' }}
         </button>
 
-        <router-link to="/profil" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
-          <div class="flex flex-col items-start hidden sm:flex">
+
+        <div class="relative flex items-center gap-4">
+          
+          <router-link to="/profil" class="flex flex-col items-start hidden sm:flex hover:opacity-80 transition-opacity">
             <div
                 class="w-8 h-[2px] mb-1"
                 :class="themeStore.secondaryColor ? '' : 'bg-tertiary'"
@@ -175,15 +242,73 @@ const allerAuPanier = () => {
             <span class="text-[15px] leading-tight font-bold uppercase" :class="themeStore.primaryColor ? 'text-white' : 'text-secondary'">
               {{ userDisplayName.bottom }}
             </span>
-          </div>
+          </router-link>
 
-          <div
-            class="w-11 h-11 rounded-full flex items-center justify-center border shadow-inner transition-colors duration-300"
-            :class="themeStore.primaryColor ? 'text-white border-white bg-transparent' : 'bg-[#EAE6F5] text-primary-900 border-primary-900'"
-          >
-            <Icon icon="lucide:circle-user-round" class="w-7 h-7" />
+          <div class="relative">
+            <button
+              @click="toggleProfileDropdown"
+              class="w-11 h-11 rounded-full flex items-center justify-center border shadow-inner transition-colors duration-300 relative"
+              :class="themeStore.primaryColor ? 'text-white border-white bg-transparent hover:bg-white/10' : 'bg-[#EAE6F5] text-primary-900 border-primary-900 hover:bg-[#dcd6ee]'"
+            >
+              <Icon icon="lucide:circle-user-round" class="w-7 h-7" />
+              
+              <span
+                v-if="invitations.length > 0 && authStore.user?.participant"
+                class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold border-2 shadow-sm pointer-events-none"
+                :class="themeStore.primaryColor ? 'border-[var(--primary-color)]' : 'border-[#EAE6F5]'"
+              >
+                {{ invitations.length }}
+              </span>
+            </button>
+
+            <div
+              v-if="isProfileDropdownOpen"
+              class="absolute top-full right-0 mt-4 w-[320px] bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 z-50 cursor-default text-left"
+            >
+              <div class="absolute -top-2 right-4 w-4 h-4 bg-white rotate-45 border-l border-t border-gray-100"></div>
+
+              <div class="flex items-center justify-between mb-2">
+                 <h2 class="text-[1.35rem] font-medium text-[#0e0f54] leading-tight">Mon Profil</h2>
+                 <router-link to="/profil" @click="isProfileDropdownOpen = false" class="text-xs text-blue-500 hover:text-blue-700 font-medium transition-colors">Voir mon compte</router-link>
+              </div>
+              <div class="h-1 w-12 rounded-r-full bg-red-200 mb-6"></div>
+
+              <div v-if="authStore.user?.participant">
+                <h3 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <Icon icon="lucide:mail" class="w-4 h-4" />
+                  Mes invitations ({{ invitations.length }})
+                </h3>
+
+                <div v-if="invitations.length === 0" class="text-sm text-gray-500 italic text-center py-4 bg-gray-50 rounded-xl border border-gray-100">
+                  Vous n'avez aucune invitation en attente.
+                </div>
+
+                <div v-else class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
+                  <div v-for="invit in invitations" :key="invit.id" class="bg-white border border-gray-200 shadow-sm rounded-xl p-4">
+                    <p class="font-bold text-[#0e0f54] text-sm mb-1">{{ invit.nom }}</p>
+                    <p class="text-xs text-gray-500 mb-3 font-medium">Invitation à rejoindre un groupe {{ invit.type }}</p>
+
+                    <div class="flex gap-2 mt-2">
+                      <button
+                        @click="accepterInvitation(invit.id)"
+                        class="flex-1 bg-[#d9f20b] hover:bg-[#c4da0a] text-[#0e0f54] py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
+                      >
+                        Accepter
+                      </button>
+                      <button
+                        @click="refuserInvitation(invit.id)"
+                        class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 py-2 rounded-lg text-xs font-bold transition-colors"
+                      >
+                        Refuser
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
           </div>
-        </router-link>
+        </div>
 
       </div>
     </div>

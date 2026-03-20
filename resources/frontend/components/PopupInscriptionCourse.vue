@@ -58,6 +58,7 @@
                             v-model="inscription.participant"
                             v-model:groupeValue="inscription.groupeEphemere"
                             @creer-participant="ajouterParticipantSupplementaire"
+                            @update:nomEquipe="inscription.nom_equipe = $event"
                         />
 
                         <EtapeOptions
@@ -212,6 +213,7 @@ export default {
                 documents: [],
                 reponses: {},
                 codeParticipation: '',
+                nom_equipe: '', 
             },
             erreurGroupe: null,
         };

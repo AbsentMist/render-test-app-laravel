@@ -1,7 +1,6 @@
 import api from './api'; // 👈 On importe ton instance Axios configurée (qui gère le token 401 !)
 
 export default {
-
   getGroupes() {
     return api.get('/participant/groupes');
   },
@@ -36,5 +35,16 @@ export default {
     return api.post('/participant/groupes/verifier-code', { 
         code: code 
     });
+  },
+  getMesInvitations() {
+    return api.get('/participant/groupes/mes-invitations');
+  },
+
+  accepterInvitation(idGroupe) {
+    return api.post(`/participant/groupes/${idGroupe}/accepter`);
+  },
+
+  refuserInvitation(idGroupe) {
+    return api.post(`/participant/groupes/${idGroupe}/refuser`);
   }
 };
