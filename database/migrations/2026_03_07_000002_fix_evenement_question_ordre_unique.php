@@ -11,13 +11,22 @@ return new class extends Migration
     {
         // SÉCURITÉ ABSOLUE : On vérifie si la table existe avant de la modifier
         if (!Schema::hasTable('CourseQuestion')) {
-            return; // On annule silencieusement la migration si la table est introuvable
+            return; // On annule la migration si la table n'existe pas
         }
 
-        // 1. On supprime l'index s'il existe (pour SQLite)
-        DB::statement('DROP INDEX IF EXISTS "coursequestion_ordre_unique"');
+        // Suppression de l'ancien index sécurisée qui ne marchait pas sur MYSQL en production
+        try {
+            if (DB::getDriverName() === 'sqlite') {
+                DB::statement('DROP INDEX IF EXISTS coursequestion_ordre_unique');
+            } else {
+                // Pour MySQL en production
+                DB::statement('ALTER TABLE CourseQuestion DROP INDEX coursequestion_ordre_unique');
+            }
+        } catch (\Exception $e) {
+            // SÉCURITÉ : Si l'index a déjà été supprimé, on ignore l'erreur pour ne pas bloquer le déploiement.
+        }
 
-        // 2. On ajoute la nouvelle contrainte
+        // On ajoute la nouvelle contrainte
         Schema::table('CourseQuestion', function (Blueprint $table) {
             $table->unique(['id_course', 'ordre'], 'coursequestion_course_ordre_unique');
         });
