@@ -46,7 +46,7 @@
                     <p class="font-semibold text-xs">- {{ article.courseDetails?.nom_course }} <template v-if="article.courseDetails?.sous_categorie">• {{ article.courseDetails?.sous_categorie }}</template></p>
                     
                     <p class="font-bold mt-1 text-gray-700">
-                      {{ article.participant.map(p => p.prenom + ' ' + p.nom).join(', ') }}
+                      {{ (article.participant?.length ? article.participant : (article.groupeEphemere?.participants || [])).map(p => p.prenom + ' ' + p.nom).join(', ') }}
                     </p>
 
                     <div v-if="article.options && Object.keys(article.options).length > 0" class="mt-1">
@@ -197,91 +197,80 @@ const procederPaiement = async () => {
   isProcessing.value = true;
 
   try {
-    console.log('Contenu panier:', JSON.stringify(panier.value));
-    
-    // Enregistrer les inscriptions en backend (challenge / relais)
+    // On boucle sur chaque article du panier
     const promessesInscriptions = panier.value.map(async (article) => {
       
-      let idGroupe = article.id_groupe || null;
+      // On vérifie si un groupe a déjà été créé
+      let idGroupeFinal = article.id_groupe || null;
+      
+      const listeMembres = (article.groupeEphemere?.participants && article.groupeEphemere.participants.length > 0)
+                           ? article.groupeEphemere.participants 
+                           : (article.participants || article.participant || []);
 
-      // LOGIQUE RELAIS & ENTREPRISES :
-      // On force la création si on a un nom d'équipe OU si on détecte le mot "relais"
       const typeEstRelais = article.type?.id === 'relais' || article.type?.nom?.toLowerCase() === 'relais';
       
-      if (!idGroupe && (article.nom_equipe || typeEstRelais) && article.participant && article.participant.length > 1) {
-        
-        // Si l'user n'a pas mis de nom de groupe --> génération automatique
-        const nomEquipeFinal = article.nom_equipe || `Équipe de ${article.participant[0].prenom}`;
-        
-        // Création du groupe (le backend ajoute le fondateur automatiquement)
-        const typeGroupe = typeEstRelais ? 'Relais' : 'Entreprise';
+      // LOGIQUE DE CRÉATION DU GROUPE
+      if (!idGroupeFinal && typeEstRelais && listeMembres.length > 1) {
+        console.log("🛠️ Création du groupe au moment du paiement...");
         const groupeReponse = await groupeService.createGroupe({
-          nom: nomEquipeFinal,
-          type: typeGroupe,
+          nom: article.nom_equipe || article.groupeEphemere?.nom || `Équipe de ${listeMembres[0].prenom}`,
+          type: 'Relais',
           id_course: article.courseDetails.id
         });
         
-        // On récupère l'ID de manière ultra-sécurisée peu importe la forme de la réponse de l'API
-        idGroupe = groupeReponse.data?.groupe?.id || groupeReponse.data?.id || groupeReponse.data?.data?.id;
+        idGroupeFinal = groupeReponse.data?.groupe?.id || groupeReponse.data?.id || groupeReponse.data?.data?.id;
 
-        // Ajout des autres membres au groupe
-        if (idGroupe) {
-          for (let i = 1; i < article.participant.length; i++) {
-            await groupeService.addParticipant(idGroupe, article.participant[i].id);
+        // On ajoute les autres membres au groupe
+        if (idGroupeFinal) {
+          for (let i = 1; i < listeMembres.length; i++) {
+            await groupeService.addParticipant(idGroupeFinal, listeMembres[i].id);
           }
-        } else {
-          console.error("Erreur critique : l'API n'a pas retourné l'ID du groupe !", groupeReponse);
         }
       }
 
-      //ENREGISTREMENT DES INSCRIPTIONS POUR TOUS LES PARTICIPANTS DU PANIER
-      const promessesParticipants = article.participant.map(p => {
-        const donneesAEnvoyer = {
+      // ENREGISTREMENT DES INSCRIPTIONS POUR TOUS LES MEMBRES
+      const promessesParticipants = listeMembres.map(p => {
+        return inscriptionService.createInscription({
           id_course:            article.courseDetails.id,
-          id_participant:       p.id, // ID du participant en cours dans la boucle
+          id_participant:       p.id,
           avertissement_valide: accepteConditions.value,
-          id_groupe:            idGroupe,
+          id_groupe:            idGroupeFinal,
           id_document:          article.documents?.length > 0 ? article.documents[0].id : null,
           code_participant:     article.codeParticipation || null,
-        };
-        return inscriptionService.createInscription(donneesAEnvoyer);
+        });
       });
 
-      
-      return Promise.all(promessesParticipants);
+      await Promise.all(promessesParticipants);
+
+      // Annulation de l'ancienne inscription 
+      if(article.ancienneInscriptionId) {
+        await inscriptionService.cancelInscription(article.ancienneInscriptionId);
+      }
     });
     
-    
+    // On attend que tout soit en base de données
     await Promise.all(promessesInscriptions);
     
-    console.log("Id: ", article.ancienneInscriptionId);
+    // BYPASS PAYREXX TEMPORAIRE
+    try {
+      const gatewayResponse = await api.post('/paiement/gateway', {
+        montant: parseFloat(total.value),
+      });
 
-    if(article.ancienneInscriptionId)
-      await inscriptionService.cancelInscription(article.ancienneInscriptionId)
-
-    // Créer la Gateway Payrexx avec le montant total
-    const montantTotal = parseFloat(total.value);
-    const gatewayResponse = await api.post('/paiement/gateway', {
-      montant: montantTotal,
-    });
-
-    const urlPaiement = gatewayResponse.data.url;
-
-    if (!urlPaiement) {
-      throw new Error('URL de paiement manquante');
+      if (gatewayResponse.data.url) {
+        cartStore.viderPanier();
+        window.location.href = gatewayResponse.data.url;
+      }
+    } catch (payrexxError) {
+      console.warn('Payrexx indisponible, simulation de paiement réussie !');
+      cartStore.viderPanier();
+      alert("Mode Test : Inscriptions sauvegardées ! (Payrexx ignoré)");
+      router.push('/inscriptions'); 
     }
-
-    // Vider le panier et rediriger vers Payrexx
-    cartStore.viderPanier();
-    window.location.href = urlPaiement;
 
   } catch (error) {
-    console.error('Erreur lors du paiement :', error);
-    if (error.response?.data?.message) {
-      alert('Erreur : ' + error.response.data.message);
-    } else {
-      alert('Une erreur inattendue est survenue.');
-    }
+    console.error('Erreur globale :', error);
+    alert('Une erreur est survenue lors de l\'enregistrement.');
   } finally {
     isProcessing.value = false;
   }
