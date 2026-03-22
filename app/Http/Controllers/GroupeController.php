@@ -124,7 +124,6 @@ class GroupeController extends Controller
     {
         $validatedData = $request->validate([
             'id_participant' => 'required|exists:Participant,id',
-            
         ]);
 
         $groupe = Groupe::findOrFail($idGroupe);
@@ -133,13 +132,20 @@ class GroupeController extends Controller
             return response()->json(['message' => 'Ce participant est déjà dans le groupe.'], 409);
         }
 
-        // Ajout avec statut "en_attente" car c'est une invitation
+        //Différence entre l'ajout d'un profil rattaché au compte (sous-profil) et un utilisateur invité
+        $participant = Participant::find($validatedData['id_participant']);
+        $estGereParLeCompte = $participant && $participant->id_user === Auth::id();
+
+        // Ajout avec statut "en_attente" car c'est une invitation,
+        // SAUF pour les profils rattachés au compte
+        $statut = $estGereParLeCompte ? 'Membre' : StatutParticipant::EN_ATTENTE->value;
+
         $groupe->participants()->attach($validatedData['id_participant'], [
-            'statut' => StatutParticipant::EN_ATTENTE->value
+            'statut' => $statut
         ]);
 
         return response()->json([
-            'message' => 'Invitation envoyée (Participant ajouté en attente).',
+            'message' => $estGereParLeCompte ? 'Participant ajouté en tant que membre directement.' : 'Invitation envoyée (Participant ajouté en attente).',
             'groupe' => $groupe->load('participants')
         ]);
     }
@@ -240,14 +246,40 @@ class GroupeController extends Controller
     // Refus d'une invitation
     public function refuserInvitation($idGroupe)
     {
-        $idParticipant = Auth::user()->participant->id;
+        $participantConnecte = Auth::user()->participant;
+        $idParticipant = $participantConnecte->id;
         $groupe = Groupe::findOrFail($idGroupe);
 
-        //Détachement du groupe --> on supprime la ligne dans la table d'association
+        // Retire le participant de la table GroupeParticipant
         $groupe->participants()->detach($idParticipant);
 
+        // Annule l'inscription de l'invité pour cette course
+        \App\Models\Inscription::where('id_participant', $idParticipant)
+            ->where('id_groupe', $idGroupe)
+            ->update(['status_paiement' => 'Annulé']);
+
+        // Cherche le fondateur du groupe pour le prévenir
+        $fondateur = $groupe->participants()->wherePivot('statut', 'fondateur')->first();
+
+        if ($fondateur && $fondateur->user) {
+            try {
+                // Le mail part dans le fichier laravel.log pour le moment (à implémenter l'envoi réel plus tard)
+                \Illuminate\Support\Facades\Mail::send('emails.invitation_refusee', [
+                    'fondateur' => $fondateur,
+                    'invite' => $participantConnecte,
+                    'groupe' => $groupe
+                ], function ($message) use ($fondateur) {
+                    $message->to($fondateur->user->email)
+                            ->subject('Une invitation à votre équipe a été refusée');
+                });
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Email refus impossible : " . $e->getMessage());
+            }
+        }
+
         return response()->json([
-            'message' => 'Invitation refusée.'
+            'message' => 'Invitation refusée. Votre inscription a été annulée.'
         ], 200);
     }
+
 }

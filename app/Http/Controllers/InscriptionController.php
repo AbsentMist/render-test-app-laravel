@@ -7,6 +7,8 @@ use App\Models\Course;
 use App\Models\Dossard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Participant;
+use App\Models\Groupe;
 
 class InscriptionController extends Controller
 {
@@ -59,8 +61,21 @@ class InscriptionController extends Controller
         $idParticipant = $request->id_participant ?? $idParticipantConnecte;
         $course = Course::findOrFail($validatedData['id_course']);
 
-        // Lorsque l'inscription est en groupe, tout le monde commence "En attente" jusqu'à ce que chaque membre accepte l'invitation 
-        $statutInscription = !empty($validatedData['id_groupe']) ? 'En attente' : 'Validé';
+        // Différenciation entre inscription individuelle et inscription en groupe
+        $participant = Participant::find($idParticipant);
+        // On vérifie si ce participant est rattaché au compte connecté
+        $estGereParLeCompte = $participant && $participant->id_user === Auth::id();
+
+        // Règle : Lorsque l'inscription est en groupe (avec des utilisateurs existants dans le système)
+        // tout le monde commence "En attente" jusqu'à ce que chaque membre accepte l'invitation
+        // Sauf les profils rattachés directement au compte (qui ne possèdent pas de compte et
+        // qui sont validés automatiquement)
+        if (!empty($validatedData['id_groupe']) && !$estGereParLeCompte) {
+            $statutInscription = 'En attente';
+        } else {
+            $statutInscription = 'Validé';
+        }
+
         $statutPaiementFinal = $validatedData['status_paiement'] ?? $statutInscription;
 
         // Gestion erreur si la course à un avertissement obligatoire
