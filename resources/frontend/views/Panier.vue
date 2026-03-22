@@ -107,6 +107,11 @@
 
           <hr class="border-gray-200 mb-6">
 
+          <div v-if="deductionChangement > 0" class="flex justify-between items-center mb-6 text-sm font-bold text-green-600">
+            <span>Déduction (Changement de course)</span>
+            <span>- {{ deductionChangement.toFixed(2) }}.-</span>
+          </div>
+
           <div class="flex justify-between items-center mb-8">
             <span class="text-xl font-black text-gray-900">Total</span>
             <span class="text-xl font-black text-[#0e0f54]">{{ total }}.-</span>
@@ -162,7 +167,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../stores/cart';
 import inscriptionService from '../services/inscriptionService'; 
@@ -179,14 +184,41 @@ const accepteConditions = ref(false);
 const isProcessing = ref(false); 
 const fraisServiceFixe = 2.50;
 
-const sousTotal = computed(() => cartStore.cartTotal);
+// Déduction du prix pour le Changement de course
+const deductionChangement = ref(0);
+
+// Surveillance panier s'il y a un ID d'ancienne inscription, on recherche son prix
+watch(panier, async (nouveauPanier) => {
+  let deduction = 0;
+  for (const article of nouveauPanier) {
+    if (article.ancienneInscriptionId) {
+      try {
+        const res = await api.get(`/participant/inscriptions/${article.ancienneInscriptionId}`);
+        if (res.data && res.data.tarif) {
+          deduction += parseFloat(res.data.tarif);
+        }
+      } catch (e) {
+        console.error('Erreur récupération ancienne inscription', e);
+      }
+    }
+  }
+  deductionChangement.value = deduction;
+}, { immediate: true });
+
+// Sous-total prend en compte la déduction (met gratuit si négatif lors d'un downgrade)
+const sousTotal = computed(() => {
+  let st = cartStore.cartTotal - deductionChangement.value;
+  return st > 0 ? st : 0; 
+});
 
 const fraisService = computed(() => {
-  return panier.value.length > 0 ? fraisServiceFixe.toFixed(2) : "0.00";
+  // Les frais s'appliquent uniquement s'il y a un vrai montant à payer ( > 0) après déduction
+  return (panier.value.length > 0 && sousTotal.value > 0) ? fraisServiceFixe.toFixed(2) : "0.00";
 });
 
 const total = computed(() => {
-  const tot = panier.value.length > 0 ? sousTotal.value + fraisServiceFixe : 0;
+  // Le total prend les frais de service uniquement si le sous-total > 0
+  const tot = (panier.value.length > 0 && sousTotal.value > 0) ? sousTotal.value + fraisServiceFixe : 0;
   return tot.toFixed(2);
 });
 
@@ -233,6 +265,7 @@ const procederPaiement = async () => {
         return inscriptionService.createInscription({
           id_course:            article.courseDetails.id,
           id_participant:       p.id,
+          tarif:                article.tarif, // On envoie le tarif (course + options)
           avertissement_valide: accepteConditions.value,
           id_groupe:            idGroupeFinal,
           id_document:          article.documents?.length > 0 ? article.documents[0].id : null,
@@ -242,19 +275,29 @@ const procederPaiement = async () => {
 
       await Promise.all(promessesParticipants);
 
-      // Annulation de l'ancienne inscription 
+      // Annulation de l'ancienne inscription en cas de changement de course
       if(article.ancienneInscriptionId) {
-        await inscriptionService.cancelInscription(article.ancienneInscriptionId);
+        await api.delete(`/participant/inscriptions/${article.ancienneInscriptionId}?is_change=1`);
       }
     });
     
     // On attend que tout soit en base de données
     await Promise.all(promessesInscriptions);
     
-    // BYPASS PAYREXX TEMPORAIRE
+    // BYPASS PAYREXX TEMPORAIRE (Downgrade gratuit et Paiement normal)
+    const montantTotal = parseFloat(total.value);
+
+    // Si le total est à 0 (Downgrade gratuit), on valide sans passer par Payrexx
+    if (montantTotal <= 0) {
+        cartStore.viderPanier();
+        alert("Changement de course effectué avec succès ! (Gratuit)");
+        router.push('/inscriptions');
+        return;
+    }
+    
     try {
       const gatewayResponse = await api.post('/paiement/gateway', {
-        montant: parseFloat(total.value),
+        montant: montantTotal,
       });
 
       if (gatewayResponse.data.url) {

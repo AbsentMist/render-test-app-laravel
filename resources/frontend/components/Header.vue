@@ -4,8 +4,9 @@ import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { useCartStore } from '../stores/cart'; 
 import { useRouter } from 'vue-router';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import groupeService from '../services/groupeService';
+import api from '../services/api';
 
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
@@ -15,6 +16,32 @@ const router = useRouter();
 
 const invitations = ref([]);
 const isProfileDropdownOpen = ref(false);
+
+// 🌟 NOUVEAUTÉ : Calcul de la déduction en temps réel pour le mini-panier
+const deductionChangement = ref(0);
+
+watch(() => cartStore.inscriptions, async (nouveauPanier) => {
+  let deduction = 0;
+  for (const article of nouveauPanier) {
+    if (article.ancienneInscriptionId) {
+      try {
+        const res = await api.get(`/participant/inscriptions/${article.ancienneInscriptionId}`);
+        if (res.data && res.data.tarif) {
+          deduction += parseFloat(res.data.tarif);
+        }
+      } catch (e) {
+        console.error('Erreur récupération ancienne inscription', e);
+      }
+    }
+  }
+  deductionChangement.value = deduction;
+}, { immediate: true, deep: true });
+
+// Le total affiché dans le mini-panier
+const totalMiniPanier = computed(() => {
+  let st = cartStore.cartTotal - deductionChangement.value;
+  return st > 0 ? st : 0; 
+});
 
 const handleToggleMode = async () => {
   authStore.toggleAdminMode();
@@ -195,9 +222,14 @@ const refuserInvitation = async (idGroupe) => {
                   </div>
                 </div>
 
-                <div class="flex justify-between items-center mb-6 pt-4 border-t border-gray-200">
+                <div v-if="deductionChangement > 0" class="flex justify-between items-center pt-4 border-t border-gray-200">
+                  <span class="text-xs font-medium text-green-600">Déduction (Changement de course)</span>
+                  <span class="text-sm font-bold text-green-600">- {{ deductionChangement.toFixed(2) }}.-</span>
+                </div>
+
+                <div class="flex justify-between items-center mb-6 pt-2" :class="deductionChangement === 0 ? 'border-t border-gray-200 mt-4' : ''">
                     <span class="text-sm font-medium text-gray-500">Total</span>
-                    <span class="text-xl font-bold text-[#0e0f54]">{{ cartStore.cartTotal.toFixed(2) }}.-</span>
+                    <span class="text-xl font-bold text-[#0e0f54]">{{ totalMiniPanier.toFixed(2) }}.-</span>
                 </div>
 
                 <div class="flex gap-3">
