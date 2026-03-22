@@ -4,7 +4,6 @@ import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { useCartStore } from '../stores/cart'; 
 import { useRouter } from 'vue-router';
-// NOUVEAUX IMPORTS POUR LES INVITATIONS
 import { ref, computed, onMounted } from 'vue';
 import groupeService from '../services/groupeService';
 
@@ -13,7 +12,7 @@ const themeStore = useThemeStore();
 const cartStore = useCartStore(); 
 const router = useRouter();
 
-// --- NOUVEAUX ÉTATS POUR LES INVITATIONS ---
+
 const invitations = ref([]);
 const isProfileDropdownOpen = ref(false);
 
@@ -41,11 +40,10 @@ const allerAuPanier = () => {
   router.push('/panier');
 };
 
-// --- NOUVELLES ACTIONS : INVITATIONS ---
+//GESTION DES INVITATIONS
 
-// 1. Récupérer les invitations au chargement du Header
+// Récupérer les invitations au chargement du Header
 const chargerInvitations = async () => {
-  // On s'assure que l'utilisateur possède bien un ID participant
   if (authStore.user?.participant) {
     try {
       const res = await groupeService.getMesInvitations();
@@ -60,7 +58,7 @@ onMounted(() => {
   chargerInvitations();
 });
 
-// 2. Gérer l'ouverture du menu de profil (et fermer le panier si besoin)
+// Gestion de l'ouverture du menu de profil
 const toggleProfileDropdown = () => {
   isProfileDropdownOpen.value = !isProfileDropdownOpen.value;
   if (isProfileDropdownOpen.value) {
@@ -68,7 +66,7 @@ const toggleProfileDropdown = () => {
   }
 };
 
-// 3. Gérer l'ouverture du menu panier (et fermer le profil si besoin)
+// Gestion de l'ouverture du menu panier
 const toggleCartDropdown = () => {
   cartStore.toggleDropdown();
   if (cartStore.isDropdownOpen) {
@@ -76,11 +74,10 @@ const toggleCartDropdown = () => {
   }
 };
 
-// 4. Accepter une invitation
+// Lors de l'acceptation d'une invitation
 const accepterInvitation = async (idGroupe) => {
   try {
     await groupeService.accepterInvitation(idGroupe);
-    // On retire l'invitation de la liste affichée
     invitations.value = invitations.value.filter(g => g.id !== idGroupe);
     alert("Invitation acceptée ! Vous êtes maintenant validé dans le groupe.");
   } catch (error) {
@@ -88,14 +85,18 @@ const accepterInvitation = async (idGroupe) => {
   }
 };
 
-// 5. Refuser une invitation
+// Lors d'un refus d'une invitation
 const refuserInvitation = async (idGroupe) => {
   try {
     await groupeService.refuserInvitation(idGroupe);
-    // On retire l'invitation de la liste affichée
     invitations.value = invitations.value.filter(g => g.id !== idGroupe);
+    
+    //Message de confirmation du refus
+    alert("L'invitation a bien été refusée. Le fondateur en sera informé."); 
+    
   } catch (error) {
     console.error("Erreur lors du refus :", error);
+    alert("Une erreur est survenue lors du refus de l'invitation."); 
   }
 };
 </script>
