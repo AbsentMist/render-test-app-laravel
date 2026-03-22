@@ -2,11 +2,9 @@
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl mx-4 flex flex-col overflow-hidden" style="height: 90vh">
       
-      <!-- Header -->
-        <div class="flex items-center justify-between px-6 pt-5 pb-2 bg-primary-300">
+      <div class="flex items-center justify-between px-6 pt-5 pb-2 bg-primary-300">
             <div>
                 <span class="px-6 text-subtitle font-medium text-secondary">Changement de course</span>
-                <!-- Bandeau inscription actuelle -->
                 <div class="h-1 w-24 ml-6 rounded-r-full mb-2 bg-accent-600"></div>
             </div>
             <button @click="$emit('close')" class="text-secondary hover:text-gray-600 transition-colors mr-1">
@@ -14,7 +12,6 @@
             </button>
         </div>
     
-    <!-- Inscription actuelle -->
     <div class="px-8 py-6 flex flex-col gap-4" :style="{backgroundColor: inscription.course.evenement.couleur_secondaire + '26'}">
     <div class="flex items-center gap-2">
         <div class="bg-primary-900 p-1.5 rounded-lg">
@@ -64,12 +61,13 @@
           </div>
         </div>
 
-        <div class="flex flex-col items-end pr-6 min-w-[100px]">
-            <span class="text-label font-bold mb-1" :style="{color: inscription.course.evenement.couleur_primaire}">Total payé</span>
-            <div class="flex items-baseline gap-1">
-                <span class="text-2xl font-black text-primary-900">{{ inscription.tarif }}</span>
-                <span class="text-xs font-bold text-primary-900">CHF</span>
+        <div class="flex flex-col items-end pr-6 min-w-[150px]">
+            <span class="text-label font-bold mb-1" :style="{color: inscription.course.evenement.couleur_primaire}">Total payé </span>
+            <div class="flex items-baseline gap-1 text-green-600">
+                <span class="text-2xl font-black text-green-600">- {{ inscription.tarif }}</span>
+                <span class="text-xs font-bold text-green-600">CHF</span>
             </div>
+            <span class="text-[10px] text-gray-400 font-medium italic mt-1 text-right leading-tight">Ce montant sera déduit<br>du total dans le panier.</span>
         </div>
     </div>
 
@@ -80,7 +78,6 @@
     </div>
 </div>
     
-    <!-- Fil d'Ariane-->
     <div class="flex items-center gap-2 px-6 mt-1">
       <span 
       :class="[
@@ -103,24 +100,19 @@
       </span>
     </div>
     
-      <!-- Corps scrollable -->
       <div class="flex-1 overflow-y-auto">
 
-        <!-- Étape 1 : Sélection évènement -->
         <ChangementEvenement
           v-if="etape === ETAPES.EVENEMENT"
           @selectionner="choisirEvenement"
         />
 
-        <!-- Étape 2 : Sélection course -->
         <ChangementCourse
           v-else-if="etape === ETAPES.COURSE"
           :evenement="nouvelleInscription.evenement"
           @selectionner="choisirCourse"
         />
 
-        <!-- Étape 3 : Formulaire inscription (réutilise ta popup existante en mode inline) -->
-                
         <PopupInscriptionCourse
         v-else-if="etape === ETAPES.INSCRIPTION"
         :course="nouvelleInscription.course"
@@ -231,39 +223,28 @@ export default {
         return;
       }      
       try {
-        if(this.nouvelleInscriptionData.tarif <= this.inscription.tarif){
-          // 1. Créer la nouvelle inscription
-          await inscriptionService.createInscription({
-              id_course:            this.nouvelleInscription.course.id,
-              id_participant:       this.nouvelleInscriptionData.participant[0].id,
-              tarif:                this.nouvelleInscriptionData.tarif,
-              status_paiement:      'Validé',
-              montant_rabais:       0,
-              avertissement_valide: this.nouvelleInscription.course.avertissement ? true : false,
-              id_groupe:            null,
-              id_document:          this.nouvelleInscriptionData.documents[0]?.id ?? null,
-              code_participant:     this.nouvelleInscriptionData.codeParticipation || null,
-          });
+        // MODIFICATION LOGIQUE CHANGEMENT : tout changement passe par le panier
+        // C'est le Panier qui gérera le calcul (différence positive ou négative) et l'annulation de l'ancienne course.
+        
+        const inscriptionAvecHistorique = {
+          ...this.nouvelleInscriptionData, 
+          ancienneInscriptionId: this.inscription.id
+        };
 
-          // 2. Annuler l'ancienne inscription
-          await inscriptionService.cancelInscription(this.inscription.id);
-          this.messageConfirmation = 'Votre inscription a été confirmée ! L\'ancienne course est annulée.';
-        }
-        else if(this.nouvelleInscriptionData.tarif > this.inscription.tarif){
-          this.cartStore.ajouterInscription({...this.nouvelleInscriptionData, ancienneInscriptionId: this.inscription.id}, this.nouvelleInscription.course);
-          this.messageConfirmation = 'La nouvelle course a été ajoutée au panier.';
-          console.log("nouvelle inscription: ", this.nouvelleInscriptionData, this.inscription.id)
-        }
-
-          // 3. Afficher confirmation et recharger
-          this.confirmation = false;
-          this.dataInserted = true;
-          setTimeout(() => {
-              this.$emit('close');
-          }, 2000);
+        this.cartStore.ajouterInscription(inscriptionAvecHistorique, this.nouvelleInscription.course);
+        
+        // On affiche un message clair pour l'utilisateur
+        this.messageConfirmation = 'Changement pris en compte ! Veuillez valider votre panier.';
+        
+        // Fermeture propre des popups
+        this.confirmation = false;
+        this.dataInserted = true;
+        setTimeout(() => {
+            this.$emit('close');
+        }, 1500); 
 
       } catch (error) {
-          console.error('Erreur lors du changement de course :', error);
+          console.error('Erreur lors de la mise au panier du changement :', error);
       }
     },
   },
