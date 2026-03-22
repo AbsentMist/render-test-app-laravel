@@ -55,7 +55,9 @@ class InscriptionController extends Controller
             'avertissement_valide' => 'sometimes|boolean',
             //Ajout du champ "en attente" pour les inscriptions relais / entreprises
             'status_paiement'     => 'sometimes|in:Validé,Annulé,En attente', 
+            'tarif'               => 'sometimes|numeric', // Ajout du champ tarif
         ]);
+        
 
         $idParticipantConnecte = Auth::user()->participant->id;
         $idParticipant = $request->id_participant ?? $idParticipantConnecte;
@@ -122,7 +124,8 @@ class InscriptionController extends Controller
             'id_groupe' => $validatedData['id_groupe'] ?? null,
             'id_document' => $validatedData['id_document'] ?? null,
             'code_participant' => $validatedData['code_participant'] ?? null,
-            'tarif' => $course->tarif,
+            // On prend le prix de l'inscription avec les options choisies, sinon prix de base de la course
+            'tarif' => $validatedData['tarif'] ?? $course->tarif,
             'status_paiement' => $statutPaiementFinal, // Application du statut dynamique
             'montant_rabais' => 0,
             'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
@@ -200,11 +203,9 @@ class InscriptionController extends Controller
             return response()->json(['message' => 'Accès non autorisé.'], 403);
         }
 
-        /* * =================================================================================
-         * GESTION UPGRADE / DOWNGRADE (Tâches 7.2 & 7.3 à faire ici)
-         * =================================================================================
-         */
-
+        
+         //GESTION UPGRADE / DOWNGRADE
+        
         // Modification des informations simples (Tâche 7.1)
         $validatedData = $request->validate([
             'id_groupe' => 'sometimes|nullable|exists:Groupe,id',
@@ -218,7 +219,7 @@ class InscriptionController extends Controller
     }
 
     //DELETE (PARTICIPANT) : Modifie le statut de paiement à "Annulé" au lieu de supprimer l'inscription
-    public function destroyParticipant($id)
+    public function destroyParticipant(Request $request, $id) 
     {
         $user = Auth::user();
         $inscription = Inscription::findOrFail($id);
@@ -227,14 +228,18 @@ class InscriptionController extends Controller
             return response()->json(['message' => 'Accès non autorisé.'], 403);
         }
 
+        // Vérifie si c'est un changement de course (Upgrade/Downgrade)
+        $isChange = $request->query('is_change') == 1;
+
         // Gestion erreur sur le statut de paiement
-        if ($inscription->status_paiement === 'Validé') {
+        // On autorise l'annulation d'une course payée UNIQUEMENT si c'est un changement
+        if ($inscription->status_paiement === 'Validé' && !$isChange) {
             return response()->json([
                 'message' => 'Impossible d\'annuler une inscription déjà payée. Veuillez contacter l\'organisateur pour toute demande d\'annulation ou de remboursement.'
             ], 400);
         }
 
-        // Changement de statut au lieu d'une suppression en base de données (réservé à l'admin)
+        // Changement du statut à 'Annulé' au lieu d'une suppression en base de données (réservé à l'admin)
         $inscription->update(['status_paiement' => 'Annulé']);
 
         return response()->json([
