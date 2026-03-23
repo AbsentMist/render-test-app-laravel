@@ -368,7 +368,7 @@ const formulaireEtape = {
     OPTIONS: 2,
     AVERTISSEMENT: 3,
     DOCUMENT: 4,
-    QUESTION: 5,
+    QUESTIONNAIRE: 5,
 };
 
 const optionModal = {
@@ -637,11 +637,13 @@ export default {
             else if(option === "Nouveau") {
                 if(this.etape === formulaireEtape.OPTIONS)
                     this.courseData.options.push({
-                        name: '',
+                        nom: '',
                         description: '',
-                        prix: '',
-                        quantiteMin: '',
-                        quantiteMax: '',
+                        tarif: '',
+                        quantifiable: {
+                            quantiteMin: 0,
+                            quantiteMax: 0,
+                        }
                     });
                 else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
                     this.courseData.questions.push({
@@ -651,8 +653,10 @@ export default {
                 this.modal = optionModal.FERMEE; 
             }
             else if(this.modal === optionModal.EXISTANT) {
-                if(this.etape === formulaireEtape.OPTIONS)
-                    this.courseData.options.push(this.optionModels.find(o => o.name === option)); 
+                if(this.etape === formulaireEtape.OPTIONS) {
+                    const { id, ...optionSansId } = this.optionModels.find(o => o.nom === option);
+                    this.courseData.options.push(optionSansId);
+                }
                 else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
                     this.courseData.questions.push(this.questionModels.find(q => q.question === option));
                 this.modal = optionModal.FERMEE;
