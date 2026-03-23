@@ -85,7 +85,7 @@ return new class extends Migration
             $table->foreignId('id_categorie')->nullable()->constrained('Categorie')->onDelete('set null'); //Enlever nullable une fois les catégories créées
             $table->foreignId('id_sous_categorie')->nullable()->constrained('SousCategorie')->onDelete('set null');
             $table->foreignId('id_avertissement')->nullable()->constrained('Avertissement')->onDelete('set null');
-            $table->string('nom', 120)->unique();
+            $table->string('nom', 120);
             $table->date('date_debut');
             $table->date('date_fin');
             $table->date('debut_inscription');
