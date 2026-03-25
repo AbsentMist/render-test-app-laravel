@@ -32,11 +32,13 @@ return new class extends Migration
         Schema::create('Categorie', function (Blueprint $table) {
             $table->id();
             $table->string('nom', 50);
+            $table->boolean('modele')->default(0);
         });
 
         Schema::create('SousCategorie', function (Blueprint $table) {
             $table->id();
             $table->string('nom', 50);
+            $table->boolean('modele')->default(0);
         });
 
         Schema::create('Groupe', function (Blueprint $table) {

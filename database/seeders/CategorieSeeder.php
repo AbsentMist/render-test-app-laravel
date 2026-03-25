@@ -7,10 +7,22 @@ class CategorieSeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            ['nom' => 'Challenge étudiant'],
-            ['nom' => 'Open'],
-            ['nom' => 'Vétéran'],
-            ['nom' => 'Junior'],
+            [
+                'nom' => 'Challenge étudiant',
+                'modele' => true
+            ],
+            [
+                'nom' => 'Open',
+                'modele' => true
+            ],
+            [
+                'nom' => 'Vétéran',
+                'modele' => true
+            ],
+            [
+                'nom' => 'Junior',
+                'modele' => true
+            ],
         ];
 
         foreach ($categories as $categorie) {
@@ -21,9 +33,18 @@ class CategorieSeeder extends Seeder
         }
 
         $sousCategories = [
-            ['nom' => 'Mixte'],
-            ['nom' => 'Homme'],
-            ['nom' => 'Femme'],
+            [
+                'nom' => 'Mixte',
+                'modele' => true
+            ],
+            [
+                'nom' => 'Homme',
+                'modele' => true
+            ],
+            [
+                'nom' => 'Femme',
+                'modele' => true
+            ],
         ];
 
         foreach ($sousCategories as $sousCategorie) {

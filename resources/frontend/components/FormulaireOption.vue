@@ -1,6 +1,6 @@
 <template>
-    <div class="bg-secondary rounded-b-base rounded-tr-base p-6">
-        <h1 class="text-subtitle my-4">Créer une option</h1>
+    <div class="bg-secondary rounded-base p-6">
+        <h1 class="text-subtitle my-4">Option</h1>
         <div class="flex flex-col-2 gap-4">
             <div class="basis-2/3">
                 <OptionTemplate :optionModel="optionData" :border="false" :removeButton="true" />
@@ -14,7 +14,7 @@
                 <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
                 <button v-for="(option, index) in optionModels" :key="index" @click="copyDatas(option)" class="btn-model flex flex-row items-center justify-between">
                     {{ option.nom }}
-                    <Icon icon="mdi:delete" width="20" height="20" class="text-primary-900 hover:text-accent ml-2" @click.stop="removeOption(index)"/>
+                    <Icon icon="mdi:delete" width="20" height="20" class="text-primary-900 hover:text-accent ml-2 shrink-0" @click.stop="removeOption(index)"/>
                 </button>
             </div>
         </div>
@@ -60,12 +60,15 @@ export default {
             this.optionData.quantifiable.quantiteMax = option.quantifiable.quantiteMax;
         },
         async removeOption(index) {
-            try {
-                const option = this.optionModels[index];
-                await optionOrganisateurService.deleteOption(option.id);
-                this.optionModels.splice(index, 1);
-            } catch (e) {
-                 console.error("Erreur lors de la suppression :", error.response?.data || error);
+            const option = this.optionModels[index];
+            if(confirm(`Supprimer l'option ${option.nom} ?`)){
+                try {
+                    const option = this.optionModels[index];
+                    await optionOrganisateurService.deleteOption(option.id);
+                    this.optionModels.splice(index, 1);
+                } catch (e) {
+                    console.error("Erreur lors de la suppression :", error.response?.data || error);
+                }
             }
         },
         async handleSubmit() {

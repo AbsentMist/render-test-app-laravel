@@ -10,7 +10,7 @@ class SousCategorieController extends Controller
      */
     public function indexAdmin(): JsonResponse
     {
-        $sousCategories = SousCategorie::all();
+        $sousCategories = SousCategorie::where('modele', true)->get();
         return response()->json($sousCategories);
     }
 
@@ -35,6 +35,7 @@ class SousCategorieController extends Controller
     {
         $validatedData = $request->validate([
             'nom' => 'required|string|max:100',
+            'modele' => 'boolean',
         ]);
 
         $sousCategorie = SousCategorie::create($validatedData);
@@ -63,6 +64,7 @@ class SousCategorieController extends Controller
 
         $validatedData = $request->validate([
             'nom' => 'sometimes|string|max:100',
+            'modele' => 'boolean',
         ]);
 
         $sousCategorie->update($validatedData);
