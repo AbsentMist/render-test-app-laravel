@@ -7,7 +7,7 @@ class Categorie extends Model
 {
     protected $table = 'Categorie';
     public $timestamps = false;
-    protected $fillable = ['nom'];
+    protected $fillable = ['nom', 'modele'];
 
     //Gestion des relations aux prochains sprints
 }

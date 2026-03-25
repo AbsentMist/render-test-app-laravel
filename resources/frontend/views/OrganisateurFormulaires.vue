@@ -5,10 +5,14 @@
     <FormulaireCourse v-if="activeTab === formulaires.COURSE" />
     <FormulaireOption v-if="activeTab === formulaires.OPTIONS" />
     <FormulaireEvenement v-if="activeTab === formulaires.EVENEMENT" />
+    <FormulaireCategorie v-if="activeTab === formulaires.CATEGORIE" />
+    <FormulaireAvertissement v-if="activeTab === formulaires.AVERTISSEMENT" />
   </div>
 </template>
 
 <script>
+import FormulaireAvertissement from '../components/FormulaireAvertissement.vue';
+import FormulaireCategorie from '../components/FormulaireCategorie.vue';
 import FormulaireCourse from '../components/FormulaireCourse.vue';
 import FormulaireEvenement from '../components/FormulaireEvenement.vue';
 import FormulaireOnglet from '../components/FormulaireOnglet.vue';
@@ -31,7 +35,9 @@ export default {
     FormulaireEvenement,
     FormulaireOnglet,
     FormulaireCourse,
-    FormulaireOption
+    FormulaireOption,
+    FormulaireCategorie,
+    FormulaireAvertissement,
   },
   data() {
     return {

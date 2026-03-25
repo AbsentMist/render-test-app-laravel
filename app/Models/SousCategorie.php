@@ -7,7 +7,7 @@ class SousCategorie extends Model
 {
     protected $table = 'SousCategorie';
     public $timestamps = false;
-    protected $fillable = ['nom'];
+    protected $fillable = ['nom', 'modele'];
 
     //Gestion des relations aux prochains sprints
 }

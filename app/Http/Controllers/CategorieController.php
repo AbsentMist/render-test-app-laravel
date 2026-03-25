@@ -10,7 +10,7 @@ class CategorieController extends Controller
      */
     public function indexAdmin(): JsonResponse
     {
-        $categories = Categorie::all();
+        $categories = Categorie::where('modele', true)->get();
         return response()->json($categories);
     }
 
@@ -35,6 +35,7 @@ class CategorieController extends Controller
     {
         $validatedData = $request->validate([
             'nom' => 'required|string|max:100',
+            'modele' => 'boolean'
         ]);
 
         $categorie = Categorie::create($validatedData);
@@ -63,6 +64,7 @@ class CategorieController extends Controller
 
         $validatedData = $request->validate([
             'nom' => 'sometimes|string|max:100',
+            'modele' => 'boolean',
         ]);
 
         $categorie->update($validatedData);
