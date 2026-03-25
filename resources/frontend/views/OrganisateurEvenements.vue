@@ -20,7 +20,7 @@
             <th class="px-4 py-3">Date fin</th>
             <th class="px-4 py-3 text-center">Actif</th>
             <th class="px-4 py-3 text-center">Interne</th>
-            <th class="px-4 py-3">Action</th>
+            <th class="px-4 py-3">Actions</th>
           </tr>
         </thead>
         <tbody>
