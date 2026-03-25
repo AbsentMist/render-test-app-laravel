@@ -71,26 +71,7 @@
 
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
-            <div class="flex gap-4 mb-4">
-                <div class="basis-1/2">
-                    <label for="startTime" class="block mb-2 text-sm font-medium text-heading">Heure départ</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
-                        <Icon icon="mdi:access-time" class="w-4 h-4 text-body" />
-                        </div>
-                        <input type="time" id="startTime" v-model="courseData.time.start" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" required />
-                    </div>
-                </div>
-                <div class="basis-1/2">
-                    <label for="endTime" class="block mb-2 text-sm font-medium text-heading">Heure fin</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
-                            <Icon icon="mdi:access-time" class="w-4 h-4 text-body" />
-                        </div>
-                        <input type="time" id="endTime" v-model="courseData.time.end" class="block w-full p-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body" min="00:00" max="24:00" required />
-                    </div>
-                </div>
-            </div>
+            
             <div class="flex flex-col-3 gap-4 mb-4">
                 <div class="w-full">
                     <label for="distance" class="block mb-2.5 text-sm font-medium text-heading">Distance</label>
@@ -426,7 +407,6 @@ export default {
                 name: "",
                 event: { name: "", id: "" },
                 date: { start: "", end: "", inscriptionStart: "", inscriptionEnd: "" },
-                time: { start: "", end: "" },
                 distance: "",
                 tarif: "",
                 tarifInfo: "",
@@ -443,7 +423,6 @@ export default {
                     avertissement: false,
                     document: false,
                     questionnaire: false,
-
                 },
                 category: { nom: "", id: "" },
                 subCategory: { nom: "", id: "" },
@@ -508,7 +487,6 @@ export default {
             this.courseData = {
                 name: "", event: { name: "", id: "" },
                 date: { start: "", end: "", inscriptionStart: "", inscriptionEnd: "" },
-                time: { start: "", end: "" },
                 distance: "", tarif: "", tarifInfo: "", popupInfo: "",
                 type: { name: "", id: "" }, maxRunners: "",
                 dossard: { first: "", last: "" },
@@ -552,12 +530,6 @@ export default {
 
                 if (course.type) {
                     this.courseData.type = { name: course.type, id: "" };
-                }
-                if (course.heure_depart) {
-                    this.courseData.time.start = course.heure_depart.substring(0, 5);
-                }
-                if (course.heure_fin) {
-                    this.courseData.time.end = course.heure_fin.substring(0, 5);
                 }
                 if (course.date_debut) {
                     this.courseData.date.start = new Date(course.date_debut);
@@ -736,8 +708,6 @@ export default {
                     age_minimum:       this.courseData.age.min,
                     age_maximum:       this.courseData.age.max,
                     distance:          this.courseData.distance,
-                    heure_depart:      this.courseData.time.start,
-                    heure_fin:         this.courseData.time.end,
                     status:            "actif",
                     type:              this.courseData.type.name,
                     is_actif:          Boolean(this.courseData.parameters.actif),

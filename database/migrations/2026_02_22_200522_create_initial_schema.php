@@ -100,11 +100,10 @@ return new class extends Migration
             $table->boolean('is_dossard')->default(0);
             $table->boolean('is_actif')->default(1);
             $table->integer('max_inscription');
+            $table->integer('max_nb_personne')->nullable();
             $table->integer('premier_dossard');
             $table->integer('dernier_dossard');
             $table->float('distance')->nullable();
-            $table->time('heure_depart')->nullable();
-            $table->time('heure_fin')->nullable();
             $table->integer('age_minimum');
             $table->integer('age_maximum')->nullable();
         });

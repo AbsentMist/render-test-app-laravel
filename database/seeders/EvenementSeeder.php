@@ -12,7 +12,7 @@ class EvenementSeeder extends Seeder
     {
         $evenements = [
             [
-                'nom'               => 'Course des Ponts 2025',
+                'nom'               => 'Course des Ponts 2026',
                 'site'              => 'https://coursedesponts.ch',
                 'couleur_primaire'  => '#0e0f54',
                 'couleur_secondaire'=> '#d9f20b',
@@ -22,7 +22,7 @@ class EvenementSeeder extends Seeder
                 'logo'              => null,
             ],
             [
-                'nom'               => 'Antigel Run 2025',
+                'nom'               => 'Antigel Run 2026',
                 'site'              => 'https://antigelrun.ch',
                 'couleur_primaire'  => '#1a1a2e',
                 'couleur_secondaire'=> '#e94560',
@@ -32,7 +32,7 @@ class EvenementSeeder extends Seeder
                 'logo'              => null,
             ],
             [
-                'nom'               => 'Geneva Marathon 2025',
+                'nom'               => 'Geneva Marathon 2026',
                 'site'              => 'https://genevamarathon.com',
                 'couleur_primaire'  => '#003366',
                 'couleur_secondaire'=> '#ff6600',
@@ -42,7 +42,7 @@ class EvenementSeeder extends Seeder
                 'logo'              => null,
             ],
             [
-                'nom'               => 'Trail du Grand Genève 2025',
+                'nom'               => 'Trail du Grand Genève 2026',
                 'site'              => 'https://trailsaleve.ch',
                 'couleur_primaire'  => '#2d5a27',
                 'couleur_secondaire'=> '#f5c518',
@@ -52,7 +52,7 @@ class EvenementSeeder extends Seeder
                 'logo'              => null,
             ],
             [
-                'nom'               => 'Course Interne RHE 2025',
+                'nom'               => 'Course Interne RHE 2026',
                 'site'              => 'esefes',
                 'couleur_primaire'  => '#4a4a4a',
                 'couleur_secondaire'=> '#ffffff',
