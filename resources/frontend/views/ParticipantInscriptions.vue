@@ -110,7 +110,7 @@
     @confirmer="afficherPopupChangement"
     @close="popupAvertissement = false"
   />
-  <PopupChangementCourse v-if="popupChangement" 
+  <PopupChangementCourseParticipant v-if="popupChangement" 
     :inscription="inscription.actuel"
     :participants="participants" 
     @close="fermerPopupChangement"
@@ -122,14 +122,14 @@ import { Icon } from '@iconify/vue';
 import Title from '../components/Title.vue'
 import inscriptionService from '../services/inscriptionService.js'
 import PopupAvertissementCourse from '../components/PopupAvertissementCourse.vue';
-import PopupChangementCourse from '../components/PopupChangementCourse.vue';
+import PopupChangementCourseParticipant from '../components/PopupChangementCourseParticipant.vue';
 
 export default {
   components: { 
     Title,
     Icon,
     PopupAvertissementCourse,
-    PopupChangementCourse
+    PopupChangementCourseParticipant
   },
   emits: ['close'],
   data() {
