@@ -141,6 +141,7 @@
     :participants="participants" 
     @close="fermerPopupChangement"
   />
+  <PopupInscriptionDetail v-if="popupDetail" :inscription="inscription.actuel" @close="popupDetail = false"/>
 </template>
 
 <script>
@@ -149,13 +150,15 @@ import Title from '../components/Title.vue'
 import inscriptionService from '../services/inscriptionService.js'
 import PopupAvertissementCourse from '../components/PopupAvertissementCourse.vue';
 import PopupChangementCourseOrganisateur from '../components/PopupChangementCourseOrganisateur.vue';
+import PopupInscriptionDetail from '../components/PopupInscriptionDetail.vue';
 
 export default {
   components: { 
     Title,
     Icon,
     PopupAvertissementCourse,
-    PopupChangementCourseOrganisateur
+    PopupChangementCourseOrganisateur,
+    PopupInscriptionDetail
   },
   emits: ['close'],
   data() {
