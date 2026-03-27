@@ -21,7 +21,7 @@ class InscriptionController extends Controller
             return response()->json(['message' => 'Accès non autorisé. Réservé aux administrateurs.'], 403);
         }
 
-        $inscriptions = Inscription::with(['course.evenement', 'participant', 'dossard', 'groupe'])->get();
+        $inscriptions = Inscription::with(['course.evenement', 'participant', 'dossard', 'groupe'])->orderBy('date_paiement', 'desc')->get();
         
         return response()->json($inscriptions);
     }
@@ -55,6 +55,7 @@ class InscriptionController extends Controller
             'avertissement_valide' => 'sometimes|boolean',
             //Ajout du champ "en attente" pour les inscriptions relais / entreprises
             'status_paiement'     => 'sometimes|in:Validé,Annulé,En attente', 
+            'date_paiement'       => now(),
             'tarif'               => 'sometimes|numeric', // Ajout du champ tarif
         ]);
         
@@ -79,7 +80,7 @@ class InscriptionController extends Controller
         }
 
         $statutPaiementFinal = $validatedData['status_paiement'] ?? $statutInscription;
-
+        
         // Gestion erreur si la course à un avertissement obligatoire
         if ($course->is_avertissement == 1 && empty($validatedData['avertissement_valide'])) {
             return response()->json([
@@ -107,6 +108,7 @@ class InscriptionController extends Controller
                     'id_document' => $validatedData['id_document'] ?? null,
                     'code_participant' => $validatedData['code_participant'] ?? null,
                     'tarif' => $course->tarif,
+                    'date_paiement' => now(),
                     'status_paiement' => $statutPaiementFinal, // Application du statut dynamique
                     'montant_rabais' => 0,
                     'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
@@ -126,6 +128,7 @@ class InscriptionController extends Controller
             'code_participant' => $validatedData['code_participant'] ?? null,
             // On prend le prix de l'inscription avec les options choisies, sinon prix de base de la course
             'tarif' => $validatedData['tarif'] ?? $course->tarif,
+            'date_paiement'       => now(),
             'status_paiement' => $statutPaiementFinal, // Application du statut dynamique
             'montant_rabais' => 0,
             'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
@@ -174,6 +177,7 @@ class InscriptionController extends Controller
             'avertissement_valide' => 'sometimes|boolean',
             'id_document' => 'sometimes|nullable|exists:Document,id',
             'id_groupe' => 'sometimes|nullable|exists:Groupe,id',
+            'date_paiement' => 'sometimes|date',
             'id_course' => 'sometimes|exists:Course,id', 
         ]);
 

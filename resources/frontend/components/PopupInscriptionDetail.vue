@@ -1,26 +1,16 @@
 <template>
   <div :class="inline ? 'flex flex-col h-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm'">
     <div
-      :class="inline ? 'flex flex-col h-full w-full' : 'relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl mx-4 flex flex-col overflow-hidden'"
-      :style="inline ? '' : 'height: 90vh'"
+      :class="inline ? 'flex flex-col h-full w-full' : 'relative bg-white rounded-2xl shadow-2xl w-full max-w-8xl mx-4 flex flex-col overflow-hidden'"
+      :style="inline ? '' : 'height: 80vh'"
     >
       <!-- Header -->
-      <div v-if="!inline" class="flex items-center justify-between px-6 pt-5 pb-0 border-b border-gray-100 bg-primary-300">
+      <div v-if="!inline" class="flex items-center justify-between px-6 pt-5 pb-0 border-b border-gray-100 bg-tertiary-900">
         <div class="flex flex-col w-full">
           <div class="flex items-center justify-between">
             <div>
-              <span class="px-6 text-subtitle font-medium text-secondary">Inscription</span>
-              <span class="text-subtitle font-medium text-secondary"> &nbsp; {{ inscription.course.nom }}</span>
+              <span class="px-6 text-subtitle font-medium text-secondary">Detail inscription</span>
               <div class="h-1 w-24 ml-6 rounded-r-full mb-2" :style="{ backgroundColor: inscription.course.evenement?.couleur_secondaire }"></div>
-              <span
-                class="mx-6 px-2 py-0.5 text-base font-medium rounded-full"
-                :style="{
-                  color: inscription.course.evenement.couleur_secondaire,
-                  backgroundColor: inscription.course.evenement.couleur_primaire,
-                }"
-              >
-                {{ inscription.course.evenement.nom }}
-              </span>
             </div>
             <button @click="$emit('close')" class="text-secondary hover:text-gray-600 transition-colors mr-1 self-start mt-1">
               <Icon icon="mdi:close" class="w-5 h-5" />
@@ -36,7 +26,7 @@
               class="px-4 py-2 text-sm font-medium rounded-t-lg transition-all duration-200 flex items-center gap-2"
               :class="activeTab === tab.key
                 ? 'bg-white text-gray-800 shadow-sm'
-                : 'text-secondary/70 hover:text-secondary hover:bg-white/30'"
+                : 'text-secondary hover:text-secondary hover:bg-white/30'"
             >
               <Icon :icon="tab.icon" class="w-4 h-4" />
               {{ tab.label }}
@@ -56,7 +46,7 @@
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:account" class="w-4 h-4" /> Participant
             </h3>
-            <div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <p class="text-xs text-gray-400">Nom complet</p>
                 <p class="font-medium text-gray-800">{{ inscription.participant.prenom }} {{ inscription.participant.nom }}</p>
@@ -95,7 +85,7 @@
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:run-fast" class="w-4 h-4" /> Course
             </h3>
-            <div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-6 gap-4">
               <div>
                 <p class="text-xs text-gray-400">Nom</p>
                 <p class="font-medium text-gray-800">{{ inscription.course.nom }}</p>
@@ -126,6 +116,63 @@
             </div>
           </section>
 
+
+          <!-- Paiement & Dossard -->
+          <section>
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Icon icon="mdi:receipt-text" class="w-4 h-4" /> Inscription
+            </h3>
+            <div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div>
+                <p class="text-xs text-gray-400">Statut</p>
+                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1"
+                  :class="inscription.status_paiement === 'Validé' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'">
+                  {{ inscription.status_paiement }}
+                </span>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Tarif payé</p>
+                <p class="font-medium text-gray-800">{{ inscription.tarif }} CHF</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Date de paiement</p>
+                <p class="font-medium text-gray-800">{{ inscription.date_paiement ?? '—' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Rabais</p>
+                <p class="font-medium text-gray-800">{{ inscription.montant_rabais }} CHF</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">N° inscription</p>
+                <p class="font-medium text-gray-800 font-mono text-xs">{{ inscription.numero_inscription ?? '—' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Ref. Groupage</p>
+                <p class="font-medium text-gray-800">{{ inscription.ref_groupage ?? '—' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Participe au challenge ?</p>
+                <p class="font-medium text-gray-800">{{ inscription.participe_challenge ? 'Oui' : 'Non' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Challenge</p>
+                <p class="font-medium text-gray-800">{{ inscription.type_challenge ?? '—' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Équipe challenge</p>
+                <p class="font-medium text-gray-800">{{ inscription.equipe_challenge ?? '—' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Dossard</p>
+                <p class="font-medium text-gray-800">{{ inscription.dossard ?? '—' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Code de participation</p>
+                <p class="font-medium text-gray-800">{{ inscription.code_participant ?? '—' }}</p>
+              </div>
+            </div>
+          </section>
+
           <!-- Document -->
           <section>
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -142,34 +189,6 @@
               <div v-else class="flex items-center gap-3 text-gray-400">
                 <Icon icon="mdi:file-remove-outline" class="w-8 h-8" />
                 <p class="text-sm">Aucun document fourni</p>
-              </div>
-            </div>
-          </section>
-
-          <!-- Paiement & Dossard -->
-          <section>
-            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <Icon icon="mdi:receipt" class="w-4 h-4" /> Paiement & Dossard
-            </h3>
-            <div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p class="text-xs text-gray-400">Statut paiement</p>
-                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1"
-                  :class="inscription.status_paiement === 'Validé' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'">
-                  {{ inscription.status_paiement }}
-                </span>
-              </div>
-              <div>
-                <p class="text-xs text-gray-400">Tarif payé</p>
-                <p class="font-medium text-gray-800">{{ inscription.tarif }} CHF</p>
-              </div>
-              <div>
-                <p class="text-xs text-gray-400">Rabais</p>
-                <p class="font-medium text-gray-800">{{ inscription.montant_rabais }} CHF</p>
-              </div>
-              <div>
-                <p class="text-xs text-gray-400">Dossard</p>
-                <p class="font-medium text-gray-800">{{ inscription.dossard ?? '—' }}</p>
               </div>
             </div>
           </section>

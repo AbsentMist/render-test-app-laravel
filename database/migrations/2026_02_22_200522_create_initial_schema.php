@@ -181,9 +181,9 @@ return new class extends Migration
             $table->foreignId('id_course')->constrained('Course')->onDelete('cascade');
             $table->foreignId('id_groupe')->nullable()->constrained('Groupe')->onDelete('set null');
             $table->foreignId('id_document')->nullable()->constrained('Document')->onDelete('set null');
-            
             $table->string('code_participant', 100)->nullable()->unique();
             $table->float('tarif')->default(0);
+            $table->datetime('date_paiement')->useCurrent();
             $table->enum('status_paiement', ['Validé', 'En attente', 'Annulé'])->default('En attente');
             $table->float('montant_rabais')->default(0)->nullable();
             $table->boolean('avertissement_valide')->default(0)->nullable();

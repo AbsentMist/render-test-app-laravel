@@ -50,6 +50,7 @@ class InscriptionSeeder extends Seeder
                         'id_groupe'           => null,
                         'id_document'         => null,
                         'code_participant'    => null,
+                        'date_paiement'       => now(),
                     ]
                 );
             }

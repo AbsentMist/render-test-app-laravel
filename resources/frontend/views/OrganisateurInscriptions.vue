@@ -9,7 +9,6 @@
       <table class="w-full text-sm text-left text-body">
         <thead class="bg-neutral-secondary-medium text-heading text-xs uppercase">
           <tr>
-            <th class="px-4 py-3 w-8"></th>
             <th class="px-4 py-3 text-center">ID</th>
             <th class="px-4 py-3 text-center">Participant</th>
             <th class="px-4 py-3 text-center">Course</th>
@@ -33,27 +32,13 @@
               class="border-t border-default-medium hover:bg-neutral-secondary-medium transition-colors"
               :class="inscription.status_paiement=='Annulé' ? 'bg-accent-600' : ''"
             >
-              <!-- Bouton + / - -->
-              <td class="px-4 py-3">
-                <button
-                  @click="toggleExpand(inscription.id)"
-                  class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200"
-                  :class="expandedRows.includes(inscription.id)
-                    ? 'bg-accent-600 hover:bg-accent hover:text-white'
-                    : 'hover:bg-accent-600 bg-accent text-white hover:text-black'"
-                  :aria-label="expandedRows.includes(inscription.id) ? 'Réduire' : 'Voir plus'"
-                >
-                  <Icon v-if="expandedRows.includes(inscription.id)" icon="mdi:minus" class="w-4 h-4" />
-                  <Icon v-else icon="mdi:plus" class=" w-4 h-4" />
-                </button>
-              </td>
               <td class="px-4 py-3">{{ inscription.id }}</td>
               <td class="px-4 py-3">{{ inscription.participant.nom }} {{ inscription.participant.prenom }}</td>
               <td class="px-4 py-3 font-medium text-heading">
                 {{ inscription.course.evenement.nom }} -
                 {{ inscription.course.nom }}
               </td>
-              <td class="px-4 py-3">{{ inscription.groupe?.dateInscription ?? '—' }}</td>
+              <td class="px-4 py-3">{{ inscription.date_paiement.slice(0,10) ?? '—' }}</td>
               <td class="px-4 py-3 text-center">CHF {{ inscription.tarif }}</td>
               <td class="px-4 py-3">{{ inscription.status_paiement ?? '—' }}</td>
               <td class="px-4 py-3">{{ inscription.course.type ?? '—' }}</td>
@@ -81,49 +66,6 @@
                       </svg>
                     </button>
                 </div>
-              </td>
-            </tr>
-
-            <!-- Ligne expandée avec infos supplémentaires -->
-            <tr
-              v-if="expandedRows.includes(inscription.id)"
-              class="border-t border-default-medium bg-neutral-secondary-medium"
-            >
-              <td colspan="9" class="px-6 py-4 relative">
-                <div class="grid grid-cols-2 gap-x-12 gap-y-2 text-sm max-w-2xl">
-                  <div class="flex items-center gap-2">
-                    <span class="text-body font-medium">Date paiement</span>
-                    <span class="text-heading">{{ inscription.date_paiement ?? '—' }}</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-body font-medium">N° inscription</span>
-                    <span class="text-heading font-mono text-xs">{{ inscription.numero_inscription ?? '—' }}</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-body font-medium">Ref. Groupage</span>
-                    <span class="text-heading">{{ inscription.ref_groupage ?? '—' }}</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-body font-medium">Participe au challenge ?</span>
-                    <span class="text-heading">{{ inscription.participe_challenge ? 'Oui' : 'Non' }}</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-body font-medium">Challenge</span>
-                    <span class="text-heading">{{ inscription.type_challenge ?? '—' }}</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-body font-medium">Equipe challenge</span>
-                    <span class="text-heading">{{ inscription.equipe_challenge ?? '—' }}</span>
-                  </div>
-                </div>
-                <div v-if="inscription.status_paiement!='Annulé'" class="flex flex-row">
-                    <button
-                        @click="changerInscription(inscription)"
-                        class="ml-auto items-center gap-1.5 px-4 my-2 py-1.5 rounded-lg btn-accent-300 text-xs font-medium transition-colors"
-                      >
-                        Changer de course
-                    </button>
-                  </div>
               </td>
             </tr>
           </template>

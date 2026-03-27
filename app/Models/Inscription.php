@@ -26,6 +26,7 @@ class Inscription extends Model
         'status_paiement',
         'montant_rabais',
         'avertissement_valide',
+        'date_paiement',
     ];
 
      // RELATIONS (BELONGS TO - "Appartient à")
