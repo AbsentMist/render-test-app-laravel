@@ -1,16 +1,21 @@
 <template>
   <div :class="inline ? 'flex flex-col h-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm'">
     <div
-      :class="inline ? 'flex flex-col h-full w-full' : 'relative bg-white rounded-2xl shadow-2xl w-full max-w-8xl mx-4 flex flex-col overflow-hidden'"
+  :class="inline ? 'flex flex-col h-full w-full' : 'relative bg-white rounded-2xl shadow-2xl w-full max-w-8xl mx-4 flex flex-col overflow-hidden'"
       :style="inline ? '' : 'height: 80vh'"
     >
       <!-- Header -->
       <div v-if="!inline" class="flex items-center justify-between px-6 pt-5 pb-0 border-b border-gray-100 bg-tertiary-900">
         <div class="flex flex-col w-full">
           <div class="flex items-center justify-between">
-            <div>
-              <span class="px-6 text-subtitle font-medium text-secondary">Detail inscription</span>
-              <div class="h-1 w-24 ml-6 rounded-r-full mb-2" :style="{ backgroundColor: inscription.course.evenement?.couleur_secondaire }"></div>
+            <div class="flex items-center gap-3">
+              <div>
+                <span class="px-6 text-subtitle font-medium text-secondary">Detail inscription</span>
+                <div class="h-1 w-24 ml-6 rounded-r-full mb-2" :style="{ backgroundColor: inscription.course.evenement?.couleur_secondaire }"></div>
+              </div>
+              <span v-if="isEdit" class="flex items-center gap-1.5 bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">
+                <Icon icon="mdi:pencil" class="w-3 h-3" /> Mode modification
+              </span>
             </div>
             <button @click="$emit('close')" class="text-secondary hover:text-gray-600 transition-colors mr-1 self-start mt-1">
               <Icon icon="mdi:close" class="w-5 h-5" />
@@ -36,7 +41,7 @@
       </div>
 
       <!-- Tab Content -->
-      <div class="flex-1 overflow-y-auto">
+      <div class="flex-1 overflow-y-auto pb-20">
 
         <!-- Onglet Général -->
         <div v-if="activeTab === 'general'" class="p-6 space-y-6">
@@ -116,108 +121,243 @@
             </div>
           </section>
 
-
-          <!-- Paiement & Dossard -->
+          <!-- Inscription -->
           <section>
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:receipt-text" class="w-4 h-4" /> Inscription
             </h3>
             <div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-5 gap-4">
-              <!-- Groupe/Équipe -->
-            <div v-if="inscription.groupe || inscription.participant.equipe_nom" class="space-y-4">
-              <div v-if="inscription.groupe" class="bg-gray-50 rounded-full py-0.5 px-2 inline-block ">
-                <p class="text-xs text-gray-400 mb-1">Groupe</p>
-                <p class="font-medium text-gray-800">{{ inscription.groupe.nom }}</p>
+
+              <div v-if="inscription.groupe || inscription.participant.equipe_nom" class="col-span-2 md:col-span-5 flex gap-3">
+                <div v-if="inscription.groupe" class="bg-white rounded-full py-0.5 px-3 border border-gray-200 inline-flex items-center gap-2">
+                  <Icon icon="mdi:account-group" class="w-3 h-3 text-gray-400" />
+                  <p class="text-xs font-medium text-gray-700">{{ inscription.groupe.nom }}</p>
+                </div>
+                <div v-if="inscription.participant.equipe_nom" class="bg-white rounded-full py-0.5 px-3 border border-gray-200 inline-flex items-center gap-2">
+                  <Icon icon="mdi:shield-outline" class="w-3 h-3 text-gray-400" />
+                  <p class="text-xs font-medium text-gray-700">{{ inscription.participant.equipe_nom }}</p>
+                </div>
               </div>
-              <div v-if="inscription.participant.equipe_nom" class="bg-gray-50 rounded-xl p-4">
-                <p class="text-xs text-gray-400 mb-1">Équipe</p>
-                <p class="font-medium text-gray-800">{{ inscription.participant.equipe_nom }}</p>
-              </div>
-            </div>
+
+              <!-- Statut paiement -->
               <div>
-                <p class="text-xs text-gray-400">Statut</p>
-                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1"
+                <p class="text-xs text-gray-400">Statut paiement</p>
+                <select v-if="isEdit" v-model="inscriptionEdit.status_paiement"
+                  class="mt-1 text-xs border border-gray-300 rounded px-2 py-1 bg-white w-full">
+                  <option>Validé</option>
+                  <option>En attente</option>
+                  <option>Annulé</option>
+                </select>
+                <span v-else class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1"
                   :class="inscription.status_paiement === 'Validé' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'">
                   {{ inscription.status_paiement }}
                 </span>
               </div>
+
+              <!-- Tarif -->
               <div>
                 <p class="text-xs text-gray-400">Tarif payé</p>
-                <p class="font-medium text-gray-800">{{ inscription.tarif }} CHF</p>
+                <div v-if="isEdit" class="flex items-center gap-1 mt-1">
+                  <input v-model="inscriptionEdit.tarif" type="number"
+                    class="text-sm border border-gray-300 rounded px-2 py-1 w-24 bg-white" />
+                  <span class="text-xs text-gray-400">CHF</span>
+                </div>
+                <p v-else class="font-medium text-gray-800">{{ inscription.tarif }} CHF</p>
               </div>
+
+              <!-- Date paiement -->
               <div>
                 <p class="text-xs text-gray-400">Date de paiement</p>
-                <p class="font-medium text-gray-800">{{ inscription.date_paiement ?? '—' }}</p>
+                <input v-if="isEdit" v-model="inscriptionEdit.date_paiement" type="datetime-local"
+                  class="mt-1 text-xs border border-gray-300 rounded px-2 py-1 bg-white w-full " />
+                <p v-else class="font-medium text-gray-800">{{ inscription.date_paiement ?? '—' }}</p>
               </div>
+
+              <!-- Rabais -->
               <div>
                 <p class="text-xs text-gray-400">Rabais</p>
-                <p class="font-medium text-gray-800">{{ inscription.montant_rabais }} CHF</p>
+                <div v-if="isEdit" class="flex items-center gap-1 mt-1">
+                  <input v-model="inscriptionEdit.montant_rabais" type="number"
+                    class="text-sm border border-gray-300 rounded px-2 py-1 w-24 bg-white " />
+                  <span class="text-xs text-gray-400">CHF</span>
+                </div>
+                <p v-else class="font-medium text-gray-800">{{ inscription.montant_rabais }} CHF</p>
               </div>
+
+              <!-- N° inscription -->
               <div>
                 <p class="text-xs text-gray-400">N° inscription</p>
-                <p class="font-medium text-gray-800">{{ inscription.numero_inscription ?? '—' }}</p>
+                <input v-if="isEdit" v-model="inscriptionEdit.numero_inscription" type="text"
+                  class="mt-1 text-sm rounded px-2 py-1 w-full bg-white " />                
+                <p v-else class="font-medium text-gray-800">{{ inscription.numero_inscription ?? '—' }}</p>
               </div>
+
+              <!-- Ref groupage -->
               <div>
                 <p class="text-xs text-gray-400">Ref. Groupage</p>
-                <p class="font-medium text-gray-800">{{ inscription.ref_groupage ?? '—' }}</p>
+                <input v-if="isEdit" v-model="inscriptionEdit.ref_groupage" type="text"
+                  class="mt-1 text-sm rounded px-2 py-1 w-full bg-white " />
+                <p v-else class="font-medium text-gray-800">{{ inscription.ref_groupage ?? '—' }}</p>
               </div>
+
+              <!-- Challenge -->
               <div>
                 <p class="text-xs text-gray-400">Participe au challenge ?</p>
-                <p class="font-medium text-gray-800">{{ inscription.participe_challenge ? 'Oui' : 'Non' }}</p>
+                <select v-if="isEdit" v-model="inscriptionEdit.participe_challenge"
+                  class="mt-1 text-xs border border-gray-300 rounded px-2 py-1 bg-white ">
+                  <option :value="true">Oui</option>
+                  <option :value="false">Non</option>
+                </select>
+                <p v-else class="font-medium text-gray-800">{{ inscription.participe_challenge ? 'Oui' : 'Non' }}</p>
               </div>
+
+              <!-- Type challenge -->
               <div>
                 <p class="text-xs text-gray-400">Challenge</p>
-                <p class="font-medium text-gray-800">{{ inscription.type_challenge ?? '—' }}</p>
+                <input v-if="isEdit" v-model="inscriptionEdit.type_challenge" type="text"
+                  class="mt-1 text-sm border border-gray-300 rounded px-2 py-1 w-full bg-white " />
+                <p v-else class="font-medium text-gray-800">{{ inscription.type_challenge ?? '—' }}</p>
               </div>
+
+              <!-- Equipe challenge -->
               <div>
                 <p class="text-xs text-gray-400">Équipe challenge</p>
-                <p class="font-medium text-gray-800">{{ inscription.equipe_challenge ?? '—' }}</p>
+                <input v-if="isEdit" v-model="inscriptionEdit.equipe_challenge" type="text"
+                  class="mt-1 text-sm border border-gray-300 rounded px-2 py-1 w-full bg-white " />
+                <p v-else class="font-medium text-gray-800">{{ inscription.equipe_challenge ?? '—' }}</p>
+              </div>
+
+              <!-- Dossard -->
+              <div>
+                <p class="text-xs text-gray-400">Dossard</p>
+                <input v-if="isEdit" v-model="inscriptionEdit.dossard" type="text"
+                  class="mt-1 text-sm border border-gray-300 rounded px-2 py-1 w-full bg-white " />
+                <p v-else class="font-medium text-gray-800">{{ inscription.dossard ?? '—' }}</p>
+              </div>
+
+              <!-- Code participation -->
+              <div>
+                <p class="text-xs text-gray-400">Code de participation</p>
+                <input v-if="isEdit" v-model="inscriptionEdit.code_participant" type="text"
+                  class="mt-1 text-sm border border-gray-300 rounded px-2 py-1 w-full bg-white " />
+                <p v-else class="font-medium text-gray-800">{{ inscription.code_participant ?? '—' }}</p>
+              </div>
+
+              <!-- Avertissement validé -->
+              <div>
+                <p class="text-xs text-gray-400">Avertissement validé</p>
+                <select v-if="isEdit" v-model="inscriptionEdit.avertissement_valide"
+                  class="mt-1 text-xs border border-gray-300 rounded px-2 py-1 bg-white ">
+                  <option :value="true">Oui</option>
+                  <option :value="false">Non</option>
+                </select>
+                <p v-else class="font-medium text-gray-800">{{ inscription.avertissement_valide ? 'Oui' : 'Non' }}</p>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- Ancienne inscription -->
+          <section v-if="inscription.ancienne_inscription">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Icon icon="mdi:history" class="w-4 h-4" /> Ancienne inscription
+            </h3>
+            <div class="p-2">
+              <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Icon icon="mdi:run-fast" class="w-4 h-4" /> Course
+              </h3>
+              <div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-6 gap-4">
+                <div>
+                  <p class="text-xs text-gray-400">Nom</p>
+                  <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.course?.nom ?? '—' }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400">Distance</p>
+                  <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.course?.distance ?? '—' }} km</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400">Type</p>
+                  <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.course?.type ?? '—' }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400">Date</p>
+                  <p class="font-medium text-gray-800">{{ formatDate(inscription.ancienne_inscription.course?.date_debut) }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400">Statut</p>
+                  <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold"
+                    :class="inscription.ancienne_inscription.course?.status === 'actif' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                    {{ inscription.ancienne_inscription.course?.status ?? '—' }}
+                  </span>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400">Tarif</p>
+                  <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.tarif }} CHF</p>
+                </div>
+              </div>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-5 gap-4 mt-2">
+              <div v-if="inscription.ancienne_inscription.groupe || inscription.ancienne_inscription.participant?.equipe_nom" class="space-y-4">
+                <div v-if="inscription.ancienne_inscription.groupe" class="rounded-full py-0.5 px-2 inline-block">
+                  <p class="text-xs text-gray-400 mb-1">Groupe</p>
+                  <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.groupe.nom }}</p>
+                </div>
+                <div v-if="inscription.ancienne_inscription.participant?.equipe_nom">
+                  <p class="text-xs text-gray-400 mb-1">Équipe</p>
+                  <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.participant.equipe_nom }}</p>
+                </div>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Statut</p>
+                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1"
+                  :class="inscription.ancienne_inscription.status_paiement === 'Validé' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'">
+                  {{ inscription.ancienne_inscription.status_paiement }}
+                </span>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Tarif payé</p>
+                <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.tarif }} CHF</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Date paiement</p>
+                <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.date_paiement ?? '—' }}</p>
               </div>
               <div>
                 <p class="text-xs text-gray-400">Dossard</p>
-                <p class="font-medium text-gray-800">{{ inscription.dossard ?? '—' }}</p>
-              </div>
-              <div>
-                <p class="text-xs text-gray-400">Code de participation</p>
-                <p class="font-medium text-gray-800">{{ inscription.code_participant ?? '—' }}</p>
+                <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.dossard ?? '—' }}</p>
               </div>
             </div>
           </section>
 
-          <!-- Document -->
+          <!-- Documents -->
           <section>
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:file-document-outline" class="w-4 h-4" /> Documents
             </h3>
             <div class="bg-gray-50 rounded-xl p-4">
-              <div v-if="inscription.documentsFournis && inscription.documentsFournis.length > 0" class="space-y-3">
-                <div v-for="doc in inscription.documentsFournis" :key="doc.id" class="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
+              <div v-if="inscription.documents_fournis && inscription.documents_fournis.length > 0" class="space-y-3">
+                <div v-for="doc in inscription.documents_fournis" :key="doc.id"
+                  @click="ouvrirDocument(doc)"
+                  class="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200 hover:bg-tertiary-300 cursor-pointer">
                   <div class="flex items-center gap-3">
-                    <Icon icon="mdi:file-document-outline" class="w-6 h-6 text-secondary" />
-                    <div>
+                    <Icon icon="mdi:file-document-outline" class="w-6 h-6 text-primary" />
+                    <div @click.stop>
                       <p class="font-medium text-gray-800">{{ doc.url.split('/').pop() }}</p>
                       <p class="text-xs text-gray-400">
                         <template v-if="doc.date_debut">Valable du {{ formatDate(doc.date_debut) }}
                           <template v-if="doc.date_fin">au {{ formatDate(doc.date_fin) }}</template>
                         </template>
-                        <template v-if="doc.valable" class="text-green-600"> • Valide</template>
+                        <template v-if="doc.valable"> • Valide</template>
                       </p>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
-                    <button
-                      @click="telechargerDocument(doc)"
-                      class="p-2 text-secondary hover:bg-secondary/10 rounded transition-colors"
-                      title="Télécharger"
-                    >
+                    <button @click.stop="telechargerDocument(doc)"
+                      class="p-2 text-primary hover:bg-gray-100 rounded transition-colors" title="Télécharger">
                       <Icon icon="mdi:download" class="w-4 h-4" />
                     </button>
-                    <button
-                      v-if="!etradeAdmin"
-                      @click="supprimerDocument(doc.id)"
-                      class="p-2 text-accent hover:bg-red-50 rounded transition-colors"
-                      title="Supprimer"
-                    >
+                    <button v-if="isEdit" @click.stop="supprimerDocument(doc.id)"
+                      class="p-2 text-accent hover:bg-red-50 rounded transition-colors" title="Supprimer">
                       <Icon icon="mdi:delete" class="w-4 h-4" />
                     </button>
                   </div>
@@ -230,15 +370,15 @@
             </div>
           </section>
 
-          <!-- Upload de documents -->
-          <section v-if="!inline">
+          <!-- Upload document -->
+          <section v-if="isEdit">
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:cloud-upload-outline" class="w-4 h-4" /> Ajouter un document
             </h3>
             <div class="bg-gray-50 rounded-xl p-4">
               <div
                 class="border-2 border-dashed rounded-lg flex flex-col items-center justify-center py-6 gap-3 cursor-pointer transition-all"
-                :class="glisserDocument ? 'border-secondary bg-secondary/5' : 'border-gray-300 hover:border-gray-400'"
+                :class="glisserDocument ? 'border-accent-600 bg-amber-50' : 'border-gray-300 hover:border-gray-300'"
                 @dragover.prevent="glisserDocument = true"
                 @dragleave="glisserDocument = false"
                 @drop.prevent="deposerDocument"
@@ -247,61 +387,65 @@
                 <Icon icon="mdi:upload-outline" class="w-8 h-8 text-gray-400" />
                 <p class="text-sm text-gray-600 text-center">
                   Glissez-déposez un fichier ou<br>
-                  <span class="text-secondary font-medium">cliquez pour parcourir</span>
+                  <span class="text-accent font-medium">cliquez pour parcourir</span>
                 </p>
                 <p class="text-xs text-gray-400">PDF, JPG, PNG — max 10 Mo</p>
-                <input
-                  ref="inputDoc"
-                  type="file"
-                  class="hidden"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  @change="selectionnerDocument"
-                />
+                <input ref="inputDoc" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" @change="selectionnerDocument" />
               </div>
               <div v-if="chargementDocument" class="mt-3 text-center">
                 <p class="text-sm text-gray-600">Chargement du document...</p>
               </div>
             </div>
           </section>
-          <section class="flex flex-wrap gap-3 pt-2">
-            <button
-              class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-              @click="ouvrirChangementCourse"
-            >
-              <Icon icon="mdi:swap-horizontal" class="w-4 h-4" />
-              Changer de course
-            </button>
-            <button
-              class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              :style="{ backgroundColor: inscription.course.evenement.couleur_primaire, color: inscription.course.evenement.couleur_secondaire }"
-              @click="$emit('modifier-inscription', inscription)"
-            >
-              <Icon icon="mdi:pencil" class="w-4 h-4" />
-              Modifier l'inscription
-            </button>
-          </section>
+
         </div>
 
         <!-- Onglet Options -->
         <div v-if="activeTab === 'options'" class="p-6">
           <div class="space-y-4">
-            <!-- Options disponibles -->
             <div v-if="coursComplet?.options && coursComplet.options.length > 0">
-              <h4 class="text-sm font-semibold text-gray-700 mb-3">Options disponibles</h4>
+              <h4 class="text-sm font-semibold text-gray-700 mb-3">
+                {{ isEdit ? 'Cliquez sur une option pour la sélectionner / désélectionner' : 'Options disponibles' }}
+              </h4>
               <div class="space-y-2">
                 <div v-for="option in coursComplet.options" :key="'opt-' + option.id"
-                  class="rounded-xl p-4 transition-colors"
-                  :class="optionSelectionnee(option.id) ? 'bg-gray-50 border-2 border-tertiary-600' : 'bg-gray-50 border border-gray-200'">
+                  class="rounded-xl p-4 transition-all"
+                  :class="[
+                    optionSelectionneePourAffichage(option.id) ? 'bg-gray-50 border-2 border-tertiary-600' : 'bg-gray-50 border border-gray-200',
+                    isEdit ? 'cursor-pointer hover:border-accent-600 hover:shadow-sm' : ''
+                  ]"
+                  @click="isEdit && toggleOption(option)"
+                >
                   <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                      <p class="font-medium text-gray-800">{{ option.nom }}</p>
-                      <p class="text-xs text-gray-500 mt-1">Type: {{ option.type }}</p>
+                    <div class="flex items-center gap-3 flex-1">
+                      <div v-if="isEdit" class="flex-shrink-0">
+                        <Icon
+                          :icon="optionSelectionneePourAffichage(option.id) ? 'mdi:checkbox-marked-circle' : 'mdi:checkbox-blank-circle-outline'"
+                          class="w-5 h-5"
+                          :class="optionSelectionneePourAffichage(option.id) ? 'text-tertiary-600' : 'text-gray-300'"
+                        />
+                      </div>
+                      <div>
+                        <p class="font-medium text-gray-800">{{ option.nom }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ option.description }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Type : {{ option.type }}</p>
+                      </div>
                     </div>
-                    <div class="text-right">
+                    <div class="text-right ml-4">
                       <p class="text-sm font-medium text-gray-700">{{ option.tarif }} CHF</p>
-                      <div v-if="optionSelectionnee(option.id)" class="mt-2">
-                        <div v-if="option.type === 'Quantifiable'" class="text-sm">
-                          <span class="font-bold text-tertiary-900">✓ ×{{ optionSelectionnee(option.id).quantite }}</span>
+                      <div v-if="optionSelectionneePourAffichage(option.id)" class="mt-2">
+                        <div v-if="option.type === 'Quantifiable'" class="flex items-center gap-2 justify-end">
+                          <template v-if="isEdit">
+                            <input
+                              type="number" min="0"
+                              :value="getQuantiteOption(option.id)"
+                              @click.stop
+                              @input="mettreAJourQuantite(option.id, $event.target.value)"
+                              class="border border-gray-300 rounded px-2 py-1 w-16 text-sm bg-white"
+                            />
+                            <span class="text-xs text-gray-400">unité(s)</span>
+                          </template>
+                          <span v-else class="font-bold text-tertiary-900">✓ ×{{ optionSelectionnee(option.id).quantite }}</span>
                         </div>
                         <div v-else class="text-sm">
                           <span class="font-bold text-tertiary-900">✓ Sélectionné</span>
@@ -313,8 +457,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Aucune option -->
             <div v-else class="flex flex-col items-center justify-center py-12 text-gray-400">
               <Icon icon="mdi:cog-outline" class="w-12 h-12 mb-3 opacity-40" />
               <p class="text-sm">Aucune option disponible pour cette course.</p>
@@ -325,21 +467,31 @@
         <!-- Onglet Questions -->
         <div v-if="activeTab === 'questions'" class="p-6">
           <div v-if="coursComplet?.questionnaire && coursComplet.questionnaire.length > 0" class="space-y-4">
+            <p v-if="isEdit" class="text-xs text-accent-600 font-medium flex items-center gap-1">
+              <Icon icon="mdi:information-outline" class="w-4 h-4" />
+              Cliquez sur une réponse pour la sélectionner
+            </p>
             <div v-for="question in coursComplet.questionnaire" :key="'q-' + question.id"
-              class="rounded-xl p-4 transition-colors"
-              :class="reponseQuestion(question.id) ? 'bg-gray-50' : 'bg-gray-50 border border-gray-200'">
-              <p class="font-medium text-gray-800 mb-3">{{ question.question }}</p>
+              class="bg-gray-50 rounded-xl p-4 border transition-colors"
+              :class="isEdit ? 'border-accent-200' : 'border-gray-200'">
+              <p class="font-medium text-gray-800 mb-3">{{ question.question || question.enonce || question.texte || '—' }}</p>
 
-              <!-- Toutes les réponses possibles -->
               <div class="space-y-2">
-                <p class="text-xs text-gray-500 font-semibold">Réponses possibles:</p>
-                <div v-for="(answer, idx) in question.answers" :key="idx"
-                  class="flex items-center gap-2 p-2 rounded text-sm"
-                  :class="reponseQuestion(question.id) === answer.texte ? 'bg-tertiary-300 text-primary' : 'text-gray-700'">
-                  <div class="flex-shrink-0 w-4 h-4 rounded border"
-                    :class="reponseQuestion(question.id) === answer.texte ? 'bg-accent-300 border-accent-600' : 'border-gray-300'">
-                  </div>
-                  {{ answer.texte }}
+                <p class="text-xs text-gray-500 font-semibold">Réponses possibles :</p>
+                <div v-for="(answer, idx) in (question.answers || question.choix || [])" :key="idx"
+                  class="flex items-center gap-2 p-2 rounded text-sm transition-colors"
+                  :class="[
+                    reponseQuestionEdit(question.id, answer.id) ? 'bg-tertiary-300 text-primary' : 'text-gray-700',
+                    isEdit ? 'cursor-pointer hover:bg-accent-50 hover:border hover:border-accent-600' : ''
+                  ]"
+                  @click="isEdit && selectionnerReponse(question.id, answer.id)"
+                >
+                  <Icon
+                    :icon="reponseQuestionEdit(question.id, answer.id) ? 'mdi:radiobox-marked' : 'mdi:radiobox-blank'"
+                    class="w-4 h-4 flex-shrink-0"
+                    :class="reponseQuestionEdit(question.id, answer.id) ? 'text-accent-600' : 'text-gray-300'"
+                  />
+                  {{ answer.option || answer.texte || answer.texte_option || answer.libelle || '—' }}
                 </div>
               </div>
             </div>
@@ -351,6 +503,54 @@
         </div>
 
       </div>
+
+      <!-- Barre d'actions sticky en bas -->
+      <div class="absolute bottom-0 left-0 right-0 border-t px-6 py-3 flex items-center justify-between transition-colors z-10"
+        :class="isEdit ? 'bg-amber-50 border-gray-300' : 'bg-white border-gray-100'">
+
+        <div class="flex items-center gap-2">
+          <Icon v-if="isEdit" icon="mdi:pencil-circle" class="w-5 h-5 text-accent" />
+          <span v-if="isEdit" class="text-sm font-medium text-amber-700">Mode modification actif</span>
+        </div>
+
+        <div class="flex gap-3">
+          <button
+            class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+            @click="ouvrirChangementCourse"
+          >
+            <Icon icon="mdi:swap-horizontal" class="w-4 h-4" />
+            Changer de course
+          </button>
+
+          <template v-if="!isEdit">
+            <button
+              class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              :style="{ backgroundColor: inscription.course.evenement.couleur_primaire, color: inscription.course.evenement.couleur_secondaire }"
+              @click="activerEdition"
+            >
+              <Icon icon="mdi:pencil" class="w-4 h-4" />
+              Modifier l'inscription
+            </button>
+          </template>
+          <template v-else>
+            <button
+              class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+              @click="annulerEdition"
+            >
+              <Icon icon="mdi:close" class="w-4 h-4" />
+              Annuler
+            </button>
+            <button
+              class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-600 transition-colors shadow-sm"
+              @click="sauvegarderEdition"
+            >
+              <Icon icon="mdi:check" class="w-4 h-4" />
+              Sauvegarder
+            </button>
+          </template>
+        </div>
+      </div>
+
     </div>
 
     <!-- Transition vers PopupChangementCourse -->
@@ -368,9 +568,12 @@
 
 <script>
 import { Icon } from '@iconify/vue';
-import PopupChangementCourseOrganisateur from './PopupChangementCourseOrganisateur.vue';
-import courseOrganisateurService from '../services/courseOrganisateurService';
-import documentService from '../services/documentService';
+import PopupChangementCourseOrganisateur      from './PopupChangementCourseOrganisateur.vue';
+import courseOrganisateurService              from '../services/courseOrganisateurService';
+import documentService                        from '../services/documentService';
+import inscriptionService                     from '../services/inscriptionService';
+import choixOptionOrganisateurService         from '../services/choixOptionOrganisateurService';
+import reponseQuestionOrganisateurService     from '../services/reponseQuestionOrganisateurService';
 
 export default {
   name: 'PopupInscriptionDetail',
@@ -379,7 +582,7 @@ export default {
   props: {
     inscription: { type: Object, required: true },
     participants: { type: Array, default: () => [] },
-    inline: { type: Boolean, default: false },
+    inline:       { type: Boolean, default: false },
   },
   data() {
     return {
@@ -388,6 +591,8 @@ export default {
       coursComplet: null,
       glisserDocument: false,
       chargementDocument: false,
+      isEdit: false,
+      inscriptionEdit: null,
       tabs: [
         { key: 'general',   label: 'Général',   icon: 'mdi:information-outline' },
         { key: 'options',   label: 'Options',   icon: 'mdi:cog-outline' },
@@ -395,40 +600,171 @@ export default {
       ],
     };
   },
-  computed: {
-    etradeAdmin() {
-      // Vérifier si c'est un admin (on peut ajouter une prop pour ça)
-      return false;
-    }
-  },
   methods: {
     formatDate(dateStr) {
       if (!dateStr) return '—';
       const [y, m, d] = dateStr.split('-');
       return `${d}.${m}.${y}`;
     },
+
     async chargerCourseComplete() {
       try {
         const response = await courseOrganisateurService.getCourse(this.inscription.id_course);
         this.coursComplet = response.data;
+        console.log('Questionnaire chargé:', this.coursComplet.questionnaire);
       } catch (e) {
         console.error('Erreur lors du chargement de la course :', e);
       }
     },
+
+    // ── Édition ──────────────────────────────────────────────────────────────
+
+    activerEdition() {
+      this.isEdit = true;
+      this.inscriptionEdit = {
+        tarif:               this.inscription.tarif,
+        status_paiement:     this.inscription.status_paiement,
+        montant_rabais:      this.inscription.montant_rabais,
+        code_participant:    this.inscription.code_participant,
+        date_paiement:       this.inscription.date_paiement,
+        numero_inscription:  this.inscription.numero_inscription,
+        ref_groupage:        this.inscription.ref_groupage,
+        participe_challenge: this.inscription.participe_challenge,
+        type_challenge:      this.inscription.type_challenge,
+        equipe_challenge:    this.inscription.equipe_challenge,
+        dossard:             this.inscription.dossard,
+        avertissement_valide: this.inscription.avertissement_valide,
+        choix_options:       JSON.parse(JSON.stringify(this.inscription.choix_options      ?? [])),
+        reponses_questions:  JSON.parse(JSON.stringify(this.inscription.reponses_questions ?? [])),
+      };
+    },
+
+    annulerEdition() {
+      this.isEdit          = false;
+      this.inscriptionEdit = null;
+    },
+
+    async sauvegarderEdition() {
+      try {
+        // 1. Champs de base
+        await inscriptionService.updateInscriptionAdmin(this.inscription.id, {
+          tarif:               this.inscriptionEdit.tarif,
+          status_paiement:     this.inscriptionEdit.status_paiement,
+          montant_rabais:      this.inscriptionEdit.montant_rabais,
+          code_participant:    this.inscriptionEdit.code_participant,
+          date_paiement:       this.inscriptionEdit.date_paiement,
+          numero_inscription:  this.inscription.numero_inscription,
+          ref_groupage:        this.inscriptionEdit.ref_groupage,
+          participe_challenge: this.inscriptionEdit.participe_challenge,
+          type_challenge:      this.inscriptionEdit.type_challenge,
+          equipe_challenge:    this.inscriptionEdit.equipe_challenge,
+          dossard:             this.inscriptionEdit.dossard,
+          avertissement_valide: this.inscriptionEdit.avertissement_valide,
+        });
+
+        // 2. Choix options
+        for (const choix of this.inscriptionEdit.choix_options) {
+          await choixOptionOrganisateurService.modifyChoix(
+            this.inscription.id,
+            choix.id_option,
+            { quantite: choix.quantite }
+          );
+        }
+
+        // 3. Réponses questions
+        if (this.inscriptionEdit.reponses_questions.length > 0) {
+          await reponseQuestionOrganisateurService.saveReponses({
+            reponses: this.inscriptionEdit.reponses_questions.map(r => ({
+              id_inscription:    this.inscription.id,
+              id_question:       r.id_question,
+              id_option_choisie: r.id_option_choisie,
+            })),
+          });
+        }
+
+        this.isEdit = false;
+        this.$emit('modifier-inscription', this.inscription);
+      } catch (e) {
+        console.error('Erreur sauvegarde :', e);
+      }
+    },
+
+    // ── Options ──────────────────────────────────────────────────────────────
+
     optionSelectionnee(idOption) {
-      const choix = (this.inscription.choix_options || []).find(c => c.id_option === idOption);
-      return choix || null;
+      return (this.inscription.choix_options ?? []).find(c => c.id_option === idOption) || null;
     },
+
+    optionSelectionneePourAffichage(idOption) {
+      if (this.isEdit && this.inscriptionEdit) {
+        return this.inscriptionEdit.choix_options.find(c => c.id_option === idOption) || null;
+      }
+      return this.optionSelectionnee(idOption);
+    },
+
+    getQuantiteOption(idOption) {
+      if (this.isEdit && this.inscriptionEdit) {
+        return this.inscriptionEdit.choix_options.find(c => c.id_option === idOption)?.quantite ?? 1;
+      }
+      return this.optionSelectionnee(idOption)?.quantite ?? 1;
+    },
+
+    toggleOption(option) {
+      const idx = this.inscriptionEdit.choix_options.findIndex(c => c.id_option === option.id);
+      if (idx > -1) {
+        // Désélectionner
+        this.inscriptionEdit.choix_options.splice(idx, 1);
+      } else {
+        // Sélectionner
+        this.inscriptionEdit.choix_options.push({
+          id_option:    option.id,
+          id_inscription: this.inscription.id,
+          quantite:     option.type === 'Cochable' ? 1 : 1,
+        });
+      }
+    },
+
+    mettreAJourQuantite(idOption, valeur) {
+      const choix = this.inscriptionEdit.choix_options.find(c => c.id_option === idOption);
+      if (choix) choix.quantite = parseInt(valeur) || 0;
+    },
+
+    // ── Questions ─────────────────────────────────────────────────────────────
+
     reponseQuestion(idQuestion) {
-      const reponse = (this.inscription.reponses_questions || []).find(r => r.id_question === idQuestion);
-      return reponse?.option?.texte_option || null;
+      const reponse = (this.inscription.reponses_questions ?? []).find(r => r.id_question === idQuestion);
+      return reponse?.id_option_choisie || null;
     },
+
+    reponseQuestionEdit(idQuestion, idOption) {
+      if (this.isEdit && this.inscriptionEdit) {
+        const reponse = this.inscriptionEdit.reponses_questions.find(r => r.id_question === idQuestion);
+        return reponse?.id_option_choisie === idOption;
+      }
+      return this.reponseQuestion(idQuestion) === idOption;
+    },
+
+    selectionnerReponse(idQuestion, idOption) {
+      const idx = this.inscriptionEdit.reponses_questions.findIndex(r => r.id_question === idQuestion);
+      if (idx > -1) {
+        this.inscriptionEdit.reponses_questions[idx].id_option_choisie = idOption;
+      } else {
+        this.inscriptionEdit.reponses_questions.push({
+          id_inscription:    this.inscription.id,
+          id_question:       idQuestion,
+          id_option_choisie: idOption,
+        });
+      }
+    },
+
+    // ── Documents ─────────────────────────────────────────────────────────────
+
     async telechargerDocument(doc) {
       try {
         const response = await documentService.downloadDocument(doc.id);
-        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const url  = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
-        link.href = url;
+        link.href  = url;
         link.setAttribute('download', doc.url.split('/').pop());
         document.body.appendChild(link);
         link.click();
@@ -438,56 +774,62 @@ export default {
         console.error('Erreur téléchargement :', e);
       }
     },
+
+    async ouvrirDocument(doc) {
+      try {
+        const response = await documentService.downloadDocument(doc.id);
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        window.open(url, '_blank');
+      } catch (e) {
+        console.error('Erreur ouverture :', e);
+      }
+    },
+
     async supprimerDocument(idDoc) {
       if (confirm('Supprimer ce document ?')) {
         try {
           await documentService.deleteDocument(idDoc);
-          // Retirer du tableau local
-          const idx = this.inscription.documentsFournis.findIndex(d => d.id === idDoc);
-          if (idx > -1) {
-            this.inscription.documentsFournis.splice(idx, 1);
-          }
+          const idx = (this.inscription.documents_fournis ?? []).findIndex(d => d.id === idDoc);
+          if (idx > -1) this.inscription.documents_fournis.splice(idx, 1);
         } catch (e) {
           console.error('Erreur suppression :', e);
         }
       }
     },
+
     async selectionnerDocument(event) {
       const fichier = event.target.files[0];
-      if (fichier) {
-        await this.uploadDocument(fichier);
-      }
+      if (fichier) await this.uploadDocument(fichier);
       event.target.value = '';
     },
+
     deposerDocument(event) {
       this.glisserDocument = false;
       const fichier = event.dataTransfer.files[0];
-      if (fichier) {
-        this.uploadDocument(fichier);
-      }
+      if (fichier) this.uploadDocument(fichier);
     },
+
     async uploadDocument(fichier) {
       try {
         this.chargementDocument = true;
         const formData = new FormData();
         formData.append('file', fichier);
-
         const response = await documentService.uploadDocument(this.inscription.id, formData);
-
-        // Ajouter le document à la liste
-        if (!this.inscription.documentsFournis) {
-          this.inscription.documentsFournis = [];
-        }
-        this.inscription.documentsFournis.push(response.data.document);
+        if (!this.inscription.documents_fournis) this.inscription.documents_fournis = [];
+        this.inscription.documents_fournis.push(response.data.document);
       } catch (e) {
         console.error('Erreur upload :', e);
       } finally {
         this.chargementDocument = false;
       }
     },
+
+    // ── Changement de course ──────────────────────────────────────────────────
+
     ouvrirChangementCourse() {
       this.showChangementCourse = true;
     },
+
     onChangementConfirme(data) {
       this.showChangementCourse = false;
       this.$emit('ajouter-panier', data);
@@ -495,6 +837,6 @@ export default {
   },
   mounted() {
     this.chargerCourseComplete();
-  }
+  },
 };
 </script>

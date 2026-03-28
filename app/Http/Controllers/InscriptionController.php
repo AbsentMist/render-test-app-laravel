@@ -21,8 +21,8 @@ class InscriptionController extends Controller
             return response()->json(['message' => 'Accès non autorisé. Réservé aux administrateurs.'], 403);
         }
 
-        $inscriptions = Inscription::with(['course.evenement', 'participant', 'dossard', 'groupe','choixOptions.option', 'reponsesQuestions.question', 'reponsesQuestions.option', 'documentsFournis'])->orderBy('date_paiement', 'desc')->get();
-        
+        $inscriptions = Inscription::with(['course.evenement', 'participant', 'dossard', 'groupe','choixOptions.option', 'reponsesQuestions.question', 'reponsesQuestions.option', 'documentsFournis', 'ancienneInscription.course', 'ancienneInscription.participant', 'ancienneInscription.groupe'])->orderBy('date_paiement', 'desc')->get();
+
         return response()->json($inscriptions);
     }
 
@@ -30,12 +30,12 @@ class InscriptionController extends Controller
     public function indexParticipant()
     {
         $user = Auth::user();
-        
+
         //Récupération de l'ID du participant
         $idParticipant = $user->participant->id;
-        
+
         //Renvoie uniquement les inscriptions du participant
-        $inscriptions = Inscription::with(['course.evenement', 'dossard', 'groupe', 'participant','choixOptions.option', 'reponsesQuestions.question', 'documentsFournis'])
+        $inscriptions = Inscription::with(['course.evenement', 'dossard', 'groupe', 'participant','choixOptions.option', 'reponsesQuestions.question', 'documentsFournis', 'ancienneInscription.course', 'ancienneInscription.participant', 'ancienneInscription.groupe'])
             ->where('id_participant', $idParticipant)
             ->get();
 
@@ -51,10 +51,11 @@ class InscriptionController extends Controller
             'id_participant' => 'nullable|exists:Participant,id',
             'id_groupe' => 'nullable|exists:Groupe,id',
             'id_document' => 'nullable|exists:Document,id',
+            'id_ancienne_inscription' => 'nullable|exists:Inscription,id',
             'code_participant' => 'nullable|string|unique:Inscription,code_participant',
             'avertissement_valide' => 'sometimes|boolean',
             //Ajout du champ "en attente" pour les inscriptions relais / entreprises
-            'status_paiement'     => 'sometimes|in:Validé,Annulé,En attente', 
+            'status_paiement'     => 'sometimes|in:Validé,Annulé,En attente',
             'date_paiement'       => now(),
             'tarif'               => 'sometimes|numeric', // Ajout du champ tarif
         ]);
@@ -101,11 +102,12 @@ class InscriptionController extends Controller
                 ], 409);
             }
 
-            //Réinscription du participant si l'inscription précédente avait été annulée 
+            //Réinscription du participant si l'inscription précédente avait été annulée
             if ($inscriptionExistante->status_paiement === 'Annulé') {
                 $inscriptionExistante->update([
                     'id_groupe' => $validatedData['id_groupe'] ?? null,
                     'id_document' => $validatedData['id_document'] ?? null,
+                    'id_ancienne_inscription' => $validatedData['id_ancienne_inscription'] ?? null,
                     'code_participant' => $validatedData['code_participant'] ?? null,
                     'tarif' => $course->tarif,
                     'date_paiement' => now(),
@@ -120,11 +122,13 @@ class InscriptionController extends Controller
         }
 
         // Création de l'inscription (s'il n'y avait aucun historique)
+        // Création de l'inscription (s'il n'y avait aucun historique)
         $inscription = Inscription::create([
             'id_participant' => $idParticipant,
             'id_course' => $course->id,
             'id_groupe' => $validatedData['id_groupe'] ?? null,
             'id_document' => $validatedData['id_document'] ?? null,
+            'id_ancienne_inscription' => $validatedData['id_ancienne_inscription'] ?? null,
             'code_participant' => $validatedData['code_participant'] ?? null,
             // On prend le prix de l'inscription avec les options choisies, sinon prix de base de la course
             'tarif' => $validatedData['tarif'] ?? $course->tarif,
@@ -154,7 +158,11 @@ class InscriptionController extends Controller
             'choixOptions.option',
             'reponsesQuestions.question',
             'reponsesQuestions.option',
-            'documentsFournis'
+            'documentsFournis',
+            'ancienneInscription.course',
+            'ancienneInscription.participant',
+            'ancienneInscription.groupe',
+
         ])->findOrFail($id);
 
         $user = Auth::user();
@@ -186,8 +194,9 @@ class InscriptionController extends Controller
             'avertissement_valide' => 'sometimes|boolean',
             'id_document' => 'sometimes|nullable|exists:Document,id',
             'id_groupe' => 'sometimes|nullable|exists:Groupe,id',
+            'id_ancienne_inscription' => 'sometimes|nullable|exists:Inscription,id',
             'date_paiement' => 'sometimes|date',
-            'id_course' => 'sometimes|exists:Course,id', 
+            'id_course' => 'sometimes|exists:Course,id',
         ]);
 
         $inscription->update($validatedData);

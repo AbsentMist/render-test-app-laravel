@@ -156,8 +156,12 @@ use App\Http\Controllers\DocumentController;
             Route::delete('/optionCourse/{id_course}/{id_option}', [OptionPourCourseController::class, 'destroy']);
             Route::delete('/optionCourse/{id_course}', [OptionPourCourseController::class, 'destroyByCourse']);
             
+            Route::get('/inscriptions/{id_inscription}/choix-options', [ChoixOptionController::class, 'indexParInscription']);
             Route::get('/options/{id_option}/choix', [ChoixOptionController::class, 'indexParOption']);
-
+            Route::post('/choix-options', [ChoixOptionController::class, 'storeAdmin']);
+            Route::put('/choix-options/{id_inscription}/{id_option}', [ChoixOptionController::class, 'updateAdmin']);  // ← manquante
+            Route::delete('/choix-options/{id_inscription}/{id_option}', [ChoixOptionController::class, 'destroy']);
+            
             // Questions (CRUD)
             Route::get('/questions', [QuestionController::class, 'indexAdmin']);
             Route::get('/questions/{id}', [QuestionController::class, 'show']);

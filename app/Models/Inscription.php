@@ -22,6 +22,7 @@ class Inscription extends Model
         'id_groupe',
         'id_document',
         'id_ancienne_inscription',
+        'id_ancienne_course',
         'code_participant',
         'tarif',
         'status_paiement',
@@ -35,6 +36,11 @@ class Inscription extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class, 'id_course');
+    }
+
+    public function ancienneInscription(): BelongsTo
+    {
+        return $this->belongsTo(Inscription::class, 'id_ancienne_inscription');
     }
 
     public function participant(): BelongsTo
