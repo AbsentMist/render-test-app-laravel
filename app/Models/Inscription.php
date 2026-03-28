@@ -21,6 +21,7 @@ class Inscription extends Model
         'id_course',
         'id_groupe',
         'id_document',
+        'id_ancienne_inscription',
         'code_participant',
         'tarif',
         'status_paiement',
@@ -68,5 +69,16 @@ class Inscription extends Model
     {
         // Une inscription peut avoir plusieurs réponses
         return $this->hasMany(ReponseQuestion::class, 'id_inscription');
+    }
+
+    public function choixOptions(): HasMany
+    {
+        return $this->hasMany(ChoixOption::class, 'id_inscription');
+    }
+
+    public function documentsFournis(): HasMany
+    {
+        // Une inscription peut avoir plusieurs documents fournis
+        return $this->hasMany(Document::class, 'id_inscription');
     }
 }

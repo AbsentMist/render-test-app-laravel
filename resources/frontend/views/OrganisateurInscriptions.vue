@@ -149,12 +149,12 @@ export default {
       this.popupDetail = true;
     },
     async suppression(inscription){
-      if(confirm(`Supprimer l'inscription ${inscription.id} ?`)){
+      if(confirm(`Annuler l'inscription ${inscription.id} ?`)){
         try {
-            await inscriptionService.deleteInscriptionAdmin(inscription.id);
-            await inscriptionService.getAllInscriptionsAdmin();
+            await inscriptionService.updateInscriptionAdmin(inscription.id, { status_paiement: 'Annulé' });
+            await this.chargerInscriptions();
         } catch (error) {
-            console.error("Erreur suppression :", error);
+            console.error("Erreur annulation :", error);
         }
       }
     },

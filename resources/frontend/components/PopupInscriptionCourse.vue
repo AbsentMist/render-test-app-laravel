@@ -21,8 +21,8 @@
                 <div>
                     <span class="px-6 text-subtitle font-medium text-secondary">Inscription</span>
                     <span class="text-subtitle font-medium text-secondary"> &nbsp; {{ course.nom_course }}</span>
-                    <div class="h-1 w-24 ml-6 rounded-r-full mb-2" :style="{ backgroundColor: course.evenement?.couleur_secondaire }"></div>
-                    <span class="mx-6 px-2 py-0.5 text-base font-medium text-secondary rounded-full"
+                    <div v-if="course.evenement" class="h-1 w-24 ml-6 rounded-r-full mb-2" :style="{ backgroundColor: course.evenement.couleur_secondaire }"></div>
+                    <span v-if="course.evenement" class="mx-6 px-2 py-0.5 text-base font-medium text-secondary rounded-full"
                         :style="{color: course.evenement.couleur_secondaire, backgroundColor: course.evenement.couleur_primaire, borderColor: course.evenement.couleur_secondaire}">
                         {{ course.evenement.nom }}
                     </span>
@@ -275,6 +275,21 @@ export default {
                 acc + option.tarif * (option.type === 'Quantifiable' ? quantite : 1), 0);
             return base + extras;
         },
+        choixOptionsPourPanier() {
+            return this.optionsSelectionnees.map(({ option, quantite }) => ({
+                id_option: option.id,
+                quantite:  option.type === 'Quantifiable' ? quantite
+                        : option.type === 'Cochable'     ? 1
+                        : 0,
+            }));
+        },
+
+        reponsesPourPanier() {
+            return Object.entries(this.inscription.reponses || {}).map(([id_question, valeur]) => ({
+                id_question:       parseInt(id_question),
+                id_option_choisie: valeur?.reponse?.id ?? null,
+            }));
+        },
     },
     methods: {
         etapePrecedente() {
@@ -338,8 +353,10 @@ export default {
                 this.$emit('ajouter-panier', {
                     ...this.inscription,
                     id_groupe,
-                    nom_equipe: this.inscription.groupeEphemere?.nom ?? null,
-    tarif: this.totalInscription,
+                    nom_equipe:         this.inscription.groupeEphemere?.nom ?? null,
+                    tarif:              this.totalInscription,
+                    choix_options:      this.choixOptionsPourPanier,
+                    reponses_questions: this.reponsesPourPanier,
                 });
                 return;
             }

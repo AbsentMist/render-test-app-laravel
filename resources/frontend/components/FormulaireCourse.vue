@@ -305,7 +305,7 @@
                 <OptionList :elements="this.optionElements" @select-item="handleOptionSelection"/>
             </div>
             <div v-if="modal==optionModal.EXISTANT" class="flex items-center justify-center z-50">
-                <OptionList :elements="questionModels.map(q => q.question)" @select-item="handleOptionSelection"/>
+                <OptionList :elements="questionModels.map(q => q.enonce)" @select-item="handleOptionSelection"/>
             </div>
         </div>
 
@@ -343,6 +343,9 @@ import avertissementOrganisateurService from '../services/avertissementOrganisat
 import optionCourseService from '../services/optionCourseService';
 import categorieOrganisateurService from '../services/categorieOrganisateurService';
 import sousCategorieOrganisateurService from '../services/sousCategorieOrganisateurService';
+import questionOrganisateurService from '../services/questionOrganisateurService';
+import optionQuestionOrganisateurService from '../services/optionQuestionOrganisateurService';
+import courseQuestionOrganisateurService from '../services/courseQuestionOrganisateurService';
 
 const formulaireEtape = {
     GENERAL: 1,
@@ -386,9 +389,13 @@ export default {
             subCategories: [],
             questionModels: [
                 {
-                    question: "Comment avez-vous connu l'évènement ?",
-                    answers: ["Réseaux sociaux", "Bouche à oreille", "Autre"]
-                }
+                    enonce: "Comment avez-vous connu l'évènement ?",
+                    choix:  [
+                        { texte_option: "Réseaux sociaux" },
+                        { texte_option: "Bouche à oreille" },
+                        { texte_option: "Autre" },
+                    ],
+                },
             ],
             documentModels: [
                 {
@@ -619,8 +626,8 @@ export default {
                     });
                 else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
                     this.courseData.questions.push({
-                        question: '',
-                        answers: []
+                        enonce: '',
+                        choix: []
                     });
                 this.modal = optionModal.FERMEE; 
             }
@@ -630,7 +637,7 @@ export default {
                     this.courseData.options.push(optionSansId);
                 }
                 else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
-                    this.courseData.questions.push(this.questionModels.find(q => q.question === option));
+                    this.courseData.questions.push(this.questionModels.find(q => q.enonce === option));
                 this.modal = optionModal.FERMEE;
             }
         },
@@ -747,6 +754,66 @@ export default {
                     });
                 }
 
+                // 5a. Questions existantes → modification enonce + choix
+                const questionsExistantes = this.courseData.questions.filter(q => q.id);
+                for (const question of questionsExistantes) {
+                    // Mise à jour de la table Question
+                    await questionOrganisateurService.modifyQuestion(question.id, {
+                        enonce: question.enonce,
+                        modele: false,
+                    });
+
+                    // Mise à jour de la table OptionQuestion
+                    for (const choix of question.choix ?? []) {
+                        if (choix.id) {
+                            await optionQuestionOrganisateurService.modifyChoix(choix.id, {
+                                texte_option: choix.texte_option,
+                            });
+                        } else {
+                            await optionQuestionOrganisateurService.createChoix(question.id, {
+                                texte_option: choix.texte_option,
+                            });
+                        }
+                    }
+                }
+
+                // 5b. Nouvelles questions → Question + OptionQuestion + CourseQuestion
+                const questionsNouvelles = this.courseData.questions.filter(q => !q.id);
+                const nouvellesAvecId = []; // pour mémoriser les ids créés
+
+                for (const question of questionsNouvelles) {
+
+                    // 1. Insérer dans la table Question
+                    const questionResponse = await questionOrganisateurService.createQuestion({
+                        enonce:      question.enonce,
+                        modele:      false,
+                        ids_courses: [courseId], // ← liaison CourseQuestion faite ici dans le controller
+                    });
+                    const questionId = questionResponse.data.question.id;
+                    nouvellesAvecId.push({ ...question, id: questionId });
+
+                    // 2. Insérer dans la table OptionQuestion (choix de réponse)
+                    for (const choix of question.choix ?? []) {
+                        await optionQuestionOrganisateurService.createChoix(questionId, {
+                            texte_option: choix.texte_option,
+                        });
+                    }
+                }
+
+                // 5c. Réordonner toutes les questions (existantes + nouvelles) dans CourseQuestion
+                const toutesLesQuestions = [
+                    ...this.courseData.questions.filter(q => q.id),
+                    ...nouvellesAvecId,
+                ];
+
+                if (toutesLesQuestions.length > 0) {
+                    await courseQuestionOrganisateurService.reordonnerQuestions(courseId, {
+                        questions: toutesLesQuestions.map((q, index) => ({
+                            id_question: q.id,
+                            ordre:       index + 1,
+                        })),
+                    });
+                }
                 this.confirmPopup();
                 console.log(response.data);
 

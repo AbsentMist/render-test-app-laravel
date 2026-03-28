@@ -21,7 +21,7 @@ class InscriptionController extends Controller
             return response()->json(['message' => 'Accès non autorisé. Réservé aux administrateurs.'], 403);
         }
 
-        $inscriptions = Inscription::with(['course.evenement', 'participant', 'dossard', 'groupe'])->orderBy('date_paiement', 'desc')->get();
+        $inscriptions = Inscription::with(['course.evenement', 'participant', 'dossard', 'groupe','choixOptions.option', 'reponsesQuestions.question', 'reponsesQuestions.option', 'documentsFournis'])->orderBy('date_paiement', 'desc')->get();
         
         return response()->json($inscriptions);
     }
@@ -35,7 +35,7 @@ class InscriptionController extends Controller
         $idParticipant = $user->participant->id;
         
         //Renvoie uniquement les inscriptions du participant
-        $inscriptions = Inscription::with(['course.evenement', 'dossard', 'groupe', 'participant'])
+        $inscriptions = Inscription::with(['course.evenement', 'dossard', 'groupe', 'participant','choixOptions.option', 'reponsesQuestions.question', 'documentsFournis'])
             ->where('id_participant', $idParticipant)
             ->get();
 
@@ -146,11 +146,20 @@ class InscriptionController extends Controller
     //GET (PARTICIPANT & ADMIN)
     public function show($id)
     {
-        $inscription = Inscription::with(['course.evenement', 'participant', 'dossard', 'groupe'])->findOrFail($id);
-        
+        $inscription = Inscription::with([
+            'course.evenement',
+            'participant',
+            'dossard',
+            'groupe',
+            'choixOptions.option',
+            'reponsesQuestions.question',
+            'reponsesQuestions.option',
+            'documentsFournis'
+        ])->findOrFail($id);
+
         $user = Auth::user();
         $isAdmin = $user->roles()->where('type', 'Administrateur')->exists();
-        
+
         if (!$isAdmin && $inscription->id_participant !== $user->participant->id) {
             return response()->json(['message' => 'Accès non autorisé.'], 403);
         }

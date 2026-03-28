@@ -1,4 +1,4 @@
-<template>
+<<template>
   <div>
     <div class="p-6 pb-0">
       <h2 class="text-2xl font-normal text-gray-900">Mon panier</h2>
@@ -172,6 +172,8 @@ import { useRouter } from 'vue-router';
 import { useCartStore } from '../stores/cart';
 import inscriptionService from '../services/inscriptionService'; 
 import groupeService from '../services/groupeService'; 
+import choixOptionParticipantService from '../services/choixOptionParticipantService';
+import reponseQuestionParticipantService from '../services/reponseQuestionParticipantService';
 import api from '../services/api';
 
 const router = useRouter();
@@ -261,16 +263,42 @@ const procederPaiement = async () => {
       }
 
       // ENREGISTREMENT DES INSCRIPTIONS POUR TOUS LES MEMBRES
-      const promessesParticipants = listeMembres.map(p => {
-        return inscriptionService.createInscription({
-          id_course:            article.courseDetails.id,
-          id_participant:       p.id,
-          tarif:                article.tarif, // On envoie le tarif (course + options)
-          avertissement_valide: accepteConditions.value,
-          id_groupe:            idGroupeFinal,
-          id_document:          article.documents?.length > 0 ? article.documents[0].id : null,
-          code_participant:     article.codeParticipation || null,
-        });
+      const finaliserInscription = async (id_inscription, article) => {
+          const choixValides = (article.choix_options ?? []).filter(c => c.quantite > 0);
+          const reponses     = article.reponses_questions ?? [];
+          await Promise.all([
+              choixValides.length ? choixOptionParticipantService.saveChoix({
+                  choix: choixValides.map(c => ({
+                      id_inscription,
+                      id_option: c.id_option,
+                      quantite:  c.quantite,
+                  })),
+              }) : Promise.resolve(),
+              reponses.length ? reponseQuestionParticipantService.saveReponses({
+                  reponses: reponses.map(r => ({
+                      id_inscription,
+                      id_question:       r.id_question,
+                      id_option_choisie: r.id_option_choisie,
+                  })),
+              }) : Promise.resolve(),
+          ]);
+      };
+
+      const promessesParticipants = listeMembres.map(async (p) => {
+          const response = await inscriptionService.createInscription({
+              id_course:            article.courseDetails.id,
+              id_participant:       p.id,
+              tarif:                article.tarif,
+              avertissement_valide: accepteConditions.value,
+              id_groupe:            idGroupeFinal,
+              id_document:          article.documents?.length > 0 ? article.documents[0].id : null,
+              code_participant:     article.codeParticipation || null,
+          });
+          console.log('response.data complète:', response.data);
+const id_inscription = response.data.inscription?.id ?? response.data.id;
+console.log('id_inscription:', id_inscription);
+console.log('choix_options:', article.choix_options);
+          await finaliserInscription(response.data.id, article);
       });
 
       await Promise.all(promessesParticipants);
@@ -318,4 +346,4 @@ const procederPaiement = async () => {
     isProcessing.value = false;
   }
 };
-</script>
+</script>>
