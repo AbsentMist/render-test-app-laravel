@@ -21,11 +21,14 @@ class Inscription extends Model
         'id_course',
         'id_groupe',
         'id_document',
+        'id_ancienne_inscription',
+        'id_ancienne_course',
         'code_participant',
         'tarif',
         'status_paiement',
         'montant_rabais',
         'avertissement_valide',
+        'date_paiement',
     ];
 
      // RELATIONS (BELONGS TO - "Appartient à")
@@ -33,6 +36,11 @@ class Inscription extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class, 'id_course');
+    }
+
+    public function ancienneInscription(): BelongsTo
+    {
+        return $this->belongsTo(Inscription::class, 'id_ancienne_inscription');
     }
 
     public function participant(): BelongsTo
@@ -67,5 +75,16 @@ class Inscription extends Model
     {
         // Une inscription peut avoir plusieurs réponses
         return $this->hasMany(ReponseQuestion::class, 'id_inscription');
+    }
+
+    public function choixOptions(): HasMany
+    {
+        return $this->hasMany(ChoixOption::class, 'id_inscription');
+    }
+
+    public function documentsFournis(): HasMany
+    {
+        // Une inscription peut avoir plusieurs documents fournis
+        return $this->hasMany(Document::class, 'id_inscription');
     }
 }

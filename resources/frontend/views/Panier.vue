@@ -1,4 +1,4 @@
-<template>
+<<template>
   <div>
     <div class="p-6 pb-0">
       <h2 class="text-2xl font-normal text-gray-900">Mon panier</h2>
@@ -170,8 +170,11 @@
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../stores/cart';
-import inscriptionService from '../services/inscriptionService'; 
-import groupeService from '../services/groupeService'; 
+import inscriptionService from '../services/inscriptionService';
+import groupeService from '../services/groupeService';
+import choixOptionParticipantService from '../services/choixOptionParticipantService';
+import reponseQuestionParticipantService from '../services/reponseQuestionParticipantService';
+import documentService from '../services/documentService';
 import api from '../services/api';
 
 const router = useRouter();
@@ -231,16 +234,16 @@ const procederPaiement = async () => {
   try {
     // On boucle sur chaque article du panier
     const promessesInscriptions = panier.value.map(async (article) => {
-      
+
       // On vérifie si un groupe a déjà été créé
       let idGroupeFinal = article.id_groupe || null;
-      
+
       const listeMembres = (article.groupeEphemere?.participants && article.groupeEphemere.participants.length > 0)
-                           ? article.groupeEphemere.participants 
+                           ? article.groupeEphemere.participants
                            : (article.participants || article.participant || []);
 
       const typeEstRelais = article.type?.id === 'relais' || article.type?.nom?.toLowerCase() === 'relais';
-      
+
       // LOGIQUE DE CRÉATION DU GROUPE
       if (!idGroupeFinal && typeEstRelais && listeMembres.length > 1) {
         console.log("🛠️ Création du groupe au moment du paiement...");
@@ -249,7 +252,7 @@ const procederPaiement = async () => {
           type: 'Relais',
           id_course: article.courseDetails.id
         });
-        
+
         idGroupeFinal = groupeReponse.data?.groupe?.id || groupeReponse.data?.id || groupeReponse.data?.data?.id;
 
         // On ajoute les autres membres au groupe
@@ -261,16 +264,55 @@ const procederPaiement = async () => {
       }
 
       // ENREGISTREMENT DES INSCRIPTIONS POUR TOUS LES MEMBRES
-      const promessesParticipants = listeMembres.map(p => {
-        return inscriptionService.createInscription({
-          id_course:            article.courseDetails.id,
-          id_participant:       p.id,
-          tarif:                article.tarif, // On envoie le tarif (course + options)
-          avertissement_valide: accepteConditions.value,
-          id_groupe:            idGroupeFinal,
-          id_document:          article.documents?.length > 0 ? article.documents[0].id : null,
-          code_participant:     article.codeParticipation || null,
-        });
+      const finaliserInscription = async (id_inscription, article) => {
+          const choixValides = (article.choix_options ?? []).filter(c => c.quantite > 0);
+          const reponses     = article.reponses_questions ?? [];
+          await Promise.all([
+              choixValides.length ? choixOptionParticipantService.saveChoix({
+                  choix: choixValides.map(c => ({
+                      id_inscription,
+                      id_option: c.id_option,
+                      quantite:  c.quantite,
+                  })),
+              }) : Promise.resolve(),
+              reponses.length ? reponseQuestionParticipantService.saveReponses({
+                  reponses: reponses.map(r => ({
+                      id_inscription,
+                      id_question:       r.id_question,
+                      id_option_choisie: r.id_option_choisie,
+                  })),
+              }) : Promise.resolve(),
+          ]);
+
+          // Upload des documents s'il y en a
+          if (article.documents && article.documents.length > 0) {
+              for (const docFile of article.documents) {
+                  const formData = new FormData();
+                  formData.append('file', docFile);
+                  try {
+                      await documentService.uploadDocument(id_inscription, formData);
+                  } catch (e) {
+                      console.error('Erreur lors de l\'upload du document:', e);
+                  }
+              }
+          }
+      };
+
+      const promessesParticipants = listeMembres.map(async (p) => {
+          const response = await inscriptionService.createInscription({
+              id_course:            article.courseDetails.id,
+              id_participant:       p.id,
+              tarif:                article.tarif,
+              avertissement_valide: accepteConditions.value,
+              id_groupe:            idGroupeFinal,
+              id_ancienne_inscription: article.ancienneInscriptionId || null,
+              code_participant:     article.codeParticipation || null,
+          });
+          console.log('response.data complète:', response.data);
+const id_inscription = response.data.inscription?.id ?? response.data.id;
+console.log('id_inscription:', id_inscription);
+console.log('choix_options:', article.choix_options);
+          await finaliserInscription(id_inscription, article);
       });
 
       await Promise.all(promessesParticipants);
@@ -318,4 +360,4 @@ const procederPaiement = async () => {
     isProcessing.value = false;
   }
 };
-</script>
+</script>>

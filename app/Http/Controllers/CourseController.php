@@ -12,59 +12,53 @@ class CourseController extends Controller
     // GET (Participant)
     public function indexParticipant($id_evenement): JsonResponse
     {
-        $evenement = Evenement::select(
-            'id', 'nom', 'logo', 'couleur_primaire', 'couleur_secondaire',
-        )->find($id_evenement);
-
-        if (!$evenement) {
-            return response()->json(['message' => 'Événement introuvable.'], 404);
-        }
+        $evenement = Evenement::select('id', 'nom', 'logo', 'couleur_primaire', 'couleur_secondaire')
+            ->findOrFail($id_evenement);
 
         if ($evenement->logo) {
             $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
         }
 
-        $courses = Course::with(['categorie', 'sousCategorie', 'avertissement', 'evenement', 'options.quantifiable', 'options.cochable'])
+        // On charge TOUT d'un coup avec Eloquent (Eager Loading)
+        $courses = Course::with([
+                'categorie',
+                'sousCategorie',
+                'evenement',
+                'avertissement',
+                'options.quantifiable',
+                'options.cochable',
+                'questions.choix' // <-- Magique : charge les questions ET leurs choix de réponses
+            ])
             ->withCount('inscriptions')
             ->where('id_evenement', $id_evenement)
             ->where('is_actif', true)
             ->get()
-            ->map(function ($course) use ($evenement) {
-
-                $questionnaire = null;
-                if ($course->is_questionnaire) {
-                    $questionnaire = \DB::table('CourseQuestion')
-                        ->join('Question', 'CourseQuestion.id_question', '=', 'Question.id')
-                        ->where('CourseQuestion.id_course', $course->id) // ✅ bon id
-                        ->orderBy('CourseQuestion.ordre')
-                        ->get(['Question.id', 'Question.enonce'])
-                        ->map(function ($question) {
-                            $options = \DB::table('OptionQuestion')
-                                ->where('id_question', $question->id)
-                                ->get(['id', 'texte_option'])
-                                ->toArray();
-                            return [
-                                'id'      => $question->id,
-                                'question' => $question->enonce,
-                                'answers' => array_map(fn($o) => $o->texte_option, $options),
-                            ];
-                        })
-                        ->toArray();
-                }
-
+            ->map(function ($course) {
                 return [
                     'id'                => $course->id,
                     'nom_course'        => $course->nom,
                     'tarif'             => $course->tarif,
                     'type'              => $course->type,
                     'is_challenge'      => $course->is_challenge,
-                    'categorie'         => $course->categorie ? $course->categorie->nom : null,
-                    'sous_categorie'    => $course->sousCategorie ? $course->sousCategorie->nom : null,
-                    'avertissement'     => $course->avertissement ?? null,
-                    'evenement'         => $course->evenement ?? null,
-                    'options'           => $course->options ?? null,
+                    'categorie'         => $course->categorie->nom ?? null,
+                    'sous_categorie'    => $course->sousCategorie->nom ?? null,
+                    'avertissement'     => $course->avertissement,
+                    'options'           => $course->options,
                     'document'          => $course->is_document,
-                    'questionnaire'     => $questionnaire,
+                    'evenement'         => $course->evenement,
+                    // Utilisation des relations déjà chargées
+                    'questionnaire'     => $course->is_questionnaire ? $course->questions->map(function($q) {
+                        return [
+                            'id'       => $q->id,
+                            'question' => $q->enonce,
+                            'answers'  => $q->choix->map(function($choix) {
+                                return [
+                                    'id'    => $choix->id,
+                                    'texte' => $choix->texte_option,
+                                ];
+                            }),
+                        ];
+                    }) : null,
                     'dossards_restants' => $course->max_inscription
                         ? ($course->max_inscription - $course->inscriptions_count)
                         : 'Illimité',
@@ -110,7 +104,8 @@ class CourseController extends Controller
             'evenement',
             'avertissement',
             'options.quantifiable',
-            'options.cochable'
+            'options.cochable',
+            'questions.choix'
         ])->find($id);
 
         if (!$course) {
@@ -119,6 +114,24 @@ class CourseController extends Controller
 
         if ($course->evenement && $course->evenement->logo) {
             $course->evenement->logo = 'data:image/jpeg;base64,' . base64_encode($course->evenement->logo);
+        }
+
+        // Formater les questions pour le frontend
+        if ($course->is_questionnaire && $course->questions) {
+            $course->questionnaire = $course->questions->map(function($q) {
+                return [
+                    'id'       => $q->id,
+                    'question' => $q->enonce,
+                    'answers'  => $q->choix->map(function($choix) {
+                        return [
+                            'id'    => $choix->id,
+                            'texte' => $choix->texte_option,
+                        ];
+                    }),
+                ];
+            })->values();
+        } else {
+            $course->questionnaire = null;
         }
 
         return response()->json($course, 200);

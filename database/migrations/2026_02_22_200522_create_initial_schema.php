@@ -61,6 +61,7 @@ return new class extends Migration
         Schema::create('Question', function (Blueprint $table) {
             $table->id();
             $table->string('enonce', 255);
+            $table->boolean('modele')->default(0);
         });
 
         Schema::create('Options', function (Blueprint $table) {
@@ -181,9 +182,10 @@ return new class extends Migration
             $table->foreignId('id_course')->constrained('Course')->onDelete('cascade');
             $table->foreignId('id_groupe')->nullable()->constrained('Groupe')->onDelete('set null');
             $table->foreignId('id_document')->nullable()->constrained('Document')->onDelete('set null');
-            
+            $table->foreignId('id_ancienne_inscription')->nullable()->constrained('Inscription')->onDelete('set null');
             $table->string('code_participant', 100)->nullable()->unique();
             $table->float('tarif')->default(0);
+            $table->datetime('date_paiement')->useCurrent();
             $table->enum('status_paiement', ['Validé', 'En attente', 'Annulé'])->default('En attente');
             $table->float('montant_rabais')->default(0)->nullable();
             $table->boolean('avertissement_valide')->default(0)->nullable();
@@ -212,6 +214,14 @@ return new class extends Migration
             $table->foreignId('id_inscription')->constrained('Inscription')->onDelete('cascade');
         });
 
+        //Table d'association
+        Schema::create('ChoixOption', function (Blueprint $table) {
+            $table->foreignId('id_option')->constrained('Options')->onDelete('cascade');
+            $table->foreignId('id_inscription')->constrained('Inscription')->onDelete('cascade');
+            $table->integer('quantite');
+            $table->primary(['id_inscription', 'id_option']);
+        });
+
         //Table d'association (Lien vers la table participants de l'auth)
         Schema::create('GroupeParticipant', function (Blueprint $table) {
             $table->foreignId('id_groupe')->constrained('Groupe')->onDelete('cascade');
@@ -219,6 +229,8 @@ return new class extends Migration
             $table->string('statut', 50);
             $table->primary(['id_groupe', 'id_participant']);
         });
+
+
 
         Schema::enableForeignKeyConstraints();
     }

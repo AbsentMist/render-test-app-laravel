@@ -118,6 +118,12 @@ const routes = [
     name: "OrganisateurCourses",
     component: () => import("../views/OrganisateurCourses.vue"),
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: "/organisateur/inscriptions",
+    name: "OrganisateurInscriptions",
+    component: () => import("../views/OrganisateurInscriptions.vue"),
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ];
 

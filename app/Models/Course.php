@@ -57,4 +57,10 @@ class Course extends Model
     public function options(): BelongsToMany {
         return $this->belongsToMany(Option::class,'OptionPourCourse', 'id_course', 'id_option');
     }
+
+    public function questions(): BelongsToMany {
+        return $this->belongsToMany(Question::class, 'CourseQuestion', 'id_course', 'id_question')
+                    ->withPivot('ordre')
+                    ->orderBy('CourseQuestion.ordre', 'asc');
+    }
 }

@@ -42,7 +42,7 @@ const handleLogout = async () => {
            
            <li>
               <router-link 
-                to="/evenements" 
+                to="/organisateur/inscriptions" 
                 class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200" 
                 :class="themeStore.primaryColor ? 'hover:bg-white/50 text-[#0e0f54]' : 'text-secondary hover:bg-tertiary hover:text-primary'"
                 :active-class="themeStore.primaryColor ? 'bg-white shadow-sm font-bold' : 'bg-tertiary !text-primary'"

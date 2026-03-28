@@ -12,6 +12,12 @@ use App\Http\Controllers\OptionController;
 use App\Http\Controllers\GroupeController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\PayrexxController;
+use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\ReponseQuestionController;
+use App\Http\Controllers\OptionQuestionController;
+use App\Http\Controllers\CourseQuestionController;
+use App\Http\Controllers\ChoixOptionController;
+use App\Http\Controllers\DocumentController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -73,6 +79,26 @@ use App\Http\Controllers\PayrexxController;
             Route::get('/inscriptions/{id}', [InscriptionController::class, 'show']);
             Route::put('/inscriptions/{id}', [InscriptionController::class, 'updateParticipant']);
             Route::delete('/inscriptions/{id}', [InscriptionController::class, 'destroyParticipant']);
+
+            //CRUD Choix options
+            Route::get('/inscriptions/{id_inscription}/choix-options', [ChoixOptionController::class, 'indexParInscription']);
+            Route::post('/choix-options', [ChoixOptionController::class, 'store']);
+            Route::put('/choix-options/{id_inscription}/{id_option}', [ChoixOptionController::class, 'update']);
+            Route::delete('/choix-options/{id_inscription}/{id_option}', [ChoixOptionController::class, 'destroy']);
+
+            // Questions d'une course
+            Route::get('/questions/{id_course}', [QuestionController::class, 'indexParticipant']);
+
+            // Réponses aux questions
+            Route::get('/inscriptions/{id_inscription}/reponses', [ReponseQuestionController::class, 'indexParInscription']);
+            Route::post('/reponses-questions', [ReponseQuestionController::class, 'store']);
+            Route::delete('/reponses-questions/{id_inscription}/{id_question}', [ReponseQuestionController::class, 'destroy']);
+
+            // Documents (liés à une inscription)
+            Route::get('/inscriptions/{id_inscription}/documents', [DocumentController::class, 'indexByInscription']);
+            Route::post('/inscriptions/{id_inscription}/documents', [DocumentController::class, 'storeForInscription']);
+            Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
+            Route::delete('/documents/{id}', [DocumentController::class, 'destroyParticipant']);
         });
 
         // Gestion du rôle Administrateur par Middleware
@@ -129,5 +155,36 @@ use App\Http\Controllers\PayrexxController;
             Route::put('/optionCourse/{id_course}/{id_option}', [OptionPourCourseController::class, 'update']);
             Route::delete('/optionCourse/{id_course}/{id_option}', [OptionPourCourseController::class, 'destroy']);
             Route::delete('/optionCourse/{id_course}', [OptionPourCourseController::class, 'destroyByCourse']);
+            
+            Route::get('/inscriptions/{id_inscription}/choix-options', [ChoixOptionController::class, 'indexParInscription']);
+            Route::get('/options/{id_option}/choix', [ChoixOptionController::class, 'indexParOption']);
+            Route::post('/choix-options', [ChoixOptionController::class, 'storeAdmin']);
+            Route::put('/choix-options/{id_inscription}/{id_option}', [ChoixOptionController::class, 'updateAdmin']);  // ← manquante
+            Route::delete('/choix-options/{id_inscription}/{id_option}', [ChoixOptionController::class, 'destroy']);
+            
+            // Questions (CRUD)
+            Route::get('/questions', [QuestionController::class, 'indexAdmin']);
+            Route::get('/questions/{id}', [QuestionController::class, 'show']);
+            Route::post('/questions', [QuestionController::class, 'store']);
+            Route::put('/questions/{id}', [QuestionController::class, 'update']);
+            Route::delete('/questions/{id}', [QuestionController::class, 'destroy']);
+
+            // Options de réponse QCM (CRUD)
+            Route::get('/questions/{id_question}/choix', [OptionQuestionController::class, 'index']);
+            Route::get('/choix/{id}', [OptionQuestionController::class, 'show']);
+            Route::post('/questions/{id_question}/choix', [OptionQuestionController::class, 'store']);
+            Route::put('/choix/{id}', [OptionQuestionController::class, 'update']);
+            Route::delete('/choix/{id}', [OptionQuestionController::class, 'destroy']);
+
+            // Liaison course/question + ordre
+            Route::get('/courses/{id_course}/questions', [CourseQuestionController::class, 'index']);
+            Route::put('/courses/{id_course}/questions/ordre', [CourseQuestionController::class, 'reordonner']);
+
+            // Réponses (lecture admin)
+            Route::get('/questions/{id_question}/reponses', [ReponseQuestionController::class, 'indexParQuestion']);
+
+            // Documents (admin)
+            Route::get('/inscriptions/{id_inscription}/documents', [DocumentController::class, 'indexByInscription']);
+            Route::delete('/documents/{id}', [DocumentController::class, 'destroyAdmin']);
         });
     });
