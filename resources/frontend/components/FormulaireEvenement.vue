@@ -2,6 +2,7 @@
     <div class="bg-secondary p-6 rounded-base">
         <div>
             <p class="text-subtitle my-4">{{ isEditMode ? 'Modifier l\'évènement' : 'Créer un évènement' }}</p>
+            <p v-if="formError" class="text-sm text-accent mb-4">{{ formError }}</p>
             <form>
                 <div class="flex flex-row gap-4">
                     <div class="basis-3/4 flex flex-col gap-4">
@@ -40,16 +41,42 @@
                             <label class="text-sm font-medium text-heading">Primaire</label>
                             <div class="items-center flex gap-4 bg-neutral-secondary-medium p-2 rounded-base border border-default-medium">
                                 <Icon icon="mdi:pipette" />
-                                <label class="">{{ eventData.colors.primary }}</label>
-                                <input type="color" id="EventColorPrimary" v-model="eventData.colors.primary" class="border rounded-base" />
+                                <input
+                                    v-model="colorLabels.primary"
+                                    type="text"
+                                    class="w-28 bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1"
+                                    placeholder="#0E0F54"
+                                    @input="onColorLabelInput('primary')"
+                                    @blur="onColorLabelBlur('primary')"
+                                >
+                                <input
+                                    type="color"
+                                    id="EventColorPrimary"
+                                    v-model="eventData.colors.primary"
+                                    class="border rounded-base"
+                                    @input="onColorPickerChange('primary')"
+                                />
                             </div>
                         </div>
                         <div class="flex flex-row justify-between items-center ">
                             <label class="text-sm font-medium text-heading">Secondaire</label>
                             <div class="items-center flex gap-4 bg-neutral-secondary-medium p-2 rounded-base border border-default-medium">
                                 <Icon icon="mdi:pipette" />
-                                <label class="">{{ eventData.colors.secondary }}</label>
-                                <input type="color" id="EventColorSecondary" v-model="eventData.colors.secondary" class="border rounded-base" />
+                                <input
+                                    v-model="colorLabels.secondary"
+                                    type="text"
+                                    class="w-28 bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1"
+                                    placeholder="#D9F20B"
+                                    @input="onColorLabelInput('secondary')"
+                                    @blur="onColorLabelBlur('secondary')"
+                                >
+                                <input
+                                    type="color"
+                                    id="EventColorSecondary"
+                                    v-model="eventData.colors.secondary"
+                                    class="border rounded-base"
+                                    @input="onColorPickerChange('secondary')"
+                                />
                             </div>
                         </div>
                     </div>
@@ -85,7 +112,7 @@
         </div>
 
         <div class="flex flex-row mt-6 gap-4"> 
-            <button class="btn-tertiary ml-auto" @click="confirmationPopup=true">
+            <button class="btn-tertiary ml-auto disabled:opacity-50 disabled:cursor-not-allowed" :disabled="isEditMode && evenementIntrouvable" @click="confirmationPopup=true">
                 {{ isEditMode ? 'Enregistrer les modifications' : 'Créer l\'évènement' }}
             </button>
         </div>
@@ -121,6 +148,8 @@ export default {
             modal: optionModal.FERMEE,
             confirmationPopup: false,
             dataInserted: false,
+            formError: '',
+            evenementIntrouvable: false,
             eventData: {
                 name: '',
                 url: '',
@@ -135,6 +164,10 @@ export default {
                     interne: false,
                     rabais: false,
                 },
+            },
+            colorLabels: {
+                primary: '#0E0F54',
+                secondary: '#D9F20B',
             },
             optionElements: [
                 "Existant", "Nouveau"
@@ -181,11 +214,40 @@ export default {
                     actif: false, interne:false, rabais: false,
                 },
             };
+            this.colorLabels = {
+                primary: '#0E0F54',
+                secondary: '#D9F20B',
+            };
             this.etape = this.formulaireEtape.GENERAL; 
-        },        
+        },
+        normalizeHexColor(value) {
+            const cleaned = String(value ?? '').trim().replace(/^#/, '');
+            if (!/^[0-9a-fA-F]{6}$/.test(cleaned)) {
+                return null;
+            }
+
+            return `#${cleaned.toUpperCase()}`;
+        },
+        onColorLabelInput(key) {
+            const normalized = this.normalizeHexColor(this.colorLabels[key]);
+            if (normalized) {
+                this.eventData.colors[key] = normalized.toLowerCase();
+                this.colorLabels[key] = normalized;
+            }
+        },
+        onColorLabelBlur(key) {
+            const normalized = this.normalizeHexColor(this.colorLabels[key]);
+            const fallback = this.eventData.colors[key]?.toUpperCase() || '#000000';
+            this.colorLabels[key] = normalized || fallback;
+        },
+        onColorPickerChange(key) {
+            this.colorLabels[key] = (this.eventData.colors[key] || '').toUpperCase();
+        },
         // Chargement des données en mode édition
         async chargerDonneesEvenement() {
             try {
+                this.formError = '';
+                this.evenementIntrouvable = false;
                 const response = await evenementOrganisateurService.getEvenement(this.eventId);
                 const ev = response.data;
                 
@@ -194,6 +256,8 @@ export default {
                 this.eventData.url = ev.site || '';
                 this.eventData.colors.primary = ev.couleur_primaire || '#0e0f54';
                 this.eventData.colors.secondary = ev.couleur_secondaire || '#d9f20b';
+                this.colorLabels.primary = this.eventData.colors.primary.toUpperCase();
+                this.colorLabels.secondary = this.eventData.colors.secondary.toUpperCase();
                 this.eventData.logoPreview = ev.logo_base64 
                     ? atob(ev.logo_base64.split(',')[1]) 
                     : null;
@@ -205,12 +269,23 @@ export default {
                 
                 console.log("Données chargées pour édition :", ev);
             } catch(e) {
+                if (e?.response?.status === 404) {
+                    this.evenementIntrouvable = true;
+                    this.formError = `L'évènement #${this.eventId} n'existe plus (ou a été supprimé).`;
+                    return;
+                }
                 console.error("Erreur lors du chargement de l'événement: ", e);
             }
         },
 
         async insertData() {
             try {
+                this.formError = '';
+                if (this.isEditMode && this.evenementIntrouvable) {
+                    this.formError = "Impossible d'enregistrer: cet évènement n'existe plus.";
+                    return;
+                }
+
                 const formData = new FormData();
                 formData.append('nom',              this.eventData.name);
                 formData.append('site',              this.eventData.url);
@@ -235,6 +310,12 @@ export default {
                 this.confirmPopup();
                 console.log(response.data);
             } catch(e) {
+                if (e?.response?.status === 404) {
+                    this.evenementIntrouvable = true;
+                    this.formError = `L'évènement #${this.eventId} est introuvable.`;
+                    this.confirmationPopup = false;
+                    return;
+                }
                 console.log("Erreur:", e.response?.data);
             }
         },
