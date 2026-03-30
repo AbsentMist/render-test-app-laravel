@@ -158,8 +158,8 @@ use App\Http\Controllers\DocumentController;
             
             Route::get('/inscriptions/{id_inscription}/choix-options', [ChoixOptionController::class, 'indexParInscription']);
             Route::get('/options/{id_option}/choix', [ChoixOptionController::class, 'indexParOption']);
-            Route::post('/choix-options', [ChoixOptionController::class, 'storeAdmin']);
-            Route::put('/choix-options/{id_inscription}/{id_option}', [ChoixOptionController::class, 'updateAdmin']);  // ← manquante
+            Route::post('/choix-options', [ChoixOptionController::class, 'store']);
+            Route::put('/choix-options/{id_inscription}/{id_option}', [ChoixOptionController::class, 'update']);
             Route::delete('/choix-options/{id_inscription}/{id_option}', [ChoixOptionController::class, 'destroy']);
             
             // Questions (CRUD)
@@ -182,6 +182,8 @@ use App\Http\Controllers\DocumentController;
 
             // Réponses (lecture admin)
             Route::get('/questions/{id_question}/reponses', [ReponseQuestionController::class, 'indexParQuestion']);
+            Route::post('/reponses-questions', [ReponseQuestionController::class, 'store']);
+            Route::delete('/reponses-questions/{id_inscription}/{id_question}', [ReponseQuestionController::class, 'destroy']);
 
             // Documents (admin)
             Route::get('/inscriptions/{id_inscription}/documents', [DocumentController::class, 'indexByInscription']);

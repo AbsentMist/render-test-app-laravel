@@ -77,8 +77,13 @@ class ChoixOptionController extends Controller
                     ->first();
 
                 if ($choix) {
-                    $choix->quantite = $data['quantite'] ?? null;
-                    $choix->save();
+                    ChoixOption::where('id_inscription', $data['id_inscription'])
+                        ->where('id_option', $data['id_option'])
+                        ->update(['quantite' => $data['quantite'] ?? null]);
+
+                    $choix = ChoixOption::where('id_inscription', $data['id_inscription'])
+                        ->where('id_option', $data['id_option'])
+                        ->first();
                 } else {
                     $choix = new ChoixOption();
                     $choix->id_inscription = $data['id_inscription'];
@@ -118,7 +123,13 @@ class ChoixOptionController extends Controller
             'quantite' => 'required|integer|min:0',
         ]);
 
-        $choix->update(['quantite' => $request->input('quantite')]);
+        ChoixOption::where('id_inscription', $id_inscription)
+            ->where('id_option', $id_option)
+            ->update(['quantite' => $request->input('quantite')]);
+
+        $choix = ChoixOption::where('id_inscription', $id_inscription)
+            ->where('id_option', $id_option)
+            ->first();
 
         return response()->json([
             'message' => 'Choix mis à jour avec succès.',
@@ -137,7 +148,9 @@ class ChoixOptionController extends Controller
             return response()->json(['message' => 'Choix introuvable.'], 404);
         }
 
-        $choix->delete();
+        ChoixOption::where('id_inscription', $id_inscription)
+            ->where('id_option', $id_option)
+            ->delete();
 
         return response()->json(['message' => 'Choix supprimé avec succès.'], 200);
     }
