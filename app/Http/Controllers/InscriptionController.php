@@ -192,6 +192,7 @@ class InscriptionController extends Controller
             'tarif' => 'sometimes|numeric',
             'montant_rabais' => 'sometimes|numeric',
             'avertissement_valide' => 'sometimes|boolean',
+            'code_participant' => 'sometimes|nullable|string|unique:Inscription,code_participant,' . $inscription->id,
             'id_document' => 'sometimes|nullable|exists:Document,id',
             'id_groupe' => 'sometimes|nullable|exists:Groupe,id',
             'id_ancienne_inscription' => 'sometimes|nullable|exists:Inscription,id',

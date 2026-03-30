@@ -188,7 +188,7 @@
               <div>
                 <p class="text-xs text-gray-400">N° inscription</p>
                 <input v-if="isEdit" v-model="inscriptionEdit.numero_inscription" type="text"
-                  class="mt-1 text-sm rounded px-2 py-1 w-full bg-white " />                
+                  class="mt-1 text-sm rounded px-2 py-1 w-full bg-white border border-gray-300" />                
                 <p v-else class="font-medium text-gray-800">{{ inscription.numero_inscription ?? '—' }}</p>
               </div>
 
@@ -196,7 +196,7 @@
               <div>
                 <p class="text-xs text-gray-400">Ref. Groupage</p>
                 <input v-if="isEdit" v-model="inscriptionEdit.ref_groupage" type="text"
-                  class="mt-1 text-sm rounded px-2 py-1 w-full bg-white " />
+                  class="mt-1 text-sm rounded px-2 py-1 w-full bg-white border border-gray-300" />
                 <p v-else class="font-medium text-gray-800">{{ inscription.ref_groupage ?? '—' }}</p>
               </div>
 
@@ -627,12 +627,6 @@ export default {
         montant_rabais:      this.inscription.montant_rabais,
         code_participant:    this.inscription.code_participant,
         date_paiement:       this.inscription.date_paiement,
-        numero_inscription:  this.inscription.numero_inscription,
-        ref_groupage:        this.inscription.ref_groupage,
-        participe_challenge: this.inscription.participe_challenge,
-        type_challenge:      this.inscription.type_challenge,
-        equipe_challenge:    this.inscription.equipe_challenge,
-        dossard:             this.inscription.dossard,
         avertissement_valide: this.inscription.avertissement_valide,
         choix_options:       JSON.parse(JSON.stringify(this.inscription.choix_options      ?? [])),
         reponses_questions:  JSON.parse(JSON.stringify(this.inscription.reponses_questions ?? [])),
@@ -653,22 +647,44 @@ export default {
           montant_rabais:      this.inscriptionEdit.montant_rabais,
           code_participant:    this.inscriptionEdit.code_participant,
           date_paiement:       this.inscriptionEdit.date_paiement,
-          numero_inscription:  this.inscription.numero_inscription,
-          ref_groupage:        this.inscriptionEdit.ref_groupage,
-          participe_challenge: this.inscriptionEdit.participe_challenge,
-          type_challenge:      this.inscriptionEdit.type_challenge,
-          equipe_challenge:    this.inscriptionEdit.equipe_challenge,
-          dossard:             this.inscriptionEdit.dossard,
           avertissement_valide: this.inscriptionEdit.avertissement_valide,
         });
 
-        // 2. Choix options
-        for (const choix of this.inscriptionEdit.choix_options) {
-          await choixOptionOrganisateurService.modifyChoix(
-            this.inscription.id,
-            choix.id_option,
-            { quantite: choix.quantite }
-          );
+        // 2. Choix options (mise à jour partielle: ajout/modification/suppression explicite)
+        const choixInitiaux = this.inscription.choix_options ?? [];
+        const choixEdites = this.inscriptionEdit.choix_options ?? [];
+        const mapInitiaux = new Map(choixInitiaux.map((c) => [c.id_option, c]));
+        const mapEdites = new Map(choixEdites.map((c) => [c.id_option, c]));
+
+        for (const choix of choixEdites) {
+          const existant = mapInitiaux.get(choix.id_option);
+
+          if (!existant) {
+            await choixOptionOrganisateurService.saveChoix({
+              choix: [
+                {
+                  id_inscription: this.inscription.id,
+                  id_option: choix.id_option,
+                  quantite: choix.quantite,
+                },
+              ],
+            });
+            continue;
+          }
+
+          if ((existant.quantite ?? 1) !== (choix.quantite ?? 1)) {
+            await choixOptionOrganisateurService.modifyChoix(
+              this.inscription.id,
+              choix.id_option,
+              { quantite: choix.quantite }
+            );
+          }
+        }
+
+        for (const choix of choixInitiaux) {
+          if (!mapEdites.has(choix.id_option)) {
+            await choixOptionOrganisateurService.deleteChoix(this.inscription.id, choix.id_option);
+          }
         }
 
         // 3. Réponses questions
@@ -681,6 +697,18 @@ export default {
             })),
           });
         }
+
+        // Met à jour immédiatement l'objet affiché dans la popup et dans le parent.
+        Object.assign(this.inscription, {
+          tarif: this.inscriptionEdit.tarif,
+          status_paiement: this.inscriptionEdit.status_paiement,
+          montant_rabais: this.inscriptionEdit.montant_rabais,
+          code_participant: this.inscriptionEdit.code_participant,
+          date_paiement: this.inscriptionEdit.date_paiement,
+          avertissement_valide: this.inscriptionEdit.avertissement_valide,
+          choix_options: JSON.parse(JSON.stringify(this.inscriptionEdit.choix_options ?? [])),
+          reponses_questions: JSON.parse(JSON.stringify(this.inscriptionEdit.reponses_questions ?? [])),
+        });
 
         this.isEdit = false;
         this.$emit('modifier-inscription', this.inscription);

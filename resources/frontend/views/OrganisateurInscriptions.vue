@@ -83,7 +83,12 @@
     :participants="participants" 
     @close="fermerPopupChangement"
   />
-  <PopupInscriptionDetail v-if="popupDetail" :inscription="inscription.actuel" @close="popupDetail = false"/>
+  <PopupInscriptionDetail
+    v-if="popupDetail"
+    :inscription="inscription.actuel"
+    @modifier-inscription="onModifierInscription"
+    @close="popupDetail = false"
+  />
 </template>
 
 <script>
@@ -147,6 +152,21 @@ export default {
     afficherDetail(inscription){
       this.inscription.actuel = inscription;
       this.popupDetail = true;
+    },
+    onModifierInscription(inscriptionMaj) {
+      const idx = this.inscriptions.findIndex((i) => i.id === inscriptionMaj.id);
+
+      if (idx > -1) {
+        const rowActuelle = this.inscriptions[idx];
+        this.inscriptions.splice(idx, 1, {
+          ...rowActuelle,
+          ...inscriptionMaj,
+        });
+
+        this.inscription.actuel = this.inscriptions[idx];
+      } else {
+        this.inscription.actuel = inscriptionMaj;
+      }
     },
     async suppression(inscription){
       if(confirm(`Annuler l'inscription ${inscription.id} ?`)){
