@@ -38,7 +38,7 @@
                 {{ inscription.course.evenement.nom }} -
                 {{ inscription.course.nom }}
               </td>
-              <td class="px-4 py-3">{{ inscription.date_paiement.slice(0,10) ?? '—' }}</td>
+              <td class="px-4 py-3">{{ inscription.date_paiement?.slice(0, 10) || '—' }}</td>
               <td class="px-4 py-3 text-center">CHF {{ inscription.tarif }}</td>
               <td class="px-4 py-3">{{ inscription.status_paiement ?? '—' }}</td>
               <td class="px-4 py-3">{{ inscription.course.type ?? '—' }}</td>
