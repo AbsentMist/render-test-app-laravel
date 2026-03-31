@@ -116,6 +116,20 @@ class InscriptionController extends Controller
                     'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
                 ]);
 
+                // GÉNÉRATION DOSSARD (Cas de la réinscription)
+                if ($course->is_dossard == 0 && !$inscriptionExistante->dossard) {
+                    try {
+                        $this->genererDossardAutomatique($course, $inscriptionExistante->id);
+                    } catch (\Exception $e) {
+                        // Annulation de la réinscription car plus de dossard
+                        $inscriptionExistante->update(['status_paiement' => 'Annulé']);
+                        return response()->json([
+                            'code' => 'DOSSARD_LIMIT_REACHED',
+                            'message' => $e->getMessage()
+                        ], 400);
+                    }
+                }
+
                 // On renvoie 200 (OK) au lieu de 201 car modification
                 return response()->json($inscriptionExistante->load(['course', 'dossard']), 200);
             }
@@ -143,8 +157,54 @@ class InscriptionController extends Controller
         // if ($course->is_dossard == 1 && $configurationOrganisateur == 'auto') {
         //     Dossard::create([...]);
         // }
+        
+        // GÉNÉRATION DOSSARD (par défaut si l'option de personnalisation est désactivée dans le formulaire course)
+        if ($course->is_dossard == 0) {
+            try {
+                $this->genererDossardAutomatique($course, $inscription->id);
+            } catch (\Exception $e) {
+                // Gestion d'erreur critique : on supprime l'inscription qu'on vient de créer pour ne pas fausser la base
+                $inscription->delete();
+                
+                return response()->json([
+                    'code' => 'DOSSARD_LIMIT_REACHED',
+                    'message' => $e->getMessage()
+                ], 400);
+            }
+        }
 
         return response()->json($inscription->load(['course', 'dossard']), 201);
+    }
+
+    /**
+     * MÉTHODE PRIVÉE : Logique isolée pour générer le dossard
+     */
+    private function genererDossardAutomatique($course, $idInscription)
+    {
+        // Tolérance : Si l'organisateur a laissé null/0, on fixe des limites par défaut pour éviter le plantage
+        $premier = ($course->premier_dossard && $course->premier_dossard > 0) ? $course->premier_dossard : 1;
+        $dernier = ($course->dernier_dossard && $course->dernier_dossard > 0) ? $course->dernier_dossard : 99999;
+
+        // Chercher le numéro le plus élevé dans la table Dossard qui a déjà attribué pour cette course
+        $maxNumeroActuel = Dossard::whereHas('inscription', function ($query) use ($course) {
+            $query->where('id_course', $course->id);
+        })->max('numero');
+
+        // S'il y a déjà des inscrits, on fait max + 1. Sinon on prend le premier dossard de la course
+        $prochainNumero = $maxNumeroActuel ? $maxNumeroActuel + 1 : $premier;
+
+        // Sécurité : on s'assure qu'on a pas dépassé la limite de la course
+        if ($prochainNumero <= $dernier) {
+            Dossard::create([
+                'numero' => $prochainNumero,
+                'id_inscription' => $idInscription,
+                'retrait_dossard' => 0
+            ]);
+        } else {
+            // Gestion d'erreur : plus de dossard disponible
+            // Selon la logique métier, on remonte une erreur à l'inscription afin de bloquer l'inscription.
+            throw new \Exception("Désolé, il n'y a plus de dossards disponibles pour cette course (Limite fixée à {$dernier}).");
+        }
     }
 
     //GET (PARTICIPANT & ADMIN)

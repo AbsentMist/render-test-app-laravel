@@ -54,7 +54,7 @@
               <td class="px-4 py-3">{{ inscription.equipe ?? '—' }}</td>
               <td class="px-4 py-3 text-center">CHF {{ inscription.tarif }}</td>
               <td class="px-4 py-3">{{ inscription.status_paiement ?? '—' }}</td>
-              <td class="px-4 py-3">{{ inscription.dossard ?? '—' }}</td>
+              <td class="px-4 py-3">{{  inscription.dossard?.numero ?? '—' }}</td>
               <td class="px-4 py-3">{{ inscription.participant.nom }} {{ inscription.participant.prenom }}</td>
             </tr>
 

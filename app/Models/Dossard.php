@@ -10,7 +10,7 @@ class Dossard extends Model
     // Nom exact de la table dans la base de données
     protected $table = 'Dossard';
 
-    // Désactiver les timestamps selon ta migration (pas de created_at / updated_at)
+    // Désactiver les timestamps selon ta migration 
     public $timestamps = false;
 
     // Les champs autorisés pour l'insertion

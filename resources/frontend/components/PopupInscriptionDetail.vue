@@ -234,7 +234,7 @@
                 <p class="text-xs text-gray-400">Dossard</p>
                 <input v-if="isEdit" v-model="inscriptionEdit.dossard" type="text"
                   class="mt-1 text-sm border border-gray-300 rounded px-2 py-1 w-full bg-white " />
-                <p v-else class="font-medium text-gray-800">{{ inscription.dossard ?? '—' }}</p>
+                <p v-else class="font-medium text-gray-800">{{ inscription.dossard.numero ?? '—' }}</p>
               </div>
 
               <!-- Code participation -->
