@@ -12,9 +12,7 @@ use Illuminate\Support\Str;
 
 class GroupeController extends Controller
 {
-    // ==========================================
     // CRUD CLASSIQUE (GROUPES)
-    // ==========================================
 
     public function index()
     {
@@ -165,45 +163,33 @@ class GroupeController extends Controller
     }
 
     // VALIDATION CODE ENTREPRISE LORS DU PANIER (2.2 & 5.1)
-
     public function verifierCodeEntreprise(Request $request)
     {
         $request->validate([
             'code' => 'required|string'
         ]);
 
-        $idParticipant = Auth::user()->participant->id;
-
-        //Cherche si un groupe possède ce code
-        $groupe = Groupe::where('code_entreprise', $request->code)->first();
+        // Cherche un groupe avec ce code ET qui a le statut "Entreprise"
+        $groupe = Groupe::where('code_entreprise', $request->code)
+                        ->where('type', 'Entreprise')
+                        ->first();
 
         if (!$groupe) {
             return response()->json([
                 'valide' => false, 
-                'message' => 'Ce code de participation est invalide.'
+                'message' => 'Aucun groupe ne correspond avec ce code de participation.'
             ], 404);
         }
 
-        //Vérifie si le participant fait partie de ce groupe 
-        $estMembre = $groupe->participants()->where('id_participant', $idParticipant)->exists();
-
-        if (!$estMembre) {
-            return response()->json([
-                'valide' => false, 
-                'message' => 'Vous ne faites pas partie du groupe associé à ce code.'
-            ], 403);
-        }
-
-        //Envoie de l'information au frontend pour validation du panier
+        // On renvoie les infos de l'entreprise au frontend pour appliquer la gratuité
         return response()->json([
             'valide' => true,
-            'message' => 'Code appliqué avec succès !',
+            'message' => 'Code appliqué ! La course vous est offerte par ' . $groupe->nom . '.',
             'groupe' => $groupe->only(['id', 'nom', 'type']) 
         ], 200);
     }
 
     // GESTION DES INVITATIONS 2.4
-
     // Récupère les invitations en attente pour l'utilisateur connecté
     public function getInvitations()
     {
