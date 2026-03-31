@@ -647,6 +647,7 @@ export default {
                 }
 
                 this.courseData.parameters.actif = (course.is_actif == 1 || course.is_actif === true);
+                this.courseData.parameters.dossardPersonalise = (course.is_dossard == 1 || course.is_dossard === true);
                 this.courseData.parameters.challenge = (course.is_challenge == 1 || course.challenge === true);
                 this.courseData.parameters.avertissement = (course.is_avertissement == 1 || course.is_avertissement === true);
                 this.courseData.parameters.document = (course.is_document == 1 || course.is_document === true);
