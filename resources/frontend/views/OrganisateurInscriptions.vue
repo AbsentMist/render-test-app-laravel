@@ -1,5 +1,5 @@
 <template>
-  <Title :texte="`Mes inscriptions`" />
+  <Title :texte="`Inscriptions`" />
   <div class="p-6">
     <p v-if="erreur" class="text-accent text-label mb-4">{{ erreur }}</p>
     <div v-if="chargement" class="text-body text-center py-8">
