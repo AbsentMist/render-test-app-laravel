@@ -114,7 +114,7 @@
                         ]"
                     >
                         <Icon icon="mdi:school-outline" class="w-5 h-5" />
-                        Étudiant
+                        Université
                     </button>
                     <button
                         type="button"

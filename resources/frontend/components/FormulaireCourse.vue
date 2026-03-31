@@ -208,7 +208,7 @@
             <span class="text-body">
                 <span class="text-xs px-1.5 py-0.5 rounded mr-2"
                     :class="org.type === 'Groupe' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'">
-                    {{ org.type === 'Groupe' ? 'Étudiant' : 'Entreprise' }}
+                    {{ org.type === 'Groupe' ? 'Université' : 'Entreprise' }}
                 </span>
                 {{ org.nom }}
             </span>
@@ -235,7 +235,7 @@
             <label class="text-xs text-body">Type</label>
             <select v-model="nouvelleOrg.type"
                 class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-2.5 py-2 shadow-xs">
-                <option value="Groupe">Étudiant</option>
+                <option value="Groupe">Université</option>
                 <option value="Entreprise">Entreprise</option>
             </select>
         </div>
