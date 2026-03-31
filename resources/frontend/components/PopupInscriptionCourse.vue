@@ -1,5 +1,4 @@
 <template>
-    <!-- Popup avertissement -->
     <PopupAvertissementCourse
         v-if="modalAffichage == modals.AVERTISSEMENT && course.avertissement"
         :texte="course.avertissement.contenu"
@@ -7,7 +6,6 @@
         @close="$emit('close')"
     />
 
-    <!-- Popup inscription -->
     <div
         v-if="modalAffichage == modals.INSCRIPTION"
         :class="inline ? 'flex flex-col h-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm'"
@@ -16,7 +14,6 @@
             :class="inline ? 'flex flex-col h-full w-full' : 'relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl mx-4 flex flex-col overflow-hidden'"
             :style="inline ? '' : 'height: 90vh'"
         >
-            <!-- Header -->
             <div v-if="!inline" class="flex items-center justify-between px-6 pt-5 pb-2 border-b border-gray-100 bg-primary-300">
                 <div>
                     <span class="px-6 text-subtitle font-medium text-secondary">Inscription</span>
@@ -32,10 +29,8 @@
                 </button>
             </div>
 
-            <!-- Corps -->
             <div class="flex flex-1 overflow-hidden">
 
-                <!-- Colonne gauche -->
                 <div class="basis-4/6 flex flex-col overflow-hidden">
                     <div class="px-6 pt-5">
                         <IndicateurEtapes :steps="formulaireEtapesLabels" :currentStep="etapesActives.indexOf(etape) + 1" />
@@ -49,7 +44,6 @@
                             v-model="inscription.type"
                         />
 
-                        <!-- Étape Participant / Groupe (tâche 2.3 & 3.1) -->
                         <EtapeParticipant
                             v-show="etape === formulaireEtape.PARTICIPANTS"
                             :participants="tousLesParticipants"
@@ -83,10 +77,22 @@
                             v-show="etape === formulaireEtape.CONFIRMATION"
                             v-model:codeParticipation="inscription.codeParticipation"
                         />
-                    </div>
-                </div>
+                        
+                        <div v-show="etape === formulaireEtape.CONFIRMATION" class="mt-4">
+                            <div v-if="entrepriseValidee" class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl px-4 py-3">
+                                <Icon icon="mdi:check-circle-outline" class="w-5 h-5 shrink-0" />
+                                <span>Code appliqué ! La course vous est offerte par <strong>{{ entrepriseValidee.nom }}</strong>.</span>
+                            </div>
+                            
+                            <div v-if="erreurCode && !entrepriseValidee" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+                                <Icon icon="mdi:alert-circle-outline" class="w-5 h-5 shrink-0" />
+                                <span>{{ erreurCode }}</span>
+                            </div>
+                        </div>
 
-                <!-- Colonne droite : récapitulatif -->
+                    </div> 
+                </div> 
+
                 <div class="basis-2/6 border-l border-gray-100 px-5 py-5 flex flex-col justify-between bg-gray-50/60">
                     <div>
                         <h3 class="text-sm font-semibold text-gray-700 mb-3">Votre inscription</h3>
@@ -101,7 +107,6 @@
                             {{ course.categorie }}<template v-if="course.sous_categorie"> · {{ course.sous_categorie }}</template>
                         </p>
 
-                        <!-- Récap groupe éphémère -->
                         <div v-if="inscription.groupeEphemere?.nom" class="mt-3">
                             <div class="flex items-center gap-2 text-xs text-gray-600 font-semibold">
                                 <Icon icon="mdi:account-group" class="w-4 h-4 text-tertiary-900 shrink-0" />
@@ -114,16 +119,13 @@
                             </div>
                         </div>
 
-                        <!-- Récap participants (individuel / relais) -->
-                        <!-- Récap participants (individuel uniquement, pas challenge) -->
-<div v-if="inscription.participant.length > 0 && inscription.type?.id !== 'challenge'" class="mt-3 flex flex-col gap-1">
+                        <div v-if="inscription.participant.length > 0 && inscription.type?.id !== 'challenge'" class="mt-3 flex flex-col gap-1">
                             <div v-for="p in inscription.participant" :key="p.id" class="flex items-center gap-2 text-xs text-gray-500">
                                 <Icon icon="mdi:account-outline" class="w-4 h-4 shrink-0" />
                                 <span>{{ p.prenom }} {{ p.nom }}</span>
                             </div>
                         </div>
 
-                        <!-- Options -->
                         <div v-if="optionsSelectionnees.length > 0" class="mt-3 border-t border-gray-100 pt-3 flex flex-col gap-1">
                             <div v-for="(opt, i) in optionsSelectionnees" :key="i" class="flex justify-between text-xs text-gray-500">
                                 <span class="flex-1">+ {{ opt.option.nom }}<template v-if="opt.option.type === 'Quantifiable'"> ×{{ opt.quantite }}</template></span>
@@ -132,31 +134,31 @@
                         </div>
                     </div>
 
-                    <!-- Total -->
                     <div class="border-t border-gray-200 pt-3 mt-4">
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-bold text-gray-800">Total</span>
                             <span class="text-sm font-bold text-gray-800">{{ totalInscription.toFixed(2) }}.-</span>
                         </div>
                     </div>
-                </div>
-            </div>
+                </div> 
+            </div> 
+            
             <div v-if="erreurGroupe" class="mx-6 mb-2 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
-    <Icon icon="mdi:alert-circle-outline" class="w-5 h-5 shrink-0" />
-    <span>{{ erreurGroupe }}</span>
-    <button type="button" @click="erreurGroupe = null" class="ml-auto text-red-400 hover:text-red-600">
-        <Icon icon="mdi:close" class="w-4 h-4" />
-    </button>
-</div>
-            <!-- Footer -->
+                <Icon icon="mdi:alert-circle-outline" class="w-5 h-5 shrink-0" />
+                <span>{{ erreurGroupe }}</span>
+                <button type="button" @click="erreurGroupe = null" class="ml-auto text-red-400 hover:text-red-600">
+                    <Icon icon="mdi:close" class="w-4 h-4" />
+                </button>
+            </div>
+            
             <div class="flex justify-between items-center px-6 py-4 border-t border-gray-100">
                 <button v-if="etapesActives.indexOf(etape) > 0" @click="etapePrecedente" class="btn-accent-300">
                     Etape précédente
                 </button>
                 <div v-else></div>
 
-                <button @click="etapeSuivante" :disabled="!peutContinuer || creationGroupe"
-                    :class="['btn-tertiary', (!peutContinuer || creationGroupe) ? 'opacity-50 cursor-not-allowed' : '']">
+                <button @click="etapeSuivante" :disabled="!peutContinuer || creationGroupe || codeBloquant"
+                    :class="['btn-tertiary', (!peutContinuer || creationGroupe || codeBloquant) ? 'opacity-50 cursor-not-allowed' : '']">
                     <span v-if="creationGroupe" class="flex items-center gap-2">
                         <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -206,26 +208,34 @@ export default {
             modalAffichage: null,
             formulaireEtapesLabels: [],
             participantsSupplementaires: [],
-            creationGroupe: false, // spinner pendant la création du groupe en DB
+            creationGroupe: false, 
             inscription: {
                 type: null,
                 participant: [],
-                groupeEphemere: null, // { nom, participants[] } — tâche 2.3 & 3.1
+                groupeEphemere: null,
                 options: {},
                 documents: [],
                 reponses: {},
                 codeParticipation: '',
-                nom_equipe: '', 
+                nom_equipe: '',
             },
             erreurGroupe: null,
+            entrepriseValidee: null,
+            erreurCode: null,
         };
+    },
+    watch: {
+        'inscription.codeParticipation'(newVal) {
+            this.entrepriseValidee = null;
+            this.erreurCode = null;
+        }
     },
     computed: {
         tousLesParticipants() {
-    const ids = new Set(this.participants.map(p => p.id));
-    const extras = (this.inscription.groupeEphemere?.participants ?? []).filter(p => !ids.has(p.id));
-    return [...this.participants, ...extras];
-},
+            const ids = new Set(this.participants.map(p => p.id));
+            const extras = (this.inscription.groupeEphemere?.participants ?? []).filter(p => !ids.has(p.id));
+            return [...this.participants, ...extras];
+        },
         estCourseGroupe() {
             return this.course.type === 'Groupe';
         },
@@ -246,39 +256,39 @@ export default {
             return this.etapesActives.indexOf(this.etape) === this.etapesActives.length - 1;
         },
         peutContinuer() {
-    if (this.etape === formulaireEtape.PARAMETRE) {
-        return !!this.inscription.type;
-    }
-    if (this.etape === formulaireEtape.PARTICIPANTS) {
-        // Challenge : besoin du groupe éphémère (organisation) + 1 participant
-        if (this.inscription.type?.id === 'challenge') {
-            const orgOk = !!(this.inscription.groupeEphemere?.nom?.trim());
-            const participantOk = this.inscription.participant.length > 0;
-            return orgOk && participantOk;
-        }
-        if (this.inscription.type?.id === 'groupe' || this.inscription.type?.id === 'relais') {
-            const nom = !!(this.inscription.groupeEphemere?.nom?.trim());
-            const membres = this.inscription.groupeEphemere?.participants?.length ?? 0;
-            if (this.inscription.type?.id === 'relais') {
-                return nom && membres >= 2 && membres <= 2;
+            if (this.etape === formulaireEtape.PARAMETRE) {
+                return !!this.inscription.type;
             }
-            const match = this.inscription.type?.nom?.match(/\((\d+)-(\d+)\)/);
-            if (match) {
-                const min = parseInt(match[1]);
-                const max = parseInt(match[2]);
-                return nom && membres >= min && membres <= max;
+            if (this.etape === formulaireEtape.PARTICIPANTS) {
+                // Challenge : besoin du groupe éphémère (organisation) + 1 participant
+                if (this.inscription.type?.id === 'challenge') {
+                    const orgOk = !!(this.inscription.groupeEphemere?.nom?.trim());
+                    const participantOk = this.inscription.participant.length > 0;
+                    return orgOk && participantOk;
+                }
+                if (this.inscription.type?.id === 'groupe' || this.inscription.type?.id === 'relais') {
+                    const nom = !!(this.inscription.groupeEphemere?.nom?.trim());
+                    const membres = this.inscription.groupeEphemere?.participants?.length ?? 0;
+                    if (this.inscription.type?.id === 'relais') {
+                        return nom && membres >= 2 && membres <= 2;
+                    }
+                    const match = this.inscription.type?.nom?.match(/\((\d+)-(\d+)\)/);
+                    if (match) {
+                        const min = parseInt(match[1]);
+                        const max = parseInt(match[2]);
+                        return nom && membres >= min && membres <= max;
+                    }
+                    return nom && membres >= 2;
+                }
+                return this.inscription.participant.length > 0;
             }
-            return nom && membres >= 2;
-        }
-        return this.inscription.participant.length > 0;
-    }
-    return true;
-},
+            return true;
+        },
         optionsSelectionnees() {
             return Object.values(this.inscription.options || {});
         },
         totalInscription() {
-            const base = parseFloat(this.course.tarif) || 0;
+            const base = this.entrepriseValidee ? 0 : (parseFloat(this.course.tarif) || 0);
             const extras = this.optionsSelectionnees.reduce((acc, { option, quantite }) =>
                 acc + option.tarif * (option.type === 'Quantifiable' ? quantite : 1), 0);
             return base + extras;
@@ -291,12 +301,17 @@ export default {
                         : 0,
             }));
         },
-
         reponsesPourPanier() {
             return Object.entries(this.inscription.reponses || {}).map(([id_question, valeur]) => ({
                 id_question:       parseInt(id_question),
                 id_option_choisie: valeur?.reponse?.id ?? null,
             }));
+        },
+        codeBloquant() {
+            const code = this.inscription.codeParticipation?.trim();
+            if (!code) return false; 
+            if (this.entrepriseValidee) return false; 
+            return true; 
         },
     },
     methods: {
@@ -309,55 +324,50 @@ export default {
             this.erreurGroupe = null;
             if (!this.peutContinuer || this.creationGroupe) return;
 
-            // ── Dernière étape : "Ajouter au panier" ──────────────────────
             if (this.estDerniereEtape) {
                 let id_groupe = null;
 
-                // Si mode groupe ou relais : créer le groupe en DB maintenant
+                // Si mode groupe : créer le groupe en DB
                 if ((this.inscription.type?.id === 'groupe' || this.inscription.type?.id === 'relais') 
-    && this.inscription.groupeEphemere) {
+                && this.inscription.groupeEphemere) {
                     this.creationGroupe = true;
                     try {
-                        // 1. Créer le groupe
                         const groupeResp = await groupeService.createGroupe({
-    nom:       this.inscription.groupeEphemere.nom,
-    type:      'Groupe',
-    id_course: this.course.id, // ← nouveau
-});
-                        const groupeId = groupeResp.data.id;
-                        id_groupe = groupeId;
+                            nom:       this.inscription.groupeEphemere.nom,
+                            type:      'Groupe',
+                            id_course: this.course.id,
+                        });
+                        id_groupe = groupeResp.data.id;
 
-                        // 2. Attacher chaque membre qui a un id réel (existant en DB)
-                        //    Les participants créés à la volée (id = Date.now()) ne sont pas encore en DB,
-                        //    on les ignore pour la liaison groupe (ils seront créés via l'inscription)
                         const membresBD = this.inscription.groupeEphemere.participants.filter(
-                            p => typeof p.id === 'number' && p.id < 1e12 // id DB < id timestamp
+                            p => typeof p.id === 'number' && p.id < 1e12 
                         );
                         for (const membre of membresBD) {
-    try {
-        await groupeService.addParticipant(groupeId, membre.id);
-    } catch (e) {
-        if (e.response?.status === 409) {
-            console.info('Membre déjà dans le groupe, ignoré.');
-        } else {
-            throw e;
-        }
-    }
-}
+                            try {
+                                await groupeService.addParticipant(id_groupe, membre.id);
+                            } 
+                            catch (e) {
+                                if (e.response?.status === 409) {
+                                    console.info('Membre déjà dans le groupe, ignoré.');
+                                } else {
+                                    throw e;
+                                }
+                            }
+                        }
                     } catch (e) {
-    console.error('Erreur lors de la création du groupe :', e);
-    if (e.response?.status === 500 && e.response?.data?.message?.includes('UNIQUE')) {
-        this.erreurGroupe = 'Un groupe avec ce nom existe déjà pour cette course. Choisissez un autre nom.';
-    } else {
-        this.erreurGroupe = 'Impossible de créer le groupe. Veuillez réessayer.';
-    }
-    this.creationGroupe = false;
-    return;
-} finally {
-    this.creationGroupe = false;
-}
+                        console.error('Erreur lors de la création du groupe :', e);
+                        if (e.response?.status === 500 && e.response?.data?.message?.includes('UNIQUE')) {
+                            this.erreurGroupe = 'Un groupe avec ce nom existe déjà pour cette course. Choisissez un autre nom.';
+                        } else {
+                            this.erreurGroupe = 'Impossible de créer le groupe. Veuillez réessayer.';
+                        }
+                        this.creationGroupe = false;
+                        return;
+                    } finally {
+                        this.creationGroupe = false;
+                    }
                 }
-
+                
                 // Challenge : créer ou rejoindre le groupe organisation
                 if (this.inscription.type?.id === 'challenge' && this.inscription.groupeEphemere) {
                     this.creationGroupe = true;
@@ -369,10 +379,8 @@ export default {
                         });
                         id_groupe = groupeResp.data.id;
                     } catch (e) {
-                        // Si groupe déjà existant (UNIQUE), on le récupère
                         if (e.response?.status === 500 && e.response?.data?.message?.includes('UNIQUE')) {
                             console.info('Groupe challenge déjà existant, on y rattache le participant.');
-                            // Le backend devra gérer le rattachement via l'inscription
                         } else {
                             this.erreurGroupe = 'Impossible de créer le groupe challenge. Veuillez réessayer.';
                             this.creationGroupe = false;
@@ -383,14 +391,16 @@ export default {
                     }
                 }
 
-                const nomEquipe = this.inscription.type?.id === 'challenge'
-                    ? this.inscription.groupeEphemere?.nom ?? null
-                    : this.inscription.groupeEphemere?.nom ?? null;
+                // Application de l'ID final (L'entreprise écrase le reste si un code valide a été saisi)
+                let id_groupe_final = id_groupe;
+                if (this.entrepriseValidee) {
+                    id_groupe_final = this.entrepriseValidee.id; 
+                }
 
                 this.$emit('ajouter-panier', {
                     ...this.inscription,
-                    id_groupe,
-                    nom_equipe:         nomEquipe,
+                    id_groupe:          id_groupe_final,
+                    nom_equipe:         this.inscription.groupeEphemere?.nom ?? null,
                     tarif:              this.totalInscription,
                     choix_options:      this.choixOptionsPourPanier,
                     reponses_questions: this.reponsesPourPanier,
@@ -398,7 +408,6 @@ export default {
                 return;
             }
 
-            // ── Étapes intermédiaires ─────────────────────────────────────
             const idx = this.etapesActives.indexOf(this.etape);
             this.etape = this.etapesActives[idx + 1];
         },
@@ -406,6 +415,23 @@ export default {
         ajouterParticipantSupplementaire(data) {
             if (!this.participantsSupplementaires.some(p => p.id === data.id)) {
                 this.participantsSupplementaires.push(data);
+            }
+        },
+        
+        async verifierCodeEntreprise() {
+            const codeSaisi = this.inscription.codeParticipation?.trim();
+            if (!codeSaisi) {
+                this.entrepriseValidee = null;
+                this.erreurCode = null;
+                return;
+            }
+            try {
+                const res = await groupeService.verifierCode(codeSaisi);
+                this.entrepriseValidee = res.data.groupe;
+                this.erreurCode = null;
+            } catch (e) {
+                this.entrepriseValidee = null;
+                this.erreurCode = e.response?.data?.message || 'Code invalide.';
             }
         },
     },

@@ -10,6 +10,7 @@
                 type="text"
                 placeholder="Code de participation"
                 @input="$emit('update:codeParticipation', codeInterne)"
+                @blur="$parent.verifierCodeEntreprise()" 
                 class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-white"
             />
         </div>
