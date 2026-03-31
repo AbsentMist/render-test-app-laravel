@@ -111,6 +111,20 @@
                     </div>
                 </div>
             </div>
+            <div v-if="courseData.type.name === 'Relais' || courseData.type.name === 'Groupe'"
+        class="flex justify-between items-center gap-4 my-4">
+        <label for="maxNbPersonne" class="basis-1/3 block mb-2.5 text-sm font-medium text-heading">
+            {{ courseData.type.name === 'Relais' ? 'Nombre de coureurs par équipe' : 'Nombre maximum de personnes par groupe' }}
+        </label>
+        <div class="w-full flex flex-col gap-1">
+            <input type="number" id="maxNbPersonne" v-model="courseData.maxNbPersonne" min="2"
+                class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
+                :placeholder="courseData.type.name === 'Relais' ? 'Ex: 4' : 'Ex: 10'" />
+            <p v-if="courseData.type.name === 'Groupe'" class="text-xs text-body">
+                Minimum 2 personnes par groupe.
+            </p>
+        </div>
+    </div>
 
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
@@ -126,6 +140,7 @@
                     class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base
                         focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs" />
             </div>
+           
             <div class="flex flex-col-2 gap-4 mb-4">
                 <div class="w-full">
                     <label for="firstDossard" class="block mb-2.5 text-sm font-medium text-heading">Premier dossard</label>
@@ -180,6 +195,58 @@
                         <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
                     </label>
                 </div>
+<div v-if="courseData.parameters.challenge" class="ml-4 mt-2 border-l-2 border-tertiary/30 pl-4 flex flex-col gap-3">
+    <p class="text-xs text-body font-medium">Organisations du challenge</p>
+ 
+    <!-- Liste existante -->
+    <div v-if="courseData.challengeOrganisations.length > 0" class="flex flex-col gap-1">
+        <div
+            v-for="(org, index) in courseData.challengeOrganisations"
+            :key="index"
+            class="flex items-center justify-between bg-neutral-secondary-medium rounded-base px-3 py-1.5 text-sm"
+        >
+            <span class="text-body">
+                <span class="text-xs px-1.5 py-0.5 rounded mr-2"
+                    :class="org.type === 'Groupe' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'">
+                    {{ org.type === 'Groupe' ? 'Étudiant' : 'Entreprise' }}
+                </span>
+                {{ org.nom }}
+            </span>
+            <button type="button" @click="supprimerOrganisation(index, org)"
+                class="text-accent hover:text-red-700 ml-2">
+                <Icon icon="mdi:close" class="w-4 h-4" />
+            </button>
+        </div>
+    </div>
+    <p v-else class="text-xs text-body italic">Aucune organisation ajoutée.</p>
+ 
+    <!-- Formulaire ajout -->
+    <div class="flex gap-2 items-end">
+        <div class="flex flex-col gap-1 flex-1">
+            <label class="text-xs text-body">Nom</label>
+            <input
+                v-model="nouvelleOrg.nom"
+                type="text"
+                placeholder="Ex: UNIGE, Nestlé..."
+                class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-2.5 py-2 shadow-xs"
+            />
+        </div>
+        <div class="flex flex-col gap-1">
+            <label class="text-xs text-body">Type</label>
+            <select v-model="nouvelleOrg.type"
+                class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-2.5 py-2 shadow-xs">
+                <option value="Groupe">Étudiant</option>
+                <option value="Entreprise">Entreprise</option>
+            </select>
+        </div>
+        <button type="button" @click="ajouterOrganisation"
+            :disabled="!nouvelleOrg.nom.trim()"
+            class="bg-tertiary border border-default-medium text-heading text-sm rounded-base px-3 py-2 disabled:opacity-50">
+            <Icon icon="mdi:plus" class="w-4 h-4" />
+        </button>
+    </div>
+</div>
+
                 <div class="flex flex-row justify-between items-center mb-4">
                     <label class="text-sm font-medium text-heading">Avertissement</label>
                     <label class="inline-flex items-center cursor-pointer">
@@ -360,6 +427,7 @@ import sousCategorieOrganisateurService from '../services/sousCategorieOrganisat
 import questionOrganisateurService from '../services/questionOrganisateurService';
 import optionQuestionOrganisateurService from '../services/optionQuestionOrganisateurService';
 import courseQuestionOrganisateurService from '../services/courseQuestionOrganisateurService';
+import challengeOrganisationService from '../services/challengeOrganisationService';
 
 const formulaireEtape = {
     GENERAL: 1,
@@ -393,6 +461,7 @@ export default {
             confirmationPopup: false,
             dataInserted: false,
             evenements: [],
+            nouvelleOrg: { nom: '', type: 'Entreprise' },
             formulaireEtapesLabels: ["Général", "Options supplémentaires"],
             typesCourse: [
                 { name: "Individuel", id: 1 },
@@ -454,6 +523,7 @@ export default {
                 document: {
                     description: '',
                 },
+                challengeOrganisations: [],   // [{ id?, nom, type }]
             },
         };
     },
@@ -531,6 +601,7 @@ export default {
                 options: [],
                 avertissement: { contenu: "", id: ""},
                 document: { description: '' },
+                challengeOrganisations: [],
             };
             this.etape = formulaireEtape.GENERAL;
         },
@@ -615,6 +686,15 @@ export default {
             } catch (e) {
                 console.error("Erreur globale chargement course:", e);
             }
+
+            if (this.courseData.parameters.challenge) {
+    try {
+        const orgsResp = await challengeOrganisationService.getOrganisations(this.courseId);
+        this.courseData.challengeOrganisations = orgsResp.data;
+    } catch (e) {
+        console.error('Erreur chargement organisations challenge:', e);
+    }
+}
         },
         handleModalState(){
             if(this.modal === optionModal.FERMEE) {
@@ -726,7 +806,6 @@ export default {
                     fin_inscription:   this.courseData.date.inscriptionEnd || null,
                     tarif:             this.courseData.tarif,
                     max_inscription:   this.courseData.maxRunners,
-                    max_nb_personne:   this.courseData.maxNbPersonne || null,
                     premier_dossard:   this.courseData.dossard.first,
                     dernier_dossard:   this.courseData.dossard.last,
                     age_minimum:       this.courseData.age.min,
@@ -754,6 +833,20 @@ export default {
                 }
 
                 const courseId = this.isEditMode ? this.courseId : response.data.course.id;
+                
+                // Synchroniser les organisations challenge
+if (this.courseData.parameters.challenge) {
+    // Supprimer les anciennes (en édition, elles ont été supprimées une par une via supprimerOrganisation)
+    // Créer les nouvelles (celles sans id)
+    const nouvellesOrgs = this.courseData.challengeOrganisations.filter(o => !o.id);
+    for (const org of nouvellesOrgs) {
+        await challengeOrganisationService.createOrganisation({
+            id_course: courseId,
+            nom:       org.nom,
+            type:      org.type,
+        });
+    }
+}
 
                 // 4a. Options existantes → modification
                 const optionsExistantes = this.courseData.options.filter(o => o.id);
@@ -852,7 +945,28 @@ export default {
                     }
                 }
             }, 2000);
-        }
+        },
+        ajouterOrganisation() {
+    if (!this.nouvelleOrg.nom.trim()) return;
+    const doublon = this.courseData.challengeOrganisations.some(
+        o => o.nom.trim().toLowerCase() === this.nouvelleOrg.nom.trim().toLowerCase()
+            && o.type === this.nouvelleOrg.type
+    );
+    if (doublon) return;
+    this.courseData.challengeOrganisations.push({
+        nom:  this.nouvelleOrg.nom.trim(),
+        type: this.nouvelleOrg.type,
+    });
+    this.nouvelleOrg.nom = '';
+},
+ 
+async supprimerOrganisation(index, org) {
+    // Si l'org a un id DB → supprimer via API (en mode édition)
+    if (org.id && this.isEditMode) {
+        await challengeOrganisationService.deleteOrganisation(org.id);
+    }
+    this.courseData.challengeOrganisations.splice(index, 1);
+}
     },
     async mounted() {
         initDropdowns();

@@ -22,7 +22,7 @@
 
         <div v-if="typeSelectionne" class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
             <p v-if="typeSelectionne.id === 'challenge'">
-                Le <strong>Challenge</strong> permet à chaque participant de s'inscrire individuellement et de disputer la course en compétition directe.
+                Le <strong>Challenge</strong> permet de participer en compétition au nom de ton université ou entreprise. Tu seras inscrit individuellement mais rattaché à ton organisation.
             </p>
             <p v-else-if="typeSelectionne.id === 'relais'">
                 Le <strong>Relais</strong> permet de constituer une équipe. Chaque membre effectue une partie du parcours avant de passer le relais au suivant.
@@ -51,12 +51,18 @@ export default {
     computed: {
         typesCourse() {
             const types = [];
-            if (this.course.type === 'Groupe')  types.push({ id: 'groupe',     nom: 'Groupe',      icone: 'mdi:account-group' });
-            if (this.course.type === 'Relais')  types.push({ id: 'relais',     nom: 'Relais',      icone: 'mdi:account-group-outline' });
-            if (this.course.is_challenge)       types.push({ id: 'challenge',  nom: 'Challenge',   icone: 'mdi:trophy-outline' });
-            if (!this.course.is_challenge && this.course.type !== 'Relais' && this.course.type !== 'Groupe') {
+
+            // Individuel est toujours disponible (sauf si la course est exclusivement Groupe ou Relais)
+            if (this.course.type !== 'Relais' && this.course.type !== 'Groupe') {
                 types.push({ id: 'individuel', nom: 'Individuel', icone: 'mdi:account-outline' });
             }
+
+            if (this.course.type === 'Groupe') types.push({ id: 'groupe',    nom: 'Groupe',    icone: 'mdi:account-group' });
+            if (this.course.type === 'Relais') types.push({ id: 'relais',    nom: 'Relais',    icone: 'mdi:account-group-outline' });
+
+            // Challenge disponible uniquement si l'organisateur l'a activé
+            if (this.course.is_challenge)      types.push({ id: 'challenge', nom: 'Challenge', icone: 'mdi:trophy-outline' });
+
             if (types.length === 0) types.push({ id: 'individuel', nom: 'Individuel', icone: 'mdi:account-outline' });
             return types;
         },
@@ -69,8 +75,15 @@ export default {
         selectionner(type) { this.typeSelectionne = type; }
     },
     mounted() {
+        // Si un seul choix → auto-sélection (pas de choix à faire)
         if (this.typesCourse.length === 1 && !this.typeSelectionne) {
             this.typeSelectionne = this.typesCourse[0];
+            return;
+        }
+        // Sinon pré-sélectionner "Individuel" par défaut
+        if (!this.typeSelectionne) {
+            const defaut = this.typesCourse.find(t => t.id === 'individuel') ?? this.typesCourse[0];
+            this.typeSelectionne = defaut;
         }
     }
 }

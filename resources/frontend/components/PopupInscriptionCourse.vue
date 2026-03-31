@@ -55,6 +55,7 @@
                             :participants="tousLesParticipants"
                             :chargement="chargementParticipants"
                             :type-selectionne="inscription.type"
+                            :course-id="course.id"
                             v-model="inscription.participant"
                             v-model:groupeValue="inscription.groupeEphemere"
                             @creer-participant="ajouterParticipantSupplementaire"
@@ -114,7 +115,8 @@
                         </div>
 
                         <!-- Récap participants (individuel / relais) -->
-                        <div v-if="inscription.participant.length > 0" class="mt-3 flex flex-col gap-1">
+                        <!-- Récap participants (individuel uniquement, pas challenge) -->
+<div v-if="inscription.participant.length > 0 && inscription.type?.id !== 'challenge'" class="mt-3 flex flex-col gap-1">
                             <div v-for="p in inscription.participant" :key="p.id" class="flex items-center gap-2 text-xs text-gray-500">
                                 <Icon icon="mdi:account-outline" class="w-4 h-4 shrink-0" />
                                 <span>{{ p.prenom }} {{ p.nom }}</span>
@@ -248,6 +250,12 @@ export default {
         return !!this.inscription.type;
     }
     if (this.etape === formulaireEtape.PARTICIPANTS) {
+        // Challenge : besoin du groupe éphémère (organisation) + 1 participant
+        if (this.inscription.type?.id === 'challenge') {
+            const orgOk = !!(this.inscription.groupeEphemere?.nom?.trim());
+            const participantOk = this.inscription.participant.length > 0;
+            return orgOk && participantOk;
+        }
         if (this.inscription.type?.id === 'groupe' || this.inscription.type?.id === 'relais') {
             const nom = !!(this.inscription.groupeEphemere?.nom?.trim());
             const membres = this.inscription.groupeEphemere?.participants?.length ?? 0;
@@ -305,7 +313,7 @@ export default {
             if (this.estDerniereEtape) {
                 let id_groupe = null;
 
-                // Si mode groupe : créer le groupe en DB maintenant
+                // Si mode groupe ou relais : créer le groupe en DB maintenant
                 if ((this.inscription.type?.id === 'groupe' || this.inscription.type?.id === 'relais') 
     && this.inscription.groupeEphemere) {
                     this.creationGroupe = true;
@@ -350,10 +358,39 @@ export default {
 }
                 }
 
+                // Challenge : créer ou rejoindre le groupe organisation
+                if (this.inscription.type?.id === 'challenge' && this.inscription.groupeEphemere) {
+                    this.creationGroupe = true;
+                    try {
+                        const groupeResp = await groupeService.createGroupe({
+                            nom:       this.inscription.groupeEphemere.nom,
+                            type:      this.inscription.groupeEphemere.type_groupe ?? 'Groupe',
+                            id_course: this.course.id,
+                        });
+                        id_groupe = groupeResp.data.id;
+                    } catch (e) {
+                        // Si groupe déjà existant (UNIQUE), on le récupère
+                        if (e.response?.status === 500 && e.response?.data?.message?.includes('UNIQUE')) {
+                            console.info('Groupe challenge déjà existant, on y rattache le participant.');
+                            // Le backend devra gérer le rattachement via l'inscription
+                        } else {
+                            this.erreurGroupe = 'Impossible de créer le groupe challenge. Veuillez réessayer.';
+                            this.creationGroupe = false;
+                            return;
+                        }
+                    } finally {
+                        this.creationGroupe = false;
+                    }
+                }
+
+                const nomEquipe = this.inscription.type?.id === 'challenge'
+                    ? this.inscription.groupeEphemere?.nom ?? null
+                    : this.inscription.groupeEphemere?.nom ?? null;
+
                 this.$emit('ajouter-panier', {
                     ...this.inscription,
                     id_groupe,
-                    nom_equipe:         this.inscription.groupeEphemere?.nom ?? null,
+                    nom_equipe:         nomEquipe,
                     tarif:              this.totalInscription,
                     choix_options:      this.choixOptionsPourPanier,
                     reponses_questions: this.reponsesPourPanier,

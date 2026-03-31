@@ -18,6 +18,7 @@ use App\Http\Controllers\OptionQuestionController;
 use App\Http\Controllers\CourseQuestionController;
 use App\Http\Controllers\ChoixOptionController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\ChallengeOrganisationController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -99,6 +100,8 @@ use App\Http\Controllers\DocumentController;
             Route::post('/inscriptions/{id_inscription}/documents', [DocumentController::class, 'storeForInscription']);
             Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
             Route::delete('/documents/{id}', [DocumentController::class, 'destroyParticipant']);
+
+            Route::get('/courses/{id_course}/challenge-organisations', [ChallengeOrganisationController::class, 'index']);
         });
 
         // Gestion du rôle Administrateur par Middleware
@@ -188,5 +191,9 @@ use App\Http\Controllers\DocumentController;
             // Documents (admin)
             Route::get('/inscriptions/{id_inscription}/documents', [DocumentController::class, 'indexByInscription']);
             Route::delete('/documents/{id}', [DocumentController::class, 'destroyAdmin']);
+
+            Route::get('/courses/{id_course}/challenge-organisations', [ChallengeOrganisationController::class, 'index']);
+Route::post('/challenge-organisations', [ChallengeOrganisationController::class, 'store']);
+Route::delete('/challenge-organisations/{id}', [ChallengeOrganisationController::class, 'destroy']);
         });
     });
