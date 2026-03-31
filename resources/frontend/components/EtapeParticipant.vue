@@ -91,7 +91,160 @@
         </template>
 
         <!-- ============================================================
-             MODE INDIVIDUEL / CHALLENGE (comportement original inchangé)
+             MODE CHALLENGE : type organisation + dropdown + participant
+             ============================================================ -->
+        <template v-else-if="estChallenge">
+
+            <h2 class="text-base font-semibold text-heading">
+                Inscrivez-vous au Challenge
+            </h2>
+
+            <!-- Étudiant ou Entreprise -->
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium text-gray-700">Type de participation</label>
+                <div class="flex gap-3">
+                    <button
+                        type="button"
+                        @click="challengeData.typeOrganisation = 'Groupe'; challengeData.orgSelectionnee = null; challengeData.orgLibre = ''; chargerOrganisations()"
+                        :class="[
+                            'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all',
+                            challengeData.typeOrganisation === 'Groupe'
+                                ? 'border-tertiary bg-tertiary text-primary'
+                                : 'border-gray-200 bg-white text-primary hover:border-tertiary'
+                        ]"
+                    >
+                        <Icon icon="mdi:school-outline" class="w-5 h-5" />
+                        Étudiant
+                    </button>
+                    <button
+                        type="button"
+                        @click="challengeData.typeOrganisation = 'Entreprise'; challengeData.orgSelectionnee = null; challengeData.orgLibre = ''; chargerOrganisations()"
+                        :class="[
+                            'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all',
+                            challengeData.typeOrganisation === 'Entreprise'
+                                ? 'border-tertiary bg-tertiary text-primary'
+                                : 'border-gray-200 bg-white text-primary hover:border-tertiary'
+                        ]"
+                    >
+                        <Icon icon="mdi:office-building-outline" class="w-5 h-5" />
+                        Entreprise
+                    </button>
+                </div>
+            </div>
+
+            <!-- Liste des organisations pré-définies -->
+            <div v-if="challengeData.typeOrganisation" class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700">
+                    {{ challengeData.typeOrganisation === 'Groupe' ? "Votre université / école" : "Votre entreprise" }}
+                </label>
+
+                <!-- Chargement -->
+                <div v-if="challengeData.chargementOrgs" class="text-sm text-gray-400 text-center py-2">
+                    Chargement...
+                </div>
+
+                <!-- Liste des orgs filtrées par type -->
+                <div v-else class="grid grid-cols-2 gap-2">
+                    <button
+                        v-for="org in organisationsFiltrees"
+                        :key="org.id"
+                        type="button"
+                        @click="selectionnerOrg(org)"
+                        :class="[
+                            'flex items-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-left',
+                            challengeData.orgSelectionnee?.id === org.id
+                                ? 'border-tertiary bg-tertiary text-primary'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-tertiary'
+                        ]"
+                    >
+                        <Icon icon="mdi:office-building-outline" class="w-4 h-4 shrink-0" v-if="org.type === 'Entreprise'" />
+                        <Icon icon="mdi:school-outline" class="w-4 h-4 shrink-0" v-else />
+                        {{ org.nom }}
+                    </button>
+
+                    <!-- Bouton "Mon organisation n'est pas dans la liste" -->
+                    <button
+                        type="button"
+                        @click="challengeData.modeLibre = !challengeData.modeLibre; challengeData.orgSelectionnee = null"
+                        class="flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 text-sm text-gray-400 hover:border-orange-300 hover:text-orange-500 transition-all text-left"
+                    >
+                        <Icon icon="mdi:help-circle-outline" class="w-4 h-4 shrink-0" />
+                        Pas dans la liste
+                    </button>
+                </div>
+
+                <!-- Aucune organisation définie -->
+                <p v-if="!challengeData.chargementOrgs && organisationsFiltrees.length === 0 && !challengeData.modeLibre"
+                    class="text-xs text-gray-400 italic">
+                    Aucune organisation définie pour cette course. Entrez votre nom ci-dessous.
+                </p>
+
+                <!-- Fallback : saisie libre avec avertissement -->
+                <div v-if="challengeData.modeLibre || organisationsFiltrees.length === 0" class="flex flex-col gap-2 mt-1">
+                    <input
+                        v-model="challengeData.orgLibre"
+                        type="text"
+                        :placeholder="challengeData.typeOrganisation === 'Groupe' ? 'Ex : UNIGE, HEG, HES-SO...' : 'Ex : Nestlé, CERN, SBB...'"
+                        class="w-full border border-orange-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 bg-white"
+                        @input="emitChallenge"
+                    />
+                    <div class="flex items-start gap-2 text-xs text-orange-600 bg-orange-50 rounded-xl px-3 py-2">
+                        <Icon icon="mdi:alert-circle-outline" class="w-4 h-4 shrink-0 mt-0.5" />
+                        <p>Vérifiez bien l'orthographe. Un nom différent créera un groupe séparé. En cas de doute, contactez l'organisateur.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sélection du participant (1 seul, affiché seulement si org choisie) -->
+            <div v-if="nomOrganisationChallenge" class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700">Participant</label>
+
+                <div v-if="chargement" class="text-sm text-gray-400 text-center py-2">Chargement...</div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button
+                        v-for="participant in tousLesParticipants"
+                        :key="participant.id"
+                        type="button"
+                        @click="toggleSelectionnerChallenge(participant)"
+                        @mouseenter="hoveredId = participant.id"
+                        @mouseleave="hoveredId = null"
+                        :class="[
+                            'flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-left bg-white',
+                            estSelectionne(participant.id)
+                                ? 'border-tertiary text-tertiary-900'
+                                : 'border-gray-200 text-primary hover:border-tertiary hover:text-tertiary-900'
+                        ]"
+                    >
+                        <Icon icon="mdi:account-outline" class="w-5 h-5 shrink-0"
+                            :class="estSelectionne(participant.id) || hoveredId === participant.id ? 'text-tertiary-900' : 'text-gray-400'" />
+                        <span>{{ participant.prenom }} {{ participant.nom }}</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="ouvrirFormulaire"
+                        @mouseenter="hoveredNouveau = true"
+                        @mouseleave="hoveredNouveau = false"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 text-sm font-medium text-gray-500 hover:border-tertiary hover:text-tertiary-900 transition-all text-left bg-white"
+                    >
+                        <Icon icon="mdi:account-plus-outline" class="w-5 h-5 shrink-0"
+                            :class="hoveredNouveau ? 'text-tertiary-900' : 'text-gray-400'" />
+                        <span>Nouvelle personne</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Info -->
+            <div class="flex items-start gap-2 text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2">
+                <Icon icon="mdi:information-outline" class="w-4 h-4 shrink-0 mt-0.5" />
+                <p>Tous les participants inscrits sous le même nom seront regroupés dans le classement challenge.</p>
+            </div>
+
+        </template>
+
+        <!-- ============================================================
+             MODE INDIVIDUEL / comportement original
              ============================================================ -->
         <template v-else>
             <h2 class="text-base font-semibold text-heading">
@@ -261,6 +414,7 @@
 import { Icon } from '@iconify/vue';
 import api from '../services/api';
 import participantService from '../services/participantService';
+import challengeOrganisationService from '../services/challengeOrganisationService';
 const formVide = () => ({
     nom: '', prenom: '', date_naissance: '', adresse: '',
     code_postal: '', ville: '', pays: 'Suisse',
@@ -278,9 +432,26 @@ export default {
         groupeValue:     { type: Object,  default: null },
     },
     emits: ['update:modelValue', 'update:groupeValue', 'creer-participant'],
+    props: {
+        participants:    { type: Array,   default: () => [] },
+        chargement:      { type: Boolean, default: false },
+        typeSelectionne: { type: Object,  default: null },
+        modelValue:      { type: Array,   default: () => [] },
+        groupeValue:     { type: Object,  default: null },
+        courseId:        { type: [Number, String], default: null }, // ← nouveau : id de la course
+    },
+    emits: ['update:modelValue', 'update:groupeValue', 'creer-participant'],
     data() {
         return {
             groupeData: { nom: '', participants: [] },
+            challengeData: {
+                typeOrganisation: null,
+                orgSelectionnee:  null,   // org de la liste
+                orgLibre:         '',     // saisie libre
+                modeLibre:        false,  // bascule vers saisie libre
+                chargementOrgs:   false,
+            },
+            organisationsChallenge: [], // liste chargée depuis l'API
             formulaireOuvert: false,
             emailRecherche: '',
             participantTrouve: null,
@@ -291,9 +462,25 @@ export default {
         };
     },
     computed: {
-        estRelais() { return this.typeSelectionne?.id === 'relais'; },
-        estGroupe()  { return this.typeSelectionne?.id === 'groupe'; },
+        estRelais()    { return this.typeSelectionne?.id === 'relais'; },
+        estGroupe()    { return this.typeSelectionne?.id === 'groupe'; },
+        estChallenge() { return this.typeSelectionne?.id === 'challenge'; },
         tousLesParticipants() { return this.participants; },
+
+        // Organisations filtrées par type sélectionné (Groupe/Entreprise)
+        organisationsFiltrees() {
+            if (!this.challengeData.typeOrganisation) return [];
+            return this.organisationsChallenge.filter(
+                o => o.type === this.challengeData.typeOrganisation
+            );
+        },
+
+        // Nom final de l'organisation (liste ou libre)
+        nomOrganisationChallenge() {
+            if (this.challengeData.orgSelectionnee) return this.challengeData.orgSelectionnee.nom;
+            if (this.challengeData.modeLibre || this.organisationsFiltrees.length === 0) return this.challengeData.orgLibre.trim();
+            return '';
+        },
 
         limiteGroupe() {
             if (this.estRelais) return { min: 2, max: 2 };
@@ -334,6 +521,40 @@ export default {
                 ...this.groupeData,
                 participants: [...this.groupeData.participants]
             });
+        },
+        emitChallenge(participant = null) {
+    const nom = this.nomOrganisationChallenge;
+    const participants = participant ? [participant] : [...this.selectionnes];
+    if (this.challengeData.typeOrganisation && nom) {
+        this.$emit('update:groupeValue', {
+            nom,
+            type_groupe: this.challengeData.typeOrganisation,
+            participants,
+        });
+    }
+},
+        selectionnerOrg(org) {
+            this.challengeData.orgSelectionnee = org;
+            this.challengeData.modeLibre       = false;
+            this.challengeData.orgLibre        = '';
+            this.emitChallenge();
+        },
+        toggleSelectionnerChallenge(participant) {
+    this.selectionnes = [participant];
+    this.$emit('update:modelValue', [participant]);  // ← émet directement
+    this.emitChallenge(participant);
+},
+        async chargerOrganisations() {
+            if (!this.courseId) return;
+            this.challengeData.chargementOrgs = true;
+            try {
+                const resp = await challengeOrganisationService.getOrganisations(this.courseId);
+                this.organisationsChallenge = resp.data;
+            } catch (e) {
+                console.error('Erreur chargement organisations challenge:', e);
+            } finally {
+                this.challengeData.chargementOrgs = false;
+            }
         },
         estDansGroupe(id) { return this.groupeData.participants.some(p => p.id === id); },
         numeroMembre(id) {
@@ -436,6 +657,20 @@ export default {
                 if ((oldType?.id === 'groupe' || oldType?.id === 'relais') &&
                     newType?.id !== 'groupe' && newType?.id !== 'relais') {
                     this.groupeData = { nom: '', participants: [] };
+                    this.$emit('update:groupeValue', null);
+                }
+                // Reset challenge data si on change de type
+                if (newType?.id !== 'challenge') {
+                    this.challengeData = {
+                        typeOrganisation: null,
+                        orgSelectionnee:  null,
+                        orgLibre:         '',
+                        modeLibre:        false,
+                        chargementOrgs:   false,
+                    };
+                    this.organisationsChallenge = [];
+                }
+                if (newType?.id === 'challenge') {
                     this.$emit('update:groupeValue', null);
                 }
             }
