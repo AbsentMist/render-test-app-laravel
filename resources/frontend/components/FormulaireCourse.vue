@@ -31,41 +31,47 @@
 
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
-            <div id="datepicker" date-rangepicker class="flex items-center gap-4">
+            <div class="flex items-center gap-4">
                 <div class="w-full">
-                    <label for="datepicker" class="block mb-2.5 text-sm font-medium text-heading">Date de début</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <Icon icon="mdi:calendar" class="w-4 h-4 text-body" />
-                        </div>
-                        <input id="datepicker-start" name="dateStart" type="text" class="block w-full ps-9 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body" placeholder="Select date start">
-                    </div>
+                    <label for="datepicker-start" class="block mb-2.5 text-sm font-medium text-heading">Date de début</label>
+                    <input
+                        id="datepicker-start"
+                        v-model="courseData.date.start"
+                        name="dateStart"
+                        type="date"
+                        class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
+                    >
                 </div>
                 <div class="w-full">
                     <label for="datepicker-end" class="block mb-2.5 text-sm font-medium text-heading">Date de fin</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <Icon icon="mdi:calendar" class="w-4 h-4 text-body" />
-                        </div>
-                        <input id="datepicker-end" name="dateEnd" type="text" class="block w-full ps-9 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body" placeholder="Select date end">
-                    </div>
+                    <input
+                        id="datepicker-end"
+                        v-model="courseData.date.end"
+                        :min="courseData.date.start || undefined"
+                        name="dateEnd"
+                        type="date"
+                        class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
+                    >
                 </div>
             </div>
-            <div id="inscriptionpicker" date-rangepicker class="flex justify-between items-center gap-4 my-4">
-                <label for="inscriptionpicker" class="block mb-2.5 text-sm font-medium text-heading">Interval d'inscription</label>
+            <div class="flex justify-between items-center gap-4 my-4">
+                <label for="inscriptionpicker-start" class="block mb-2.5 text-sm font-medium text-heading">Interval d'inscription</label>
                 <div class="flex row gap-4 basis-1/2">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <Icon icon="mdi:calendar" class="w-4 h-4 text-body" />
-                        </div>
-                        <input id="inscriptionpicker-start" name="inscriptionStart" type="text" class="block w-full ps-9 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body" placeholder="Select date start">
-                    </div>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <Icon icon="mdi:calendar" class="w-4 h-4 text-body" />
-                        </div>
-                        <input id="inscriptionpicker-end" name="inscriptionEnd" type="text" class="block w-full ps-9 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body" placeholder="Select date end">
-                    </div>
+                    <input
+                        id="inscriptionpicker-start"
+                        v-model="courseData.date.inscriptionStart"
+                        name="inscriptionStart"
+                        type="date"
+                        class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
+                    >
+                    <input
+                        id="inscriptionpicker-end"
+                        v-model="courseData.date.inscriptionEnd"
+                        :min="courseData.date.inscriptionStart || undefined"
+                        name="inscriptionEnd"
+                        type="date"
+                        class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
+                    >
                 </div>
             </div>
 
@@ -75,11 +81,11 @@
             <div class="flex flex-col-3 gap-4 mb-4">
                 <div class="w-full">
                     <label for="distance" class="block mb-2.5 text-sm font-medium text-heading">Distance</label>
-                    <input type="text" id="distance" v-model="courseData.distance" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                    <input type="number" id="distance" v-model="courseData.distance" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
                 </div>
                 <div class="w-full">
                     <label for="tarif" class="block mb-2.5 text-sm font-medium text-heading">Tarif</label>
-                    <input type="text" id="tarif" v-model="courseData.tarif" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                    <input type="number" id="tarif" v-model="courseData.tarif" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
                 </div>
                 <div class="w-full">
                     <label for="tarifInfo" class="block mb-2.5 text-sm font-medium text-heading">Information tarif</label>
@@ -124,27 +130,35 @@
 
             <div class="flex justify-between items-center gap-4 my-4">
                 <label for="maxRunners" class="basis-1/3 block mb-2.5 text-sm font-medium text-heading">Nombre de coureur maximum</label>
-                <input type="text" id="maxRunners" v-model="courseData.maxRunners" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                <input type="number" id="maxRunners" v-model="courseData.maxRunners" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+            </div>
+            <div class="flex justify-between items-center gap-4 my-4">
+                <label for="maxNbPersonne" class="basis-1/3 block mb-2.5 text-sm font-medium text-heading">
+                    Nombre de personnes max par groupe
+                </label>
+                <input type="number" id="maxNbPersonne" v-model="courseData.maxNbPersonne" min="1"
+                    class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base
+                        focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs" />
             </div>
            
             <div class="flex flex-col-2 gap-4 mb-4">
                 <div class="w-full">
                     <label for="firstDossard" class="block mb-2.5 text-sm font-medium text-heading">Premier dossard</label>
-                    <input type="text" id="firstDossard" v-model="courseData.dossard.first" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                    <input type="number" id="firstDossard" v-model="courseData.dossard.first" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
                 </div>
                 <div class="w-full">
                     <label for="lastDossard" class="block mb-2.5 text-sm font-medium text-heading">Dernier dossard</label>
-                    <input type="text" id="lastDossard" v-model="courseData.dossard.last" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                    <input type="number" id="lastDossard" v-model="courseData.dossard.last" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
                 </div>
             </div>
             <div class="flex flex-col-3 gap-4 mb-4">
                 <div class="w-full">
                     <label for="ageMin" class="block mb-2.5 text-sm font-medium text-heading">Limite âge min</label>
-                    <input type="text" id="ageMin" v-model="courseData.age.min" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                    <input type="number" id="ageMin" v-model="courseData.age.min" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
                 </div>
                 <div class="w-full">
                     <label for="ageMax" class="block mb-2.5 text-sm font-medium text-heading">Limite âge max</label>
-                    <input type="text" id="ageMax" v-model="courseData.age.max" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                    <input type="number" id="ageMax" v-model="courseData.age.max" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
                 </div>
                 <div class="w-full">
                     <label for="conditionMineur" class="block mb-2.5 text-sm font-medium text-heading">Condition participant mineur</label>
@@ -397,7 +411,7 @@
 
 <script>
 import { Icon } from '@iconify/vue';
-import { initDatepickers, initDropdowns } from 'flowbite';
+import { initDropdowns } from 'flowbite';
 import PopupConfirmation from './PopupConfirmation.vue';
 import OptionList from './OptionList.vue';
 import OptionTemplate from './OptionTemplate.vue';
@@ -543,6 +557,18 @@ export default {
         }
     },
     watch: {
+        'courseData.date.start'(newStart) {
+            if (!newStart) return;
+            if (!this.courseData.date.end || this.courseData.date.end < newStart) {
+                this.courseData.date.end = newStart;
+            }
+        },
+        'courseData.date.inscriptionStart'(newStart) {
+            if (!newStart) return;
+            if (!this.courseData.date.inscriptionEnd || this.courseData.date.inscriptionEnd < newStart) {
+                this.courseData.date.inscriptionEnd = newStart;
+            }
+        },
         'courseData.parameters.avertissement'(val) {
             if (!val) this.courseData.avertissement = { contenu: '' };
         },
@@ -578,10 +604,6 @@ export default {
                 challengeOrganisations: [],
             };
             this.etape = formulaireEtape.GENERAL;
-            ['datepicker-start', 'datepicker-end', 'inscriptionpicker-start', 'inscriptionpicker-end'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
-            });
         },
 
         async chargerDonneesCourse() {
@@ -612,24 +634,16 @@ export default {
                     this.courseData.type = { name: course.type, id: "" };
                 }
                 if (course.date_debut) {
-                    this.courseData.date.start = new Date(course.date_debut);
-                    const el = document.getElementById('datepicker-start');
-                    if (el) el.value = course.date_debut;
+                    this.courseData.date.start = String(course.date_debut).split('T')[0];
                 }
                 if (course.date_fin) {
-                    this.courseData.date.end = new Date(course.date_fin);
-                    const el = document.getElementById('datepicker-end');
-                    if (el) el.value = course.date_fin;
+                    this.courseData.date.end = String(course.date_fin).split('T')[0];
                 }
                 if (course.debut_inscription) {
-                    this.courseData.date.inscriptionStart = new Date(course.debut_inscription);
-                    const el = document.getElementById('inscriptionpicker-start');
-                    if (el) el.value = course.debut_inscription;
+                    this.courseData.date.inscriptionStart = String(course.debut_inscription).split('T')[0];
                 }
                 if (course.fin_inscription) {
-                    this.courseData.date.inscriptionEnd = new Date(course.fin_inscription);
-                    const el = document.getElementById('inscriptionpicker-end');
-                    if (el) el.value = course.fin_inscription;
+                    this.courseData.date.inscriptionEnd = String(course.fin_inscription).split('T')[0];
                 }
 
                 this.courseData.parameters.actif = (course.is_actif == 1 || course.is_actif === true);
@@ -786,13 +800,12 @@ export default {
                 const payload = {
                     id_evenement:      this.courseData.event.id,
                     nom:               this.courseData.name,
-                    date_debut:        this.courseData.date.start?.toISOString ? this.courseData.date.start.toISOString().split('T')[0] : null,
-                    date_fin:          this.courseData.date.end?.toISOString ? this.courseData.date.end.toISOString().split('T')[0] : null,
-                    debut_inscription: this.courseData.date.inscriptionStart?.toISOString ? this.courseData.date.inscriptionStart.toISOString().split('T')[0] : null,
-                    fin_inscription:   this.courseData.date.inscriptionEnd?.toISOString ? this.courseData.date.inscriptionEnd.toISOString().split('T')[0] : null,
+                    date_debut:        this.courseData.date.start || null,
+                    date_fin:          this.courseData.date.end || null,
+                    debut_inscription: this.courseData.date.inscriptionStart || null,
+                    fin_inscription:   this.courseData.date.inscriptionEnd || null,
                     tarif:             this.courseData.tarif,
                     max_inscription:   this.courseData.maxRunners,
-                    max_nb_personne:  this.courseData.maxNbPersonne || null, 
                     premier_dossard:   this.courseData.dossard.first,
                     dernier_dossard:   this.courseData.dossard.last,
                     age_minimum:       this.courseData.age.min,
@@ -956,23 +969,7 @@ async supprimerOrganisation(index, org) {
 }
     },
     async mounted() {
-        initDatepickers();
         initDropdowns();
-
-        const datepickerFields = [
-            { id: 'datepicker-start',        key: 'start' },
-            { id: 'datepicker-end',          key: 'end' },
-            { id: 'inscriptionpicker-start', key: 'inscriptionStart' },
-            { id: 'inscriptionpicker-end',   key: 'inscriptionEnd' },
-        ];
-        datepickerFields.forEach(({ id, key }) => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('changeDate', (e) => {
-                    this.courseData.date[key] = e.detail.date;
-                });
-            }
-        });
 
         try {
             const response = await evenementOrganisateurService.getAllEvenements();

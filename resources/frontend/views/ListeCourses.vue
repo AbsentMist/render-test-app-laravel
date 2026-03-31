@@ -16,7 +16,10 @@
 
   <div class="p-6">
     <div v-if="chargement" class="text-center py-10">Chargement des courses...</div>
-    
+    <div v-else-if="courses.length === 0" class="flex flex-col items-center rounded-xl border border-default-medium bg-neutral-secondary-medium px-6 py-10 text-center">
+      <Icon icon="mdi:info" class="w-8 h-8 text-gray-500 mx-auto mb-4"/>  
+      <p class="text-heading font-medium">Cet évènement ne possède encore aucune course.</p>
+    </div>    
     <div v-else class="flex flex-col gap-4">
       <MiniatureCourse 
         :courses="coursesFiltrees"

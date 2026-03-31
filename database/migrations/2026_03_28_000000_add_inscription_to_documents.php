@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('Document', 'id_inscription')) {
+            return;
+        }
+
         Schema::table('Document', function (Blueprint $table) {
             // Ajouter la colonne id_inscription
             $table->foreignId('id_inscription')->nullable()->after('id_participant')->constrained('Inscription')->onDelete('cascade');
@@ -16,8 +20,16 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (!Schema::hasColumn('Document', 'id_inscription')) {
+            return;
+        }
+
         Schema::table('Document', function (Blueprint $table) {
-            $table->dropForeignKeyIfExists(['id_inscription_foreign']);
+            try {
+                $table->dropForeign(['id_inscription']);
+            } catch (\Throwable $e) {
+                // Ignore si la contrainte n'existe déjà plus.
+            }
             $table->dropColumn('id_inscription');
         });
     }
