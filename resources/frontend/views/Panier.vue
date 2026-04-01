@@ -307,11 +307,11 @@ const procederPaiement = async () => {
               id_groupe:            idGroupeFinal,
               id_ancienne_inscription: article.ancienneInscriptionId || null,
               code_participant:     article.codeParticipation || null,
+              participe_challenge:  article.type?.id === 'challenge',
+              type_challenge:       article.type?.id === 'challenge' ? article.groupeEphemere?.type_groupe : null,
+              equipe_challenge:     article.type?.id === 'challenge' ? article.nom_equipe : null,
           });
-          console.log('response.data complète:', response.data);
 const id_inscription = response.data.inscription?.id ?? response.data.id;
-console.log('id_inscription:', id_inscription);
-console.log('choix_options:', article.choix_options);
           await finaliserInscription(id_inscription, article);
       });
 

@@ -29,6 +29,9 @@ class Inscription extends Model
         'montant_rabais',
         'avertissement_valide',
         'date_paiement',
+        'participe_challenge',  
+        'type_challenge',       
+        'equipe_challenge', 
     ];
 
      // RELATIONS (BELONGS TO - "Appartient à")
