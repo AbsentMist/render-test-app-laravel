@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Inscription;
 use App\Models\Course;
 use App\Models\Dossard;
+use App\Models\ChoixOption;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Participant;
@@ -293,19 +294,33 @@ class InscriptionController extends Controller
             return response()->json(['message' => 'Accès non autorisé.'], 403);
         }
 
-        
-         //GESTION UPGRADE / DOWNGRADE
-        
-        // Modification des informations simples (Tâche 7.1)
+        // Modification des informations simples
         $validatedData = $request->validate([
             'id_groupe' => 'sometimes|nullable|exists:Groupe,id',
             'id_document' => 'sometimes|nullable|exists:Document,id',
-            'code_participant' => 'sometimes|nullable|string|unique:Inscription,code_participant,' . $inscription->id, 
+            'code_participant' => 'sometimes|nullable|string|unique:Inscription,code_participant,' . $inscription->id,
+            'choix_options' => 'sometimes|array',
+            'choix_options.*.id_option' => 'required_with:choix_options|exists:Options,id',
+            'choix_options.*.quantite' => 'sometimes|integer|min:0',
         ]);
 
-        $inscription->update($validatedData);
+        // Mise à jour des champs simples
+        $inscription->update(array_intersect_key($validatedData, array_flip(['id_groupe', 'id_document', 'code_participant'])));
 
-        return response()->json($inscription->load(['course', 'dossard', 'groupe']));
+        // Mise à jour des options : supprimer tous les anciens et créer les nouveaux
+        if (isset($validatedData['choix_options'])) {
+            ChoixOption::where('id_inscription', $inscription->id)->delete();
+            
+            foreach ($validatedData['choix_options'] as $choix) {
+                ChoixOption::create([
+                    'id_inscription' => $inscription->id,
+                    'id_option' => $choix['id_option'],
+                    'quantite' => $choix['quantite'] ?? null,
+                ]);
+            }
+        }
+
+        return response()->json($inscription->load(['course', 'dossard', 'groupe', 'choixOptions.option', 'documentsFournis']));
     }
 
     //DELETE (PARTICIPANT) : Modifie le statut de paiement à "Annulé" au lieu de supprimer l'inscription
