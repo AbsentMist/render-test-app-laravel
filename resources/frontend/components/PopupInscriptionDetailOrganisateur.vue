@@ -184,6 +184,12 @@
                 <p v-else class="font-medium text-gray-800">{{ inscription.montant_rabais }} CHF</p>
               </div>
 
+              <!-- Dossard -->
+              <div>
+                <p class="text-xs text-gray-400">Dossard</p>
+                <p class="font-medium text-gray-800">{{ inscription.dossard?.numero ?? '—' }}</p>
+              </div>
+
               <!-- N° inscription -->
               <div>
                 <p class="text-xs text-gray-400">N° inscription</p>
@@ -226,15 +232,7 @@
                 <p class="text-xs text-gray-400">Équipe challenge</p>
                 <input v-if="isEdit" v-model="inscriptionEdit.equipe_challenge" type="text"
                   class="mt-1 text-sm border border-gray-300 rounded px-2 py-1 w-full bg-white " />
-                <p v-else class="font-medium text-gray-800">{{ inscription.equipe_challenge ?? '—' }}</p>
-              </div>
-
-              <!-- Dossard -->
-              <div>
-                <p class="text-xs text-gray-400">Dossard</p>
-                <input v-if="isEdit" v-model="inscriptionEdit.dossard" type="text"
-                  class="mt-1 text-sm border border-gray-300 rounded px-2 py-1 w-full bg-white " />
-                <p v-else class="font-medium text-gray-800">{{ inscription.dossard.numero ?? '—' }}</p>
+                <p v-else class="font-medium text-gray-800">{{ inscription.groupe?.nom ?? '—' }}</p>
               </div>
 
               <!-- Code participation -->
@@ -260,7 +258,7 @@
           </section>
 
           <!-- Ancienne inscription -->
-          <section v-if="inscription.ancienne_inscription">
+          <section v-if="inscription.ancienne_inscription" class="border-l-2 border-tertiary pl-2">
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:history" class="w-4 h-4" /> Ancienne inscription
             </h3>
@@ -302,11 +300,11 @@
               <div v-if="inscription.ancienne_inscription.groupe || inscription.ancienne_inscription.participant?.equipe_nom" class="space-y-4">
                 <div v-if="inscription.ancienne_inscription.groupe" class="rounded-full py-0.5 px-2 inline-block">
                   <p class="text-xs text-gray-400 mb-1">Groupe</p>
-                  <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.groupe.nom }}</p>
+                  <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.groupe?.nom }}</p>
                 </div>
                 <div v-if="inscription.ancienne_inscription.participant?.equipe_nom">
                   <p class="text-xs text-gray-400 mb-1">Équipe</p>
-                  <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.participant.equipe_nom }}</p>
+                  <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.participant?.equipe_nom }}</p>
                 </div>
               </div>
               <div>
@@ -326,7 +324,7 @@
               </div>
               <div>
                 <p class="text-xs text-gray-400">Dossard</p>
-                <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.dossard ?? '—' }}</p>
+                <p class="font-medium text-gray-800">{{ inscription.ancienne_inscription.dossard?.numero ?? '—' }}</p>
               </div>
             </div>
           </section>
@@ -578,7 +576,7 @@ import choixOptionOrganisateurService         from '../services/choixOptionOrgan
 import reponseQuestionOrganisateurService     from '../services/reponseQuestionOrganisateurService';
 
 export default {
-  name: 'PopupInscriptionDetail',
+  name: 'PopupInscriptionDetailOrganisateur',
   components: { Icon, PopupChangementCourseOrganisateur },
   emits: ['close', 'ajouter-panier', 'modifier-inscription'],
   props: {

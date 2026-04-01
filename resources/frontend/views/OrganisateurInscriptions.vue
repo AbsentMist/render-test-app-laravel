@@ -9,8 +9,9 @@
       <table class="w-full text-sm text-left text-body">
         <thead class="bg-neutral-secondary-medium text-heading text-xs uppercase">
           <tr>
-            <th class="px-4 py-3 text-center">ID</th>
-            <th class="px-4 py-3 text-center">Participant</th>
+            <th class="px-4 py-3 text-center">Dossard</th>
+            <th class="px-4 py-3 text-center">Nom</th>
+            <th class="px-4 py-3 text-center">Prénom</th>
             <th class="px-4 py-3 text-center">Course</th>
             <th class="px-4 py-3 text-center">Date inscription</th>
             <th class="px-4 py-3 text-center">Tarif</th>
@@ -32,8 +33,9 @@
               class="border-t border-default-medium hover:bg-neutral-secondary-medium transition-colors"
               :class="inscription.status_paiement=='Annulé' ? 'bg-accent-600' : ''"
             >
-              <td class="px-4 py-3">{{ inscription.id }}</td>
-              <td class="px-4 py-3">{{ inscription.participant.nom }} {{ inscription.participant.prenom }}</td>
+              <td class="px-4 py-3">{{ inscription.dossard?.numero }}</td>
+              <td class="px-4 py-3">{{ inscription.participant.nom }}</td>
+              <td class="px-4 py-3">{{ inscription.participant.prenom }}</td>
               <td class="px-4 py-3 font-medium text-heading">
                 {{ inscription.course.evenement.nom }} -
                 {{ inscription.course.nom }}
@@ -83,7 +85,7 @@
     :participants="participants" 
     @close="fermerPopupChangement"
   />
-  <PopupInscriptionDetail
+  <PopupInscriptionDetailOrganisateur
     v-if="popupDetail"
     :inscription="inscription.actuel"
     @modifier-inscription="onModifierInscription"
@@ -97,7 +99,7 @@ import Title from '../components/Title.vue'
 import inscriptionService from '../services/inscriptionService.js'
 import PopupAvertissementCourse from '../components/PopupAvertissementCourse.vue';
 import PopupChangementCourseOrganisateur from '../components/PopupChangementCourseOrganisateur.vue';
-import PopupInscriptionDetail from '../components/PopupInscriptionDetail.vue';
+import PopupInscriptionDetailOrganisateur from '../components/PopupInscriptionDetailOrganisateur.vue';
 
 export default {
   components: { 
@@ -105,7 +107,7 @@ export default {
     Icon,
     PopupAvertissementCourse,
     PopupChangementCourseOrganisateur,
-    PopupInscriptionDetail
+    PopupInscriptionDetailOrganisateur
   },
   emits: ['close'],
   data() {
