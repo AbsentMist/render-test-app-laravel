@@ -299,14 +299,6 @@ const procederPaiement = async () => {
       };
 
       const promessesParticipants = listeMembres.map(async (p) => {
-        console.log('Payload inscription:', {
-    participe_challenge: article.type?.id === 'challenge',
-    type_challenge: article.type?.id === 'challenge' ? article.groupeEphemere?.type_groupe : null,
-    equipe_challenge: article.type?.id === 'challenge' ? article.nom_equipe : null,
-    type: article.type,
-    groupeEphemere: article.groupeEphemere,
-    nom_equipe: article.nom_equipe,
-});
           const response = await inscriptionService.createInscription({
               id_course:            article.courseDetails.id,
               id_participant:       p.id,
@@ -319,10 +311,7 @@ const procederPaiement = async () => {
               type_challenge:       article.type?.id === 'challenge' ? article.groupeEphemere?.type_groupe : null,
               equipe_challenge:     article.type?.id === 'challenge' ? article.nom_equipe : null,
           });
-          console.log('response.data complète:', response.data);
 const id_inscription = response.data.inscription?.id ?? response.data.id;
-console.log('id_inscription:', id_inscription);
-console.log('choix_options:', article.choix_options);
           await finaliserInscription(id_inscription, article);
       });
 

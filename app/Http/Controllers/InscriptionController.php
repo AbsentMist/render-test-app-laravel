@@ -46,7 +46,6 @@ class InscriptionController extends Controller
     //POST (PARTICIPANT)
     public function store(Request $request)
     {
-          \Log::info('Données reçues:', $request->all());
         // Validation des données selon la DB
         $validatedData = $request->validate([
             'id_course' => 'required|exists:Course,id',
