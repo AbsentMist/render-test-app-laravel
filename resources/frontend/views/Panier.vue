@@ -299,6 +299,14 @@ const procederPaiement = async () => {
       };
 
       const promessesParticipants = listeMembres.map(async (p) => {
+        console.log('Payload inscription:', {
+    participe_challenge: article.type?.id === 'challenge',
+    type_challenge: article.type?.id === 'challenge' ? article.groupeEphemere?.type_groupe : null,
+    equipe_challenge: article.type?.id === 'challenge' ? article.nom_equipe : null,
+    type: article.type,
+    groupeEphemere: article.groupeEphemere,
+    nom_equipe: article.nom_equipe,
+});
           const response = await inscriptionService.createInscription({
               id_course:            article.courseDetails.id,
               id_participant:       p.id,
@@ -307,6 +315,9 @@ const procederPaiement = async () => {
               id_groupe:            idGroupeFinal,
               id_ancienne_inscription: article.ancienneInscriptionId || null,
               code_participant:     article.codeParticipation || null,
+              participe_challenge:  article.type?.id === 'challenge',
+              type_challenge:       article.type?.id === 'challenge' ? article.groupeEphemere?.type_groupe : null,
+              equipe_challenge:     article.type?.id === 'challenge' ? article.nom_equipe : null,
           });
           console.log('response.data complète:', response.data);
 const id_inscription = response.data.inscription?.id ?? response.data.id;

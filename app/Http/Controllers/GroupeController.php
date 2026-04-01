@@ -12,7 +12,9 @@ use Illuminate\Support\Str;
 
 class GroupeController extends Controller
 {
+    // ==========================================
     // CRUD CLASSIQUE (GROUPES)
+    // ==========================================
 
     public function index()
     {
@@ -51,6 +53,22 @@ class GroupeController extends Controller
         }
 
         $idParticipant = Auth::user()->participant->id;
+
+        // Si un groupe avec ce nom + cette course existe déjà → on le retourne directement
+        // (cas du challenge : plusieurs participants du même groupe s'inscrivent séparément)
+        $groupeExistant = Groupe::where('nom', $validatedData['nom'])
+            ->where('id_course', $validatedData['id_course'] ?? null)
+            ->first();
+
+        if ($groupeExistant) {
+            // Attacher le participant s'il n'est pas déjà membre
+            if (!$groupeExistant->participants()->where('id_participant', $idParticipant)->exists()) {
+                $groupeExistant->participants()->attach($idParticipant, [
+                    'statut' => StatutParticipant::MEMBRE->value
+                ]);
+            }
+            return response()->json($groupeExistant->load('participants'), 200);
+        }
 
         $groupe = Groupe::create($validatedData);
 
@@ -163,33 +181,45 @@ class GroupeController extends Controller
     }
 
     // VALIDATION CODE ENTREPRISE LORS DU PANIER (2.2 & 5.1)
+
     public function verifierCodeEntreprise(Request $request)
     {
         $request->validate([
             'code' => 'required|string'
         ]);
 
-        // Cherche un groupe avec ce code ET qui a le statut "Entreprise"
-        $groupe = Groupe::where('code_entreprise', $request->code)
-                        ->where('type', 'Entreprise')
-                        ->first();
+        $idParticipant = Auth::user()->participant->id;
+
+        //Cherche si un groupe possède ce code
+        $groupe = Groupe::where('code_entreprise', $request->code)->first();
 
         if (!$groupe) {
             return response()->json([
                 'valide' => false, 
-                'message' => 'Aucun groupe ne correspond avec ce code de participation.'
+                'message' => 'Ce code de participation est invalide.'
             ], 404);
         }
 
-        // On renvoie les infos de l'entreprise au frontend pour appliquer la gratuité
+        //Vérifie si le participant fait partie de ce groupe 
+        $estMembre = $groupe->participants()->where('id_participant', $idParticipant)->exists();
+
+        if (!$estMembre) {
+            return response()->json([
+                'valide' => false, 
+                'message' => 'Vous ne faites pas partie du groupe associé à ce code.'
+            ], 403);
+        }
+
+        //Envoie de l'information au frontend pour validation du panier
         return response()->json([
             'valide' => true,
-            'message' => 'Code appliqué ! La course vous est offerte par ' . $groupe->nom . '.',
+            'message' => 'Code appliqué avec succès !',
             'groupe' => $groupe->only(['id', 'nom', 'type']) 
         ], 200);
     }
 
     // GESTION DES INVITATIONS 2.4
+
     // Récupère les invitations en attente pour l'utilisateur connecté
     public function getInvitations()
     {

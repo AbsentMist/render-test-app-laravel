@@ -45,6 +45,7 @@ class InscriptionController extends Controller
     //POST (PARTICIPANT)
     public function store(Request $request)
     {
+          \Log::info('Données reçues:', $request->all());
         // Validation des données selon la DB
         $validatedData = $request->validate([
             'id_course' => 'required|exists:Course,id',
@@ -56,6 +57,9 @@ class InscriptionController extends Controller
             'avertissement_valide' => 'sometimes|boolean',
             //Ajout du champ "en attente" pour les inscriptions relais / entreprises
             'status_paiement'     => 'sometimes|in:Validé,Annulé,En attente',
+            'participe_challenge' => 'sometimes|boolean',
+            'type_challenge'      => 'nullable|string|max:50',
+            'equipe_challenge'    => 'nullable|string|max:100',
             'date_paiement'       => now(),
             'tarif'               => 'sometimes|numeric', // Ajout du champ tarif
         ]);
@@ -150,6 +154,9 @@ class InscriptionController extends Controller
             'status_paiement' => $statutPaiementFinal, // Application du statut dynamique
             'montant_rabais' => 0,
             'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
+            'participe_challenge'  => $validatedData['participe_challenge'] ?? false,
+            'type_challenge'       => $validatedData['type_challenge'] ?? null,
+            'equipe_challenge'     => $validatedData['equipe_challenge'] ?? null,
         ]);
 
         // ANTICIPATION DOSSARD (À développer plus tard)

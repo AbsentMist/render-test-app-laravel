@@ -132,14 +132,7 @@
                 <label for="maxRunners" class="basis-1/3 block mb-2.5 text-sm font-medium text-heading">Nombre de coureur maximum</label>
                 <input type="number" id="maxRunners" v-model="courseData.maxRunners" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
             </div>
-            <div class="flex justify-between items-center gap-4 my-4">
-                <label for="maxNbPersonne" class="basis-1/3 block mb-2.5 text-sm font-medium text-heading">
-                    Nombre de personnes max par groupe
-                </label>
-                <input type="number" id="maxNbPersonne" v-model="courseData.maxNbPersonne" min="1"
-                    class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base
-                        focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs" />
-            </div>
+            
            
             <div class="flex flex-col-2 gap-4 mb-4">
                 <div class="w-full">
