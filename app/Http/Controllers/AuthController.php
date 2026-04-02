@@ -249,12 +249,19 @@ public function mesParticipants(Request $request)
             $idUserRattachement = $nouveauUser->id; // On rattache le futur participant à ce nouveau compte
         }
 
+        // Conversion date naissance format MYSQL/MariaDB
+        $dateNaissance = $request->date_naissance;
+        
+        // On vérifie que la date n'est pas vide et qu'elle contient un slash (selon règle du frontend)
+        if ($dateNaissance && str_contains($dateNaissance, '/')) {
+            $dateNaissance = \Carbon\Carbon::createFromFormat('d/m/Y', $dateNaissance)->format('Y-m-d');
+        }
         // Création du participant
         $participant = Participant::create([
             'id_user'        => $idUserRattachement,
             'nom'            => $request->nom,
             'prenom'         => $request->prenom,
-            'date_naissance' => $request->date_naissance ?? '2000-01-01',
+            'date_naissance' => $dateNaissance,
             'adresse'        => $request->adresse ?? '',
             'code_postal'    => $request->code_postal ?? '',
             'ville'          => $request->ville ?? '',
