@@ -206,6 +206,7 @@ class AuthController extends Controller
             ]
         ], 201);
     }
+
     // Récupère tous les participants liés au compte connecté
 public function mesParticipants(Request $request)
 {
@@ -214,39 +215,70 @@ public function mesParticipants(Request $request)
     return response()->json($participants);
 }
 
-// Crée un nouveau participant lié au compte connecté
-public function creerParticipant(Request $request)
-{
-    $request->validate([
-        'nom'            => 'required|string|max:100',
-        'prenom'         => 'required|string|max:100',
-        'date_naissance' => 'nullable|string|max:20',
-        'adresse'        => 'nullable|string|max:100',
-        'code_postal'    => 'nullable|string|max:10',
-        'ville'          => 'nullable|string|max:100',
-        'pays'           => 'nullable|string|max:100',
-        'telephone'      => 'nullable|string|max:20|unique:Participant,telephone',
-        'email'          => 'nullable|string|max:80',
-        'taille_tshirt'  => 'nullable|string|max:10',
-        'sexe'           => 'nullable|string|max:10',
-    ]);
+// Crée un nouveau participant (Sous-profil ou profil participant + compte Indépendant si email fourni)
+    public function creerParticipant(Request $request)
+    {
+        $request->validate([
+            'nom'            => 'required|string|max:100',
+            'prenom'         => 'required|string|max:100',
+            'date_naissance' => 'nullable|string|max:20',
+            'adresse'        => 'nullable|string|max:100',
+            'code_postal'    => 'nullable|string|max:10',
+            'ville'          => 'nullable|string|max:100',
+            'pays'           => 'nullable|string|max:100',
+            'telephone'      => 'nullable|string|max:20|unique:Participant,telephone',
+            // L'email doit être un email valide et unique dans la table User
+            'email'          => 'nullable|email|max:80|unique:User,email',
+            'taille_tshirt'  => 'nullable|string|max:10',
+            'sexe'           => 'nullable|string|max:10',
+        ]);
 
-    $participant = Participant::create([
-        'id_user'        => $request->user()->id,
-        'nom'            => $request->nom,
-        'prenom'         => $request->prenom,
-        'date_naissance' => $request->date_naissance ?? '2000-01-01',
-        'adresse'        => $request->adresse ?? '',
-        'code_postal'    => $request->code_postal ?? '',
-        'ville'          => $request->ville ?? '',
-        'pays'           => $request->pays ?? 'Suisse',
-        'telephone'      => $request->telephone ?? null,
-        'taille_tshirt'  => $request->taille_tshirt ?? 'M',
-        'sexe'           => $request->sexe ?? 'M',
-        'nationalite'    => 'Suisse',
-    ]);
+        $idUserRattachement = $request->user()->id; // Par défaut : sous-profil du compte connecté
+        $nouveauUser = null;
+        $randomPassword = null;
 
-    return response()->json($participant, 201);
-}
+        // Si un email est fourni, on crée un VRAI compte indépendant
+        if ($request->filled('email')) {
+            $randomPassword = \Illuminate\Support\Str::password(16, true, true, true, false);
+            
+            $nouveauUser = User::create([
+                'email'    => $request->email,
+                'password' => Hash::make($randomPassword),
+            ]);
+
+            $idUserRattachement = $nouveauUser->id; // On rattache le futur participant à ce nouveau compte
+        }
+
+        // Création du participant
+        $participant = Participant::create([
+            'id_user'        => $idUserRattachement,
+            'nom'            => $request->nom,
+            'prenom'         => $request->prenom,
+            'date_naissance' => $request->date_naissance ?? '2000-01-01',
+            'adresse'        => $request->adresse ?? '',
+            'code_postal'    => $request->code_postal ?? '',
+            'ville'          => $request->ville ?? '',
+            'pays'           => $request->pays ?? 'Suisse',
+            'telephone'      => $request->telephone ?? null,
+            'email'          => $request->email ?? null, 
+            'taille_tshirt'  => $request->taille_tshirt ?? 'M',
+            'sexe'           => $request->sexe ?? 'M',
+            'nationalite'    => 'Suisse',
+        ]);
+
+        // ENVOI DE L'EMAIL à l'user
+        if ($nouveauUser) {
+            try {
+                // L'envoi se fera dans les logs en local grâce à ton fichier .env (MAIL_MAILER=log)
+                \Illuminate\Support\Facades\Mail::to($nouveauUser->email)->send(
+                    new \App\Mail\InvitationParticipantMail($participant->load('user'), $randomPassword)
+                );
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Erreur d'envoi d'email d'invitation au nouveau compte : " . $e->getMessage());
+            }
+        }
+
+        return response()->json($participant, 201);
+    }
     
 }
