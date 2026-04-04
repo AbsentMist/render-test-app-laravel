@@ -121,6 +121,7 @@ use App\Http\Controllers\ChallengeOrganisationController;
             Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
 
             // Routes pour la gestion des inscriptions (CRUD)
+            Route::get('/inscriptions/export', [InscriptionController::class, 'exportAdmin']);
             Route::get('/inscriptions', [InscriptionController::class, 'indexAdmin']);
             Route::get('/inscriptions/{id}', [InscriptionController::class, 'show']);
             Route::put('/inscriptions/{id}', [InscriptionController::class, 'updateAdmin']);

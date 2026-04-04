@@ -1,7 +1,7 @@
 # Étape 1 : Image de base PHP avec FPM
 FROM php:8.2-fpm
 
-# Étape 2 : Dépendances système + INSTALLATION DE NODE.JS
+# Étape 2 : Dépendances système + INSTALLATION DE NODE.JS + Dépendances pour GD (utile pour l'exportExcel)
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -9,12 +9,16 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libzip-dev \
     libmariadb-dev \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Étape 3 : Extensions PHP
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath opcache
+# Étape 3 : Extensions PHP (Ajout de la configuration et de l'installation de GD)
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath opcache gd
 
 # Étape 4 : Répertoire de travail
 WORKDIR /var/www/html

@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Participant;
 use App\Models\Groupe;
+use App\Exports\InscriptionsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InscriptionController extends Controller
 {
@@ -350,5 +352,22 @@ class InscriptionController extends Controller
             'message' => 'Inscription annulée avec succès.',
             'inscription' => $inscription
         ]);
+    }
+
+    //GET (ADMIN) - EXPORT fichier Excel/CSV de toutes les inscriptions
+    public function exportAdmin(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user->roles()->where('type', 'Administrateur')->exists()) {
+            return response()->json(['message' => 'Accès non autorisé.'], 403);
+        }
+
+        // On récupère le format depuis l'URL (csv ou xlsx), par défaut xlsx
+        $format = $request->query('format', 'xlsx');
+        
+        $extension = $format === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX;
+        $fileName = 'export_inscriptions_' . date('Y-m-d_H-i') . '.' . $format;
+
+        return Excel::download(new InscriptionsExport(), $fileName, $extension);
     }
 }

@@ -35,5 +35,10 @@ export default {
 
   deleteInscriptionAdmin(id) {
     return api.delete(`/organisateur/inscriptions/${id}`);
+  },
+  exportInscriptionsAdmin(format = 'xlsx') {
+    return api.get(`/organisateur/inscriptions/export?format=${format}`, {
+      responseType: 'blob'
+    });
   }
 };
