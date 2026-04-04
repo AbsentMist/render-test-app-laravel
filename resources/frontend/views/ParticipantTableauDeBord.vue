@@ -62,22 +62,52 @@
 
           <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex justify-between items-center mb-6">
-              <h3 class="font-normal text-lg text-gray-900">Mes groupes</h3>
-              <button class="text-[#1e1b4b] hover:bg-gray-100 rounded-full p-1">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
-              </button>
+          <h3 @click="router.push('/mes-groupes')" 
+              class="font-normal text-lg text-gray-900 cursor-pointer hover:text-tertiary-900 transition-colors">
+              Mes groupes
+          </h3>              
+          <div class="relative">
+            <button @click="menuGroupesOuvert = !menuGroupesOuvert"
+                class="text-[#1e1b4b] hover:bg-gray-100 rounded-full p-1">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                </svg>
+            </button>
+            <div v-if="menuGroupesOuvert"
+                class="absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
+                <button @click="router.push('/mes-groupes'); menuGroupesOuvert = false"
+                    class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl">
+                    Gérer mes groupes
+                </button>
             </div>
-            <ul class="space-y-4">
-              <li v-for="groupe in groupes" :key="groupe.id" class="text-sm font-semibold text-gray-800">
-                {{ groupe.nom }}
+        </div>
+            </div>
+             <div v-if="chargementGroupes" class="text-sm text-gray-400 text-center py-2">Chargement...</div>
+            <ul v-else class="space-y-3">
+              <li v-for="groupe in groupes" :key="groupe.id"
+                class="flex items-center justify-between text-sm font-semibold text-gray-800">
+                <button @click="ouvrirGestionGroupe(groupe)" 
+    class="text-left hover:text-tertiary-900 transition-colors">
+    {{ groupe.nom }}
+</button>
+                <span class="text-xs text-gray-400">{{ groupe.participants?.length ?? 0 }} membres</span>
               </li>
+              <li v-if="groupes.length === 0" class="text-sm text-gray-400 italic">Aucun groupe</li>
             </ul>
+            
           </div>
 
         </div>
 
       </div>
     </div>
+    <PopupGestionGroupe
+    v-if="groupeSelectionne"
+    :groupe="groupeSelectionne"
+    :mes-participants="participants"
+    @close="groupeSelectionne = null"
+    @mis-a-jour="g => { const i = groupes.findIndex(x => x.id === g.id); if(i > -1) groupes.splice(i, 1, g); groupeSelectionne = null; }"
+/>
   </div>
 </template>
 
@@ -87,14 +117,17 @@ import { useRouter } from 'vue-router';
 import evenementParticipantService from '../services/evenementParticipantService';
 import Title from '../components/Title.vue'; // Assure-toi que le chemin est correct
 import MiniatureEvenement from '../components/MiniatureEvenement.vue';
+import PopupGestionGroupe from '../components/PopupGestionGroupe.vue';
 
 const router = useRouter();
 const evenements = ref([]);
 const chargement = ref(true);
+const menuGroupesOuvert = ref(false);
+const groupeSelectionne = ref(null);
 
 // chargemnt dynamiques des participants
 import participantService from '../services/participantService';
-
+import groupeService from '../services/groupeService';
 const participants = ref([]);
 
 async function chargerParticipants() {
@@ -106,11 +139,23 @@ async function chargerParticipants() {
   }
 }
 
-const groupes = ref([
-  { id: 1, nom: 'Les peroquets' },
-  { id: 2, nom: 'Heg boys' },
-  { id: 3, nom: 'Les runners' }
-]);
+const groupes = ref([]);
+const chargementGroupes = ref(false);
+ 
+async function chargerGroupes() {
+  chargementGroupes.value = true;
+  try {
+    const response = await groupeService.getGroupes();
+    // Garder uniquement Relais et Groupe, pas les challenges
+    groupes.value = response.data.filter(g =>
+      g.course?.type === 'Relais' || g.course?.type === 'Groupe'
+    );
+  } catch (e) {
+    console.error('Impossible de charger les groupes:', e);
+  } finally {
+    chargementGroupes.value = false;
+  }
+}
 
 // CHARGEMENT DES DONNÉES DE L'API
 async function chargerEvenements() {
@@ -128,6 +173,11 @@ async function chargerEvenements() {
   } finally {
     chargement.value = false;
   }
+}
+
+
+function ouvrirGestionGroupe(groupe) {
+    groupeSelectionne.value = groupe;
 }
 
 // NAVIGATION
@@ -150,5 +200,6 @@ function goToResultats() {
 onMounted(() => {
   chargerParticipants();
   chargerEvenements();
+  chargerGroupes();
 });
 </script>

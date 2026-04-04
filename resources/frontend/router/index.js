@@ -36,6 +36,12 @@ const routes = [
     component: () => import("../views/ParticipantInscriptions.vue"),
     meta: { requiresAuth: true }
   },
+    {
+    path: "/mes-groupes",
+    name: "Mes groupes",
+    component: () => import("../views/MesGroupes.vue"),
+    meta: { requiresAuth: true }
+  },
   {
     path: "/resultats",
     name: "Mes résultats",
