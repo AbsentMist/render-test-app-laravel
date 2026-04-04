@@ -45,6 +45,20 @@
       <span class="flex items-center text-xs text-body px-2">
         {{ inscriptionsFiltrees.length }} résultat(s)
       </span>
+      <div class="flex gap-2 ml-auto">
+        <button
+          @click="exporter('xlsx')"
+          class="px-3 py-2 text-sm text-white bg-green-600 hover:bg-green-700 rounded-base transition-colors flex items-center gap-2 shadow-xs"
+        >
+          <Icon icon="mdi:file-excel" class="w-4 h-4" /> Excel
+        </button>
+        <button
+          @click="exporter('csv')"
+          class="px-3 py-2 text-sm text-heading bg-neutral-secondary-medium border border-default-medium hover:bg-neutral-secondary-dark rounded-base transition-colors flex items-center gap-2 shadow-xs"
+        >
+          <Icon icon="mdi:file-delimited" class="w-4 h-4" /> CSV
+        </button>
+      </div>
     </div>
 
     <div v-if="chargement" class="text-body text-center py-8">
@@ -273,6 +287,30 @@ export default {
     afficherPopupChangement() {
       this.popupAvertissement = false;
       this.popupChangement = true;
+    },
+    async exporter(format) {
+      try {
+        const response = await inscriptionService.exportInscriptionsAdmin(format);
+        
+        // On force le navigateur à télécharger le Blob
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Nom du fichier côté client
+        const extension = format === 'csv' ? 'csv' : 'xlsx';
+        link.setAttribute('download', `inscriptions_${new Date().toISOString().slice(0,10)}.${extension}`);
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        // Nettoyage
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Erreur lors de l'export :", error);
+        this.erreur = "Impossible d'exporter les inscriptions. Vérifiez la console.";
+      }
     }
   },
   async mounted() {
