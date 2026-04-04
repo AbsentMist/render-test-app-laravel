@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
 
 # Étape 3 : Extensions PHP (Ajout de la configuration et de l'installation de GD)
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath opcache gd
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath opcache gd zip
 
 # Étape 4 : Répertoire de travail
 WORKDIR /var/www/html
