@@ -23,7 +23,7 @@ class GroupeController extends Controller
         // Récupère les groupes où le participant connecté est membre, fondateur ou en attente
         $groupes = Groupe::whereHas('participants', function($query) use ($idParticipant) {
             $query->where('id_participant', $idParticipant);
-        })->with('participants')->get();
+        })->with(['participants', 'course'])->get();
 
         return response()->json($groupes);
     }

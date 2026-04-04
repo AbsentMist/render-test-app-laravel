@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Course;
 
 class Groupe extends Model
 {
@@ -37,4 +39,9 @@ class Groupe extends Model
         return $this->belongsToMany(Participant::class, 'GroupeParticipant', 'id_groupe', 'id_participant')
                     ->withPivot('statut'); 
     }
+
+    public function course(): BelongsTo
+{
+    return $this->belongsTo(Course::class, 'id_course');
+}
 }
