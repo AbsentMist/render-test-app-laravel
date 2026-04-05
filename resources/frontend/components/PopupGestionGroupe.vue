@@ -2,7 +2,6 @@
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col overflow-hidden max-h-[90vh]">
 
-      <!-- Header -->
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
         <div>
           <h3 class="text-base font-semibold text-heading">Gérer le groupe</h3>
@@ -18,23 +17,29 @@
         </button>
       </div>
 
-      <!-- Corps -->
       <div class="overflow-y-auto px-6 py-5 flex flex-col gap-6">
 
-        <!-- Nom du groupe (Relais/Groupe uniquement) -->
+        <div v-if="inscriptionsFermees" class="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+          <svg class="w-4 h-4 shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p>Les inscriptions pour cette course sont clôturées. Vous ne pouvez plus modifier le groupe ni ses membres.</p>
+        </div>
+
         <div v-if="peutModifierNom" class="flex flex-col gap-2">
           <label class="text-sm font-medium text-gray-700">Nom du groupe</label>
           <div class="flex gap-2">
             <input
               v-model="nomGroupe"
               type="text"
-              class="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-white"
+              :disabled="inscriptionsFermees"
+              class="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-white disabled:bg-gray-50 disabled:text-gray-400"
             />
             <button
               type="button"
               @click="sauvegarderNom"
-              :disabled="!nomGroupe.trim() || nomGroupe === groupeLocal.nom || sauvegarde"
-              class="btn-tertiary text-sm px-4 disabled:opacity-50"
+              :disabled="!nomGroupe.trim() || nomGroupe === groupeLocal.nom || sauvegarde || inscriptionsFermees"
+              class="btn-tertiary text-sm px-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ sauvegarde ? '...' : 'Sauvegarder' }}
             </button>
@@ -44,7 +49,6 @@
           </p>
         </div>
 
-        <!-- Info nom non modifiable (Challenge) -->
         <div v-else class="flex items-start gap-2 text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2">
           <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -52,7 +56,6 @@
           <p>Le nom du groupe challenge est défini par l'organisateur et ne peut pas être modifié.</p>
         </div>
 
-        <!-- Membres actuels -->
         <div class="flex flex-col gap-3">
           <div class="flex items-center justify-between">
             <h4 class="text-sm font-semibold text-gray-700">
@@ -62,12 +65,13 @@
                 <template v-if="maxMembres">/ {{ maxMembres }}</template>)
               </span>
             </h4>
-            <!-- Bouton Ajouter (Groupe uniquement, si pas au max) -->
             <button
               v-if="estGroupe && peutAjouter"
               type="button"
               @click="ouvrirAjout"
-              class="flex items-center gap-1 text-xs text-primary hover:text-tertiary-900 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
+              :disabled="inscriptionsFermees"
+              class="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-colors border"
+              :class="inscriptionsFermees ? 'text-gray-400 border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed' : 'text-primary hover:text-tertiary-900 border-gray-200'"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -92,21 +96,23 @@
             </div>
 
             <div class="flex items-center gap-2" v-if="!estFondateur(membre)">
-              <!-- Remplacer (Relais + Groupe) -->
               <button
                 v-if="!estChallenge"
                 type="button"
                 @click="ouvrirRemplacement(membre)"
-                class="text-xs text-primary hover:text-tertiary-900 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
+                :disabled="inscriptionsFermees"
+                class="text-xs border rounded-lg px-3 py-1.5 transition-colors"
+                :class="inscriptionsFermees ? 'text-gray-400 border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed' : 'text-primary hover:text-tertiary-900 border-gray-200'"
               >
                 Remplacer
               </button>
-              <!-- Retirer (Challenge uniquement) -->
               <button
                 v-if="estChallenge"
                 type="button"
                 @click="retirerMembre(membre)"
-                class="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                :disabled="inscriptionsFermees"
+                class="p-1.5 rounded-lg transition-colors"
+                :class="inscriptionsFermees ? 'text-gray-400 opacity-50 cursor-not-allowed' : 'text-red-400 hover:text-red-600 hover:bg-red-50'"
                 title="Retirer du groupe"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,7 +123,6 @@
           </div>
         </div>
 
-        <!-- Formulaire remplacement / ajout membre -->
         <div v-if="modeFormulaire" class="flex flex-col gap-3 border border-tertiary/30 bg-tertiary/5 rounded-xl p-4">
           <h4 class="text-sm font-semibold text-heading">
             <template v-if="membreARemplacer">
@@ -126,7 +131,6 @@
             <template v-else>Ajouter un membre</template>
           </h4>
 
-          <!-- Mes participants disponibles -->
           <div v-if="participantsDisponibles.length > 0" class="flex flex-col gap-2">
             <label class="text-xs font-medium text-gray-600">Choisir parmi mes participants</label>
             <div class="grid grid-cols-2 gap-2">
@@ -150,7 +154,6 @@
             </div>
           </div>
 
-          <!-- Recherche par email -->
           <div class="flex flex-col gap-1">
             <label class="text-xs font-medium text-gray-600">Ou rechercher par email</label>
             <div class="flex gap-2">
@@ -174,7 +177,6 @@
             <p v-if="erreurRecherche" class="text-xs text-orange-600">{{ erreurRecherche }}</p>
           </div>
 
-          <!-- Confirmation -->
           <div v-if="nouveauMembre" class="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
             <span class="text-sm text-green-700">
               <template v-if="membreARemplacer">
@@ -202,7 +204,6 @@
 
       </div>
 
-      <!-- Footer -->
       <div class="flex justify-end px-6 py-4 border-t border-gray-100">
         <button type="button" @click="$emit('close')" class="btn-accent-300 text-sm">
           Fermer
@@ -242,6 +243,13 @@ export default {
     };
   },
   computed: {
+    // Calcul de la date de fermeture
+    inscriptionsFermees() {
+      if (!this.groupeLocal.course?.fin_inscription) return false;
+      const fin = new Date(this.groupeLocal.course.fin_inscription);
+      fin.setHours(23, 59, 59, 999);
+      return new Date() > fin;
+    },
     // Type de la course liée
     typeCourse() {
       return this.groupeLocal.course?.type ?? '';
