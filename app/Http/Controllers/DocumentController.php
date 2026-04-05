@@ -33,6 +33,13 @@ class DocumentController extends Controller
         $user = Auth::user();
         $inscription = Inscription::findOrFail($id_inscription);
 
+        // Vérifier que l'inscription est toujours ouverte
+        if (!$inscription->course->isRegistrationOpen()) {
+            return response()->json([
+                'message' => 'Impossible d\'ajouter un document, la date limite est dépassée.'
+            ], 403);
+        }
+
         // Vérifier que le participant propriétaire peut accéder
         if ($inscription->id_participant !== $user->participant->id) {
             return response()->json(['message' => 'Accès non autorisé.'], 403);

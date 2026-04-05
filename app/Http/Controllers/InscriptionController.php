@@ -71,6 +71,15 @@ class InscriptionController extends Controller
         $idParticipant = $request->id_participant ?? $idParticipantConnecte;
         $course = Course::findOrFail($validatedData['id_course']);
 
+        $course = Course::findOrFail($validatedData['id_course']);
+
+        // Gestion erreur : Vérifie que les inscriptions sont ouvertes pour cette course
+        if (!$course->isRegistrationOpen()) {
+            return response()->json([
+                'message' => 'Les inscriptions pour cette course sont clôturées.'
+            ], 403);
+        }
+
         // Différenciation entre inscription individuelle et inscription en groupe
         $participant = Participant::find($idParticipant);
         // On vérifie si ce participant est rattaché au compte connecté
@@ -290,6 +299,13 @@ class InscriptionController extends Controller
         $user = Auth::user();
         $inscription = Inscription::findOrFail($id);
 
+        // Gestion erreur : Vérifie que les inscriptions sont ouvertes pour cette course
+        if (!$inscription->course->isRegistrationOpen()) {
+            return response()->json([
+                'message' => 'Les inscriptions pour cette course sont clôturées.'
+            ], 403);
+        }
+
         // Gestion erreur : un participant ne peut modifier que sa propre inscription
         if ($inscription->id_participant !== $user->participant->id) {
             return response()->json(['message' => 'Accès non autorisé.'], 403);
@@ -329,6 +345,13 @@ class InscriptionController extends Controller
     {
         $user = Auth::user();
         $inscription = Inscription::findOrFail($id);
+
+        // Gestion erreur : Vérifie que les inscriptions sont ouvertes pour cette course
+        if (!$inscription->course->isRegistrationOpen()) {
+            return response()->json([
+                'message' => 'Les inscriptions pour cette course sont clôturées.'
+            ], 403);
+        }
         
         if ($inscription->id_participant !== $user->participant->id) {
             return response()->json(['message' => 'Accès non autorisé.'], 403);
