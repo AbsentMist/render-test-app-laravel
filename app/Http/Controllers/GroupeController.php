@@ -143,6 +143,13 @@ class GroupeController extends Controller
         ]);
 
         $groupe = Groupe::findOrFail($idGroupe);
+        
+        //Vérifie que les inscriptions sont toujours ouvertes
+        if ($groupe->id_course && !$groupe->course->isRegistrationOpen()) {
+        return response()->json([
+            'message' => 'Impossible d\'ajouter un membre, les inscriptions pour cette course sont fermées.'
+        ], 403);
+    }
 
         if ($groupe->participants()->where('id_participant', $validatedData['id_participant'])->exists()) {
             return response()->json(['message' => 'Ce participant est déjà dans le groupe.'], 409);
@@ -209,6 +216,12 @@ class GroupeController extends Controller
                 'message' => 'Vous ne faites pas partie du groupe associé à ce code.'
             ], 403);
         }
+        // Vérifier que l'inscription est toujours ouverte
+        if ($groupe->id_course && !$groupe->course->isRegistrationOpen()) {
+            return response()->json([
+                'message' => 'Le code est correct, mais les inscriptions pour cette course entreprise sont désormais fermées.'
+            ], 403);
+        }
 
         //Envoie de l'information au frontend pour validation du panier
         return response()->json([
@@ -232,7 +245,7 @@ class GroupeController extends Controller
                   ->where('id_participant', $idParticipant)
                   ->where('statut', StatutParticipant::EN_ATTENTE->value);
         })
-        ->with('participants') 
+        ->with('participants', 'course')
         ->get();
 
         return response()->json($invitations);
@@ -243,6 +256,13 @@ class GroupeController extends Controller
     {
         $idParticipant = Auth::user()->participant->id;
         $groupe = Groupe::findOrFail($idGroupe);
+
+        // Vérifier si l'inscription est toujours ouverte
+        if ($groupe->id_course && !$groupe->course->isRegistrationOpen()) {
+            return response()->json([
+                'message' => 'Cette invitation a expiré car les inscriptions pour cette course sont clôturées.'
+            ], 403);
+        }
 
         // On met à jour le statut dans la table d'association
         $groupe->participants()->updateExistingPivot($idParticipant, [
