@@ -68,14 +68,38 @@
       <table class="w-full text-sm text-left text-body">
         <thead class="bg-neutral-secondary-medium text-heading text-xs uppercase">
           <tr>
-            <th class="px-4 py-3 text-center">Dossard</th>
-            <th class="px-4 py-3 text-center">Nom</th>
-            <th class="px-4 py-3 text-center">Prénom</th>
-            <th class="px-4 py-3 text-center">Course</th>
-            <th class="px-4 py-3 text-center">Date inscription</th>
-            <th class="px-4 py-3 text-center">Tarif</th>
-            <th class="px-4 py-3 text-center">Status</th>
-            <th class="px-4 py-3 text-center">Type</th>
+            <th class="px-4 py-3 text-center cursor-pointer hover:bg-neutral-secondary-dark transition-colors" @click="changerTri('dossard')">
+              Dossard
+              <span v-if="tri.colonne === 'dossard'" class="ml-1">{{ tri.direction === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="px-4 py-3 text-center cursor-pointer hover:bg-neutral-secondary-dark transition-colors" @click="changerTri('nom')">
+              Nom
+              <span v-if="tri.colonne === 'nom'" class="ml-1">{{ tri.direction === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="px-4 py-3 text-center cursor-pointer hover:bg-neutral-secondary-dark transition-colors" @click="changerTri('prenom')">
+              Prénom
+              <span v-if="tri.colonne === 'prenom'" class="ml-1">{{ tri.direction === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="px-4 py-3 text-center cursor-pointer hover:bg-neutral-secondary-dark transition-colors" @click="changerTri('course')">
+              Course
+              <span v-if="tri.colonne === 'course'" class="ml-1">{{ tri.direction === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="px-4 py-3 text-center cursor-pointer hover:bg-neutral-secondary-dark transition-colors" @click="changerTri('date')">
+              Date inscription
+              <span v-if="tri.colonne === 'date'" class="ml-1">{{ tri.direction === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="px-4 py-3 text-center cursor-pointer hover:bg-neutral-secondary-dark transition-colors" @click="changerTri('tarif')">
+              Tarif
+              <span v-if="tri.colonne === 'tarif'" class="ml-1">{{ tri.direction === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="px-4 py-3 text-center cursor-pointer hover:bg-neutral-secondary-dark transition-colors" @click="changerTri('status')">
+              Status
+              <span v-if="tri.colonne === 'status'" class="ml-1">{{ tri.direction === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="px-4 py-3 text-center cursor-pointer hover:bg-neutral-secondary-dark transition-colors" @click="changerTri('type')">
+              Type
+              <span v-if="tri.colonne === 'type'" class="ml-1">{{ tri.direction === 'asc' ? '▲' : '▼' }}</span>
+            </th>
             <th class="px-4 py-3 text-center">Actions</th>
           </tr>
         </thead>
@@ -189,6 +213,11 @@ export default {
         status: '',
         type: '',
       },
+      // Tri
+      tri: {
+        colonne: 'date',
+        direction: 'desc',
+      },
     }
   },
   computed: {
@@ -196,7 +225,7 @@ export default {
       return this.filtres.recherche || this.filtres.dossard || this.filtres.status;
     },
     inscriptionsFiltrees() {
-      return this.inscriptions.filter(inscription => {
+      let resultats = this.inscriptions.filter(inscription => {
 
         // Filtre par N° dossard
         if (this.filtres.dossard) {
@@ -233,9 +262,78 @@ export default {
 
         return true;
       });
+
+      // Appliquer le tri
+      if (this.tri.colonne) {
+        resultats.sort((a, b) => {
+          let valeurA, valeurB;
+
+          switch(this.tri.colonne) {
+            case 'dossard':
+              valeurA = a.dossard?.numero ?? 0;
+              valeurB = b.dossard?.numero ?? 0;
+              break;
+            case 'nom':
+              valeurA = a.participant?.nom ?? '';
+              valeurB = b.participant?.nom ?? '';
+              break;
+            case 'prenom':
+              valeurA = a.participant?.prenom ?? '';
+              valeurB = b.participant?.prenom ?? '';
+              break;
+            case 'course':
+              valeurA = `${a.course?.evenement?.nom ?? ''} ${a.course?.nom ?? ''}`.toLowerCase();
+              valeurB = `${b.course?.evenement?.nom ?? ''} ${b.course?.nom ?? ''}`.toLowerCase();
+              break;
+            case 'date':
+              valeurA = a.date_paiement ?? '';
+              valeurB = b.date_paiement ?? '';
+              break;
+            case 'tarif':
+              valeurA = parseFloat(a.tarif ?? 0);
+              valeurB = parseFloat(b.tarif ?? 0);
+              break;
+            case 'status':
+              valeurA = a.status_paiement ?? '';
+              valeurB = b.status_paiement ?? '';
+              break;
+            case 'type':
+              valeurA = a.course?.type ?? '';
+              valeurB = b.course?.type ?? '';
+              break;
+            default:
+              return 0;
+          }
+
+          // Comparaison
+          if (typeof valeurA === 'string') {
+            valeurA = valeurA.toLowerCase();
+            valeurB = valeurB.toLowerCase();
+          }
+
+          if (valeurA < valeurB) {
+            return this.tri.direction === 'asc' ? -1 : 1;
+          } else if (valeurA > valeurB) {
+            return this.tri.direction === 'asc' ? 1 : -1;
+          }
+          return 0;
+        });
+      }
+
+      return resultats;
     },
   },
   methods: {
+    changerTri(colonne) {
+      // Si on clique sur la même colonne, inverser la direction
+      if (this.tri.colonne === colonne) {
+        this.tri.direction = this.tri.direction === 'asc' ? 'desc' : 'asc';
+      } else {
+        // Sinon, trier par la nouvelle colonne en ordre ascendant
+        this.tri.colonne = colonne;
+        this.tri.direction = 'asc';
+      }
+    },
     reinitialiserFiltres() {
       this.filtres = { recherche: '', dossard: '', status: '', type:'' };
     },
