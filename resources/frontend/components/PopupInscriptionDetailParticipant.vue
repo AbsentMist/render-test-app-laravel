@@ -1,7 +1,6 @@
 <template>
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-8xl mx-4 flex flex-col overflow-hidden" style="height: 80vh">
-      <!-- Header -->
       <div class="flex items-center justify-between px-6 pt-5 pb-0 border-b border-gray-100 bg-tertiary-900">
         <div class="flex flex-col w-full">
           <div class="flex items-center justify-between">
@@ -19,7 +18,6 @@
             </button>
           </div>
 
-          <!-- Tabs -->
           <div class="flex gap-1 mt-3 px-6">
             <button
               v-for="tab in tabs"
@@ -37,13 +35,10 @@
         </div>
       </div>
 
-      <!-- Tab Content -->
       <div class="flex-1 overflow-y-auto pb-20">
 
-        <!-- Onglet Général -->
         <div v-if="activeTab === 'general'" class="p-6 space-y-6">
 
-          <!-- Participant -->
           <section>
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:account" class="w-4 h-4" /> Particpant
@@ -56,7 +51,6 @@
             </div>
           </section>
 
-          <!-- Course -->
           <section>
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:run-fast" class="w-4 h-4" /> Course
@@ -92,7 +86,6 @@
             </div>
           </section>
 
-          <!-- Inscription -->
           <section>
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:receipt-text" class="w-4 h-4" /> Inscription
@@ -110,7 +103,6 @@
                 </div>
               </div>
 
-              <!-- Statut paiement -->
               <div>
                 <p class="text-xs text-gray-400">Statut paiement</p>
                 <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1"
@@ -119,49 +111,41 @@
                 </span>
               </div>
 
-              <!-- Tarif -->
               <div>
                 <p class="text-xs text-gray-400">Tarif payé</p>
                 <p class="font-medium text-gray-800 mt-1">{{ inscription.tarif }} CHF</p>
               </div>
 
-              <!-- Date paiement -->
               <div>
                 <p class="text-xs text-gray-400">Date de paiement</p>
                 <p class="font-medium text-gray-800">{{ inscription.date_paiement ?? '—' }}</p>
               </div>
 
-              <!-- Rabais -->
               <div>
                 <p class="text-xs text-gray-400">Rabais</p>
                 <p class="font-medium text-gray-800">{{ inscription.montant_rabais }} CHF</p>
               </div>
 
-              <!-- Dossard -->
               <div>
                 <p class="text-xs text-gray-400">Dossard</p>
                 <p class="font-medium text-gray-800">{{ inscription.dossard?.numero ?? '—' }}</p>
               </div>
 
-              <!-- N° inscription -->
               <div>
                 <p class="text-xs text-gray-400">N° inscription</p>
                 <p class="font-medium text-gray-800">{{ inscription.id ?? '—' }}</p>
               </div>
               
-              <!-- Ref groupage -->
               <div>
                 <p class="text-xs text-gray-400">Ref. Groupage</p>
                 <p class="font-medium text-gray-800">{{ inscription.ref_groupage ?? '—' }}</p>
               </div>
 
-              <!-- Challenge -->
               <div>
                 <p class="text-xs text-gray-400">Participe au challenge ?</p>
                 <p class="font-medium text-gray-800">{{ inscription.participe_challenge ? 'Oui' : 'Non' }}</p>
               </div>
 
-              <!-- Type challenge -->
               <div>
                 <p class="text-xs text-gray-400">Challenge</p>
                 <p class="font-medium text-gray-800">
@@ -169,19 +153,16 @@
                 </p>
               </div>
 
-              <!-- Equipe challenge -->
               <div>
                 <p class="text-xs text-gray-400">Équipe challenge</p>
                 <p class="font-medium text-gray-800">{{ inscription.groupe?.nom ?? '—' }}</p>
               </div>
 
-              <!-- Code participation -->
               <div>
                 <p class="text-xs text-gray-400">Code de participation</p>
                 <p class="font-medium text-gray-800">{{ inscription.code_participant ?? '—' }}</p>
               </div>
 
-              <!-- Avertissement validé -->
               <div>
                 <p class="text-xs text-gray-400">Avertissement validé</p>
                 <p class="font-medium text-gray-800">{{ inscription.avertissement_valide ? 'Oui' : 'Non' }}</p>
@@ -191,7 +172,6 @@
           </section>
 
 
-          <!-- Ancienne inscription -->
           <section v-if="inscription.ancienne_inscription" class="border-l-2 border-tertiary pl-2">
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:history" class="w-4 h-4" /> Ancienne inscription
@@ -263,7 +243,6 @@
             </div>
           </section>
 
-          <!-- Documents -->
           <section>
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:file-document-outline" class="w-4 h-4" /> Documents
@@ -304,7 +283,6 @@
             </div>
           </section>
 
-          <!-- Upload document -->
           <section v-if="isEdit">
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:cloud-upload-outline" class="w-4 h-4" /> Ajouter un document
@@ -334,7 +312,6 @@
 
         </div>
 
-        <!-- Onglet Options -->
         <div v-if="activeTab === 'options'" class="p-6">
           <div class="space-y-4">
             <div v-if="coursComplet?.options && coursComplet.options.length > 0">
@@ -397,7 +374,6 @@
           </div>
         </div>
 
-        <!-- Onglet Questions -->
         <div v-if="activeTab === 'questions'" class="p-6">
           <div v-if="coursComplet?.questionnaire && coursComplet.questionnaire.length > 0" class="space-y-4">
             <div v-for="question in coursComplet.questionnaire" :key="'q-' + question.id"
@@ -427,7 +403,6 @@
 
       </div>
 
-      <!-- Barre d'actions sticky en bas -->
       <div class="absolute bottom-0 left-0 right-0 border-t px-6 py-3 flex items-center justify-between transition-colors z-10"
         :class="isEdit ? 'bg-amber-50 border-gray-300' : 'bg-white border-gray-100'">
 
@@ -436,10 +411,16 @@
           <span v-if="isEdit" class="text-sm font-medium text-amber-700">Mode modification actif</span>
         </div>
 
-        <div class="flex gap-3" v-if="inscription.status_paiement !== 'Annulé'">
+        <div class="flex items-center gap-3" v-if="inscription.status_paiement !== 'Annulé'">
+          <span v-if="inscriptionsFermees" class="text-sm text-accent italic mr-2">
+            Les modifications sont clôturées pour cette course.
+          </span>
+
           <button
-            class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors"
+            :class="inscriptionsFermees ? 'bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'"
             @click="ouvrirChangementCourse"
+            :disabled="inscriptionsFermees"
           >
             <Icon icon="mdi:swap-horizontal" class="w-4 h-4" />
             Changer de course
@@ -447,8 +428,10 @@
 
           <template v-if="!isEdit">
             <button
-              class="btn-accent-300 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              :class="inscriptionsFermees ? 'bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed border border-gray-300' : 'btn-accent-300'"
               @click="activerEdition"
+              :disabled="inscriptionsFermees"
             >
               <Icon icon="mdi:pencil" class=" w-4 h-4" />
               Modifier
@@ -516,6 +499,16 @@ export default {
         { key: 'questions', label: 'Questions', icon: 'mdi:comment-question-outline' },
       ],
     };
+  },
+  computed: {
+    // Calcule si la date d'inscription est dépassée pour verrouiller l'interface
+    inscriptionsFermees() {
+      if (!this.inscription?.course?.fin_inscription) return false;
+      const fin = new Date(this.inscription.course.fin_inscription);
+      // On s'assure de prendre toute la journée jusqu'à 23:59:59
+      fin.setHours(23, 59, 59, 999);
+      return new Date() > fin;
+    }
   },
   methods: {
     formatDate(dateStr) {
