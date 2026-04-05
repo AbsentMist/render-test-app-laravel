@@ -101,6 +101,14 @@ const toggleCartDropdown = () => {
   }
 };
 
+// Vérifier si la date limite de l'invitation (course) est dépassée
+const estInvitationExpiree = (invit) => {
+  if (!invit.course?.fin_inscription) return false;
+  const fin = new Date(invit.course.fin_inscription);
+  fin.setHours(23, 59, 59, 999);
+  return new Date() > fin;
+};
+
 // Lors de l'acceptation d'une invitation
 const accepterInvitation = async (idGroupe) => {
   try {
@@ -119,11 +127,11 @@ const refuserInvitation = async (idGroupe) => {
     invitations.value = invitations.value.filter(g => g.id !== idGroupe);
     
     //Message de confirmation du refus
-    alert("L'invitation a bien été refusée. Le fondateur en sera informé."); 
+    alert("L'invitation a bien été refusée/supprimée."); 
     
   } catch (error) {
     console.error("Erreur lors du refus :", error);
-    alert("Une erreur est survenue lors du refus de l'invitation."); 
+    alert("Une erreur est survenue lors de l'action."); 
   }
 };
 </script>
@@ -318,21 +326,31 @@ const refuserInvitation = async (idGroupe) => {
 
                 <div v-else class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
                   <div v-for="invit in invitations" :key="invit.id" class="bg-white border border-gray-200 shadow-sm rounded-xl p-4">
-                    <p class="font-bold text-[#0e0f54] text-sm mb-1">{{ invit.nom }}</p>
+                    
+                    <div class="flex justify-between items-start mb-1">
+                      <p class="font-bold text-[#0e0f54] text-sm">{{ invit.nom }}</p>
+                      <span v-if="estInvitationExpiree(invit)" class="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-200">
+                        Expirée
+                      </span>
+                    </div>
+                    
                     <p class="text-xs text-gray-500 mb-3 font-medium">Invitation à rejoindre un groupe {{ invit.type }}</p>
 
                     <div class="flex gap-2 mt-2">
                       <button
+                        v-if="!estInvitationExpiree(invit)"
                         @click="accepterInvitation(invit.id)"
                         class="flex-1 bg-[#d9f20b] hover:bg-[#c4da0a] text-[#0e0f54] py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
                       >
                         Accepter
                       </button>
+                      
                       <button
                         @click="refuserInvitation(invit.id)"
-                        class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 py-2 rounded-lg text-xs font-bold transition-colors"
+                        class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 py-2 rounded-lg text-xs font-bold transition-colors"
+                        :class="estInvitationExpiree(invit) ? 'w-full' : 'flex-1'"
                       >
-                        Refuser
+                        {{ estInvitationExpiree(invit) ? 'Supprimer l\'invitation' : 'Refuser' }}
                       </button>
                     </div>
                   </div>
