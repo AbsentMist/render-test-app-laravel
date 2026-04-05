@@ -19,7 +19,7 @@ class CourseController extends Controller
             $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
         }
 
-        // On charge TOUT d'un coup avec Eloquent (Eager Loading)
+        // On charge tout avec Eloquent (Eager Loading)
         $courses = Course::with([
                 'categorie',
                 'sousCategorie',
@@ -27,11 +27,16 @@ class CourseController extends Controller
                 'avertissement',
                 'options.quantifiable',
                 'options.cochable',
-                'questions.choix' // <-- Magique : charge les questions ET leurs choix de réponses
+                'questions.choix' // charge les questions ET leurs choix de réponses
             ])
             ->withCount('inscriptions')
             ->where('id_evenement', $id_evenement)
             ->where('is_actif', true)
+            // Uniquement les courses dont la date d'inscription est ouverte
+            ->where(function($query) {
+                $query->whereNull('fin_inscription')  //pas de limite de fin d'inscription
+                      ->orWhere('fin_inscription', '>=', now()->toDateString()); // Soit la limite est aujourd'hui ou dans le futur
+            })
             ->get()
             ->map(function ($course) {
                 return [
