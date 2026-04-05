@@ -63,4 +63,21 @@ class Course extends Model
                     ->withPivot('ordre')
                     ->orderBy('CourseQuestion.ordre', 'asc');
     }
+
+    /**
+     * Vérifie si les inscriptions sont encore ouvertes pour cette course.
+     */
+    public function isRegistrationOpen(): bool
+    {
+        // S'il n'y a pas de date de fin définie = ouvert
+        if (!$this->fin_inscription) {
+            return true;
+        }
+
+        // Jusqu'à la fin de la journée de la date de fin d'inscription
+        $dateFin = \Carbon\Carbon::parse($this->fin_inscription)->endOfDay();
+
+        // Retourne true si la date du jour est inférieur ou égal à la date de fin
+        return now()->lte($dateFin);
+    }
 }
