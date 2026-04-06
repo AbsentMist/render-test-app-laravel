@@ -3,63 +3,12 @@
   <div class="p-6">
     <p v-if="erreur" class="text-accent text-label mb-4">{{ erreur }}</p>
 
-    <!-- BARRE DE FILTRAGE -->
-    <div class="flex flex-wrap gap-3 mb-4">
-      <input
-        v-model="filtres.recherche"
-        type="text"
-        placeholder="Rechercher par nom, prénom, entreprise..."
-        class="flex-1 min-w-[200px] bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-3 py-2 focus:ring-brand focus:border-brand shadow-xs"
-      />
-      <input
-        v-model="filtres.dossard"
-        type="number"
-        placeholder="N° dossard"
-        class="w-36 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-3 py-2 focus:ring-brand focus:border-brand shadow-xs"
-      />
-      <select
-        v-model="filtres.status"
-        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-3 py-2 focus:ring-brand focus:border-brand shadow-xs"
-      >
-        <option value="">Tous les statuts</option>
-        <option value="Validé">Validé</option>
-        <option value="En attente">En attente</option>
-        <option value="Annulé">Annulé</option>
-      </select>
-      <select
-      v-model="filtres.type"
-      class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-3 py-2 focus:ring-brand focus:border-brand shadow-xs"
-      >
-        <option value="">Tous les types</option>
-        <option value="Individuel">Individuel</option>
-        <option value="Relais">Relais</option>
-        <option value="Groupe">Groupe</option>
-      </select>
-      <button
-        v-if="filtresActifs"
-        @click="reinitialiserFiltres"
-        class="px-3 py-2 text-sm text-accent hover:text-red-700 border border-accent rounded-base transition-colors"
-      >
-        Réinitialiser
-      </button>
-      <span class="flex items-center text-xs text-body px-2">
-        {{ inscriptionsFiltrees.length }} résultat(s)
-      </span>
-      <div class="flex gap-2 ml-auto">
-        <button
-          @click="exporter('xlsx')"
-          class="px-3 py-2 text-sm text-white bg-green-600 hover:bg-green-700 rounded-base transition-colors flex items-center gap-2 shadow-xs"
-        >
-          <Icon icon="mdi:file-excel" class="w-4 h-4" /> Excel
-        </button>
-        <button
-          @click="exporter('csv')"
-          class="px-3 py-2 text-sm text-heading bg-neutral-secondary-medium border border-default-medium hover:bg-neutral-secondary-dark rounded-base transition-colors flex items-center gap-2 shadow-xs"
-        >
-          <Icon icon="mdi:file-delimited" class="w-4 h-4" /> CSV
-        </button>
-      </div>
-    </div>
+    <!-- Composant de filtrage + export -->
+    <FiltreInscriptions
+      :nb-resultats="inscriptionsFiltrees.length"
+      @update:filtres="onFiltresChange"
+      @exporter="exporter"
+    />
 
     <div v-if="chargement" class="text-body text-center py-8">
       Chargement des inscriptions...
@@ -177,8 +126,9 @@
 
 <script>
 import { Icon } from '@iconify/vue';
-import Title from '../components/Title.vue'
-import inscriptionService from '../services/inscriptionService.js'
+import Title from '../components/Title.vue';
+import FiltreInscriptions from '../components/FiltreInscriptions.vue';
+import inscriptionService from '../services/inscriptionService.js';
 import PopupAvertissementCourse from '../components/PopupAvertissementCourse.vue';
 import PopupChangementCourseOrganisateur from '../components/PopupChangementCourseOrganisateur.vue';
 import PopupInscriptionDetailOrganisateur from '../components/PopupInscriptionDetailOrganisateur.vue';
@@ -187,9 +137,10 @@ export default {
   components: {
     Title,
     Icon,
+    FiltreInscriptions,
     PopupAvertissementCourse,
     PopupChangementCourseOrganisateur,
-    PopupInscriptionDetailOrganisateur
+    PopupInscriptionDetailOrganisateur,
   },
   emits: ['close'],
   data() {
@@ -202,140 +153,110 @@ export default {
       popupAvertissement: false,
       popupChangement: false,
       popupDetail: false,
-      inscription: {
-        actuel: null,
-      },
+      inscription: { actuel: null },
       texteInfo: "En cas de sélection de course où le montant est supérieur à la course actuel, la différence devra être réglée.",
-      // Filtres
-      filtres: {
-        recherche: '',
-        dossard: '',
-        status: '',
-        type: '',
-      },
+      // Filtres reçus du composant FiltreInscriptions
+      filtres: { recherche: '', status: '', type: '' },
       // Tri
-      tri: {
-        colonne: 'date',
-        direction: 'desc',
-      },
-    }
+      tri: { colonne: 'date', direction: 'desc' },
+    };
   },
   computed: {
-    filtresActifs() {
-      return this.filtres.recherche || this.filtres.dossard || this.filtres.status;
-    },
     inscriptionsFiltrees() {
       let resultats = this.inscriptions.filter(inscription => {
 
-        // Filtre par N° dossard
-        if (this.filtres.dossard) {
-          const numeroDossard = inscription.dossard?.numero?.toString() ?? '';
-          if (!numeroDossard.includes(this.filtres.dossard.toString())) return false;
-        }
-
-        // Filtre par statut
-        if (this.filtres.status && inscription.status_paiement !== this.filtres.status) {
-          return false;
-        }
-
-        // Filtre par type de course
-        if (this.filtres.type && inscription.course?.type !== this.filtres.type) {
-          return false;
-        }
-
-        // Filtre texte : nom, prénom, groupe/entreprise, cours
+        // Filtre texte unifié : nom, prénom, dossard, groupe, entreprise, course
         if (this.filtres.recherche) {
           const r = this.filtres.recherche.toLowerCase();
           const nom       = inscription.participant?.nom?.toLowerCase() ?? '';
           const prenom    = inscription.participant?.prenom?.toLowerCase() ?? '';
+          const dossard   = inscription.dossard?.numero?.toString() ?? '';
           const groupe    = inscription.groupe?.nom?.toLowerCase() ?? '';
           const equipe    = inscription.equipe_challenge?.toLowerCase() ?? '';
           const course    = inscription.course?.nom?.toLowerCase() ?? '';
           const evenement = inscription.course?.evenement?.nom?.toLowerCase() ?? '';
 
           if (!nom.includes(r) && !prenom.includes(r) &&
-              !groupe.includes(r) && !equipe.includes(r) &&
-              !course.includes(r) && !evenement.includes(r)) {
+              !dossard.includes(r) && !groupe.includes(r) &&
+              !equipe.includes(r) && !course.includes(r) &&
+              !evenement.includes(r)) {
             return false;
           }
+        }
+
+        // Filtre statut
+        if (this.filtres.status && inscription.status_paiement !== this.filtres.status) {
+          return false;
+        }
+
+        // Filtre type de course
+        if (this.filtres.type && inscription.course?.type !== this.filtres.type) {
+          return false;
         }
 
         return true;
       });
 
-      // Appliquer le tri
-      if (this.tri.colonne) {
-        resultats.sort((a, b) => {
-          let valeurA, valeurB;
-
-          switch(this.tri.colonne) {
-            case 'dossard':
-              valeurA = a.dossard?.numero ?? 0;
-              valeurB = b.dossard?.numero ?? 0;
-              break;
-            case 'nom':
-              valeurA = a.participant?.nom ?? '';
-              valeurB = b.participant?.nom ?? '';
-              break;
-            case 'prenom':
-              valeurA = a.participant?.prenom ?? '';
-              valeurB = b.participant?.prenom ?? '';
-              break;
-            case 'course':
-              valeurA = `${a.course?.evenement?.nom ?? ''} ${a.course?.nom ?? ''}`.toLowerCase();
-              valeurB = `${b.course?.evenement?.nom ?? ''} ${b.course?.nom ?? ''}`.toLowerCase();
-              break;
-            case 'date':
-              valeurA = a.date_paiement ?? '';
-              valeurB = b.date_paiement ?? '';
-              break;
-            case 'tarif':
-              valeurA = parseFloat(a.tarif ?? 0);
-              valeurB = parseFloat(b.tarif ?? 0);
-              break;
-            case 'status':
-              valeurA = a.status_paiement ?? '';
-              valeurB = b.status_paiement ?? '';
-              break;
-            case 'type':
-              valeurA = a.course?.type ?? '';
-              valeurB = b.course?.type ?? '';
-              break;
-            default:
-              return 0;
-          }
-
-          // Comparaison
-          if (typeof valeurA === 'string') {
-            valeurA = valeurA.toLowerCase();
-            valeurB = valeurB.toLowerCase();
-          }
-
-          if (valeurA < valeurB) {
-            return this.tri.direction === 'asc' ? -1 : 1;
-          } else if (valeurA > valeurB) {
-            return this.tri.direction === 'asc' ? 1 : -1;
-          }
-          return 0;
-        });
-      }
+      // Tri
+      resultats = [...resultats].sort((a, b) => {
+        let valeurA, valeurB;
+        switch (this.tri.colonne) {
+          case 'dossard':
+            valeurA = a.dossard?.numero ?? 0;
+            valeurB = b.dossard?.numero ?? 0;
+            break;
+          case 'nom':
+            valeurA = a.participant?.nom ?? '';
+            valeurB = b.participant?.nom ?? '';
+            break;
+          case 'prenom':
+            valeurA = a.participant?.prenom ?? '';
+            valeurB = b.participant?.prenom ?? '';
+            break;
+          case 'course':
+            valeurA = `${a.course?.evenement?.nom ?? ''} ${a.course?.nom ?? ''}`.toLowerCase();
+            valeurB = `${b.course?.evenement?.nom ?? ''} ${b.course?.nom ?? ''}`.toLowerCase();
+            break;
+          case 'tarif':
+            valeurA = parseFloat(a.tarif ?? 0);
+            valeurB = parseFloat(b.tarif ?? 0);
+            break;
+          case 'status':
+            valeurA = a.status_paiement ?? '';
+            valeurB = b.status_paiement ?? '';
+            break;
+          case 'type':
+            valeurA = a.course?.type ?? '';
+            valeurB = b.course?.type ?? '';
+            break;
+          case 'date':
+          default:
+            valeurA = a.date_paiement ?? '';
+            valeurB = b.date_paiement ?? '';
+        }
+        if (typeof valeurA === 'string') {
+          valeurA = valeurA.toLowerCase();
+          valeurB = valeurB.toLowerCase();
+        }
+        if (valeurA < valeurB) return this.tri.direction === 'asc' ? -1 : 1;
+        if (valeurA > valeurB) return this.tri.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
 
       return resultats;
     },
   },
   methods: {
+    onFiltresChange(nouveauxFiltres) {
+      this.filtres = nouveauxFiltres;
+    },
     changerTri(colonne) {
-      // Si on clique sur la même colonne, inverser la direction
       if (this.tri.colonne === colonne) {
         this.tri.direction = this.tri.direction === 'asc' ? 'desc' : 'asc';
       } else {
-        // Sinon, trier par la nouvelle colonne en ordre ascendant
-        this.tri.colonne = colonne;
-        this.tri.direction = 'asc';
+        this.tri.colonne    = colonne;
+        this.tri.direction  = 'asc';
       }
-    },
-    reinitialiserFiltres() {
-      this.filtres = { recherche: '', dossard: '', status: '', type:'' };
     },
     async chargerInscriptions() {
       this.chargement = true;
@@ -349,9 +270,9 @@ export default {
         );
       } catch (e) {
         console.error(e);
-        this.erreur = 'Impossible de charger les inscriptions.'
+        this.erreur = 'Impossible de charger les inscriptions.';
       } finally {
-        this.chargement = false
+        this.chargement = false;
       }
     },
     async fermerPopupChangement() {
@@ -363,10 +284,9 @@ export default {
       this.popupDetail = true;
     },
     onModifierInscription(inscriptionMaj) {
-      const idx = this.inscriptions.findIndex((i) => i.id === inscriptionMaj.id);
+      const idx = this.inscriptions.findIndex(i => i.id === inscriptionMaj.id);
       if (idx > -1) {
-        const rowActuelle = this.inscriptions[idx];
-        this.inscriptions.splice(idx, 1, { ...rowActuelle, ...inscriptionMaj });
+        this.inscriptions.splice(idx, 1, { ...this.inscriptions[idx], ...inscriptionMaj });
         this.inscription.actuel = this.inscriptions[idx];
       } else {
         this.inscription.actuel = inscriptionMaj;
@@ -378,7 +298,7 @@ export default {
           await inscriptionService.updateInscriptionAdmin(inscription.id, { status_paiement: 'Annulé' });
           await this.chargerInscriptions();
         } catch (error) {
-          console.error("Erreur annulation :", error);
+          console.error('Erreur annulation :', error);
         }
       }
     },
@@ -389,30 +309,23 @@ export default {
     async exporter(format) {
       try {
         const response = await inscriptionService.exportInscriptionsAdmin(format);
-        
-        // On force le navigateur à télécharger le Blob
-        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const url  = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
-        link.href = url;
-        
-        // Nom du fichier côté client
+        link.href  = url;
         const extension = format === 'csv' ? 'csv' : 'xlsx';
-        link.setAttribute('download', `inscriptions_${new Date().toISOString().slice(0,10)}.${extension}`);
-        
+        link.setAttribute('download', `inscriptions_${new Date().toISOString().slice(0, 10)}.${extension}`);
         document.body.appendChild(link);
         link.click();
-        
-        // Nettoyage
         link.parentNode.removeChild(link);
         window.URL.revokeObjectURL(url);
       } catch (error) {
         console.error("Erreur lors de l'export :", error);
-        this.erreur = "Impossible d'exporter les inscriptions. Vérifiez la console.";
+        this.erreur = "Impossible d'exporter les inscriptions.";
       }
-    }
+    },
   },
   async mounted() {
     await this.chargerInscriptions();
-  }
-}
+  },
+};
 </script>
