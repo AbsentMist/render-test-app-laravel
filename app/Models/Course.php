@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
 class Course extends Model
 {
     protected $table = 'Course';
@@ -18,7 +17,7 @@ class Course extends Model
         'debut_inscription', 'fin_inscription', 'tarif', 'status', 'type', 
         'is_challenge', 'is_actif', 'is_dossard', 'is_avertissement', 'is_document', 'is_questionnaire', 'max_inscription', 'max_nb_personne', 'premier_dossard', 
         'dernier_dossard', 'distance', 'heure_depart', 'heure_fin', 
-        'age_minimum', 'age_maximum'
+        'age_minimum', 'age_maximum','is_prix_evolutif', 
     ];
 
     protected $casts = [
@@ -31,6 +30,7 @@ class Course extends Model
 
         'tarif' => 'float',
         'distance' => 'float',
+        'is_prix_evolutif' => 'boolean',
     ];
 
     //Gestion des clés étrangères
@@ -79,5 +79,11 @@ class Course extends Model
 
         // Retourne true si la date du jour est inférieur ou égal à la date de fin
         return now()->lte($dateFin);
+    }
+
+
+    public function prixEvolutifs(): HasMany
+    {
+    return $this->hasMany(PrixEvolutif::class, 'id_course')->orderBy('ordre');
     }
 }

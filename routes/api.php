@@ -19,6 +19,7 @@ use App\Http\Controllers\CourseQuestionController;
 use App\Http\Controllers\ChoixOptionController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ChallengeOrganisationController;
+use App\Http\Controllers\PrixEvolutifController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -102,6 +103,10 @@ use App\Http\Controllers\ChallengeOrganisationController;
             Route::delete('/documents/{id}', [DocumentController::class, 'destroyParticipant']);
 
             Route::get('/courses/{id_course}/challenge-organisations', [ChallengeOrganisationController::class, 'index']);
+            
+            //récupérer tarif actuel 
+            Route::get('/courses/{id_course}/prix-evolutif', [PrixEvolutifController::class, 'index']);
+            Route::get('/courses/{id_course}/tarif-actuel', [PrixEvolutifController::class, 'tarifActuel']);
         });
 
         // Gestion du rôle Administrateur par Middleware
@@ -194,7 +199,14 @@ use App\Http\Controllers\ChallengeOrganisationController;
             Route::delete('/documents/{id}', [DocumentController::class, 'destroyAdmin']);
 
             Route::get('/courses/{id_course}/challenge-organisations', [ChallengeOrganisationController::class, 'index']);
-Route::post('/challenge-organisations', [ChallengeOrganisationController::class, 'store']);
-Route::delete('/challenge-organisations/{id}', [ChallengeOrganisationController::class, 'destroy']);
+            Route::post('/challenge-organisations', [ChallengeOrganisationController::class, 'store']);
+            Route::delete('/challenge-organisations/{id}', [ChallengeOrganisationController::class, 'destroy']);
+
+            //gérer les paliers
+            Route::get('/courses/{id_course}/prix-evolutif', [PrixEvolutifController::class, 'index']);
+            Route::post('/prix-evolutif', [PrixEvolutifController::class, 'store']);
+            Route::put('/prix-evolutif/{id}', [PrixEvolutifController::class, 'update']);
+            Route::delete('/prix-evolutif/{id}', [PrixEvolutifController::class, 'destroy']);
+            Route::delete('/courses/{id_course}/prix-evolutif', [PrixEvolutifController::class, 'destroyByCourse']);
         });
     });
