@@ -176,7 +176,7 @@ import choixOptionParticipantService from '../services/choixOptionParticipantSer
 import reponseQuestionParticipantService from '../services/reponseQuestionParticipantService';
 import documentService from '../services/documentService';
 import api from '../services/api';
-
+import prixEvolutifService from '../services/prixEvolutifService';
 const router = useRouter();
 const cartStore = useCartStore();
 
@@ -299,6 +299,18 @@ const procederPaiement = async () => {
       };
 
       const promessesParticipants = listeMembres.map(async (p) => {
+    // Récupérer le tarif évolutif si la course l'utilise
+    let tarifFinal = article.tarif;
+    if (article.courseDetails?.is_prix_evolutif) {
+        try {
+            const prixResp = await prixEvolutifService.getTarifActuel(article.courseDetails.id);
+            if (prixResp.data?.tarif !== undefined) {
+                tarifFinal = prixResp.data.tarif;
+            }
+        } catch (e) {
+            console.error('Erreur récupération tarif évolutif, tarif de base utilisé:', e);
+        }
+    }
           const response = await inscriptionService.createInscription({
               id_course:            article.courseDetails.id,
               id_participant:       p.id,

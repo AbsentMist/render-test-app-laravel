@@ -1,22 +1,46 @@
 <template>
     <div class="bg-secondary rounded-b-base rounded-tr-base p-6">
-        <IndicateurEtapes :steps="formulaireEtapesLabels" :currentStep="etapesActives.indexOf(etape) + 1"/>
+        <IndicateurEtapes
+            :steps="formulaireEtapesLabels"
+            :currentStep="etapesActives.indexOf(etape) + 1"
+        />
 
-        <div v-if="etape==formulaireEtape.GENERAL">
-            <h1 class="text-subtitle my-4">{{ isEditMode ? 'Modifier la course' : 'Créer une course' }}</h1>
-            
+        <div v-if="etape == formulaireEtape.GENERAL">
+            <h1 class="text-subtitle my-4">
+                {{ isEditMode ? "Modifier la course" : "Créer une course" }}
+            </h1>
+
             <div class="flex justify-between items-center">
-                <label for="dropdown" class="text-sm font-medium text-heading">Evènement</label>
+                <label for="dropdown" class="text-sm font-medium text-heading"
+                    >Evènement</label
+                >
                 <div class="relative">
-                    <button data-dropdown-toggle="dropdownEvent" class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5" type="button">
-                        {{courseData.event.nom || courseData.event.name || "Sélectionner un évènement"}}
+                    <button
+                        data-dropdown-toggle="dropdownEvent"
+                        class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5"
+                        type="button"
+                    >
+                        {{
+                            courseData.event.nom ||
+                            courseData.event.name ||
+                            "Sélectionner un évènement"
+                        }}
                         <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
                     </button>
-                    <div id="dropdownEvent" class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
+                    <div
+                        id="dropdownEvent"
+                        class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44"
+                    >
                         <ul class="p-2 text-sm text-body font-medium">
-                            <li v-for="evenement in evenements" :key="evenement.id">
-                                <button type="button" @click="selectEvent(evenement);" 
-                                    class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                            <li
+                                v-for="evenement in evenements"
+                                :key="evenement.id"
+                            >
+                                <button
+                                    type="button"
+                                    @click="selectEvent(evenement)"
+                                    class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded"
+                                >
                                     {{ evenement.nom }}
                                 </button>
                             </li>
@@ -25,25 +49,44 @@
                 </div>
             </div>
             <div class="w-full">
-                <label for="name" class="block mb-2.5 text-sm font-medium text-heading">Nom</label>
-                <input type="text" id="name" v-model="courseData.name" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                <label
+                    for="name"
+                    class="block mb-2.5 text-sm font-medium text-heading"
+                    >Nom</label
+                >
+                <input
+                    type="text"
+                    id="name"
+                    v-model="courseData.name"
+                    class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                    placeholder=""
+                    required
+                />
             </div>
 
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
             <div class="flex items-center gap-4">
                 <div class="w-full">
-                    <label for="datepicker-start" class="block mb-2.5 text-sm font-medium text-heading">Date de début</label>
+                    <label
+                        for="datepicker-start"
+                        class="block mb-2.5 text-sm font-medium text-heading"
+                        >Date de début</label
+                    >
                     <input
                         id="datepicker-start"
                         v-model="courseData.date.start"
                         name="dateStart"
                         type="date"
                         class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
-                    >
+                    />
                 </div>
                 <div class="w-full">
-                    <label for="datepicker-end" class="block mb-2.5 text-sm font-medium text-heading">Date de fin</label>
+                    <label
+                        for="datepicker-end"
+                        class="block mb-2.5 text-sm font-medium text-heading"
+                        >Date de fin</label
+                    >
                     <input
                         id="datepicker-end"
                         v-model="courseData.date.end"
@@ -51,11 +94,15 @@
                         name="dateEnd"
                         type="date"
                         class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
-                    >
+                    />
                 </div>
             </div>
             <div class="flex justify-between items-center gap-4 my-4">
-                <label for="inscriptionpicker-start" class="block mb-2.5 text-sm font-medium text-heading">Interval d'inscription</label>
+                <label
+                    for="inscriptionpicker-start"
+                    class="block mb-2.5 text-sm font-medium text-heading"
+                    >Interval d'inscription</label
+                >
                 <div class="flex row gap-4 basis-1/2">
                     <input
                         id="inscriptionpicker-start"
@@ -63,7 +110,7 @@
                         name="inscriptionStart"
                         type="date"
                         class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
-                    >
+                    />
                     <input
                         id="inscriptionpicker-end"
                         v-model="courseData.date.inscriptionEnd"
@@ -71,39 +118,84 @@
                         name="inscriptionEnd"
                         type="date"
                         class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
-                    >
+                    />
                 </div>
             </div>
 
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
-            
             <div class="flex flex-col-3 gap-4 mb-4">
                 <div class="w-full">
-                    <label for="distance" class="block mb-2.5 text-sm font-medium text-heading">Distance</label>
-                    <input type="number" id="distance" v-model="courseData.distance" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                    <label
+                        for="distance"
+                        class="block mb-2.5 text-sm font-medium text-heading"
+                        >Distance</label
+                    >
+                    <input
+                        type="number"
+                        id="distance"
+                        v-model="courseData.distance"
+                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                        placeholder=""
+                        required
+                    />
                 </div>
                 <div class="w-full">
-                    <label for="tarif" class="block mb-2.5 text-sm font-medium text-heading">Tarif</label>
-                    <input type="number" id="tarif" v-model="courseData.tarif" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                    <label
+                        for="tarif"
+                        class="block mb-2.5 text-sm font-medium text-heading"
+                        >Tarif</label
+                    >
+                    <input
+                        type="number"
+                        id="tarif"
+                        v-model="courseData.tarif"
+                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                        required
+                    />
                 </div>
                 <div class="w-full">
-                    <label for="tarifInfo" class="block mb-2.5 text-sm font-medium text-heading">Information tarif</label>
-                    <input type="text" id="tarifInfo" v-model="courseData.tarifInfo" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                    <label
+                        for="tarifInfo"
+                        class="block mb-2.5 text-sm font-medium text-heading"
+                        >Information tarif</label
+                    >
+                    <input
+                        type="text"
+                        id="tarifInfo"
+                        v-model="courseData.tarifInfo"
+                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                        required
+                    />
                 </div>
             </div>
             <div class="flex justify-between items-center gap-4 my-4">
-                <label for="dropdown" class="text-sm font-medium text-heading">Type de course</label>
+                <label for="dropdown" class="text-sm font-medium text-heading"
+                    >Type de course</label
+                >
                 <div class="relative">
-                    <button data-dropdown-toggle="dropdownType" class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5" type="button">
-                        {{courseData.type.name || "Sélectionner un type de course"}}
+                    <button
+                        data-dropdown-toggle="dropdownType"
+                        class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5"
+                        type="button"
+                    >
+                        {{
+                            courseData.type.name ||
+                            "Sélectionner un type de course"
+                        }}
                         <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
                     </button>
-                    <div id="dropdownType" class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
+                    <div
+                        id="dropdownType"
+                        class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44"
+                    >
                         <ul class="p-2 text-sm text-body font-medium">
                             <li v-for="type in typesCourse" :key="type.id">
-                                <button type="button" @click="selectType(type);" 
-                                    class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                                <button
+                                    type="button"
+                                    @click="selectType(type)"
+                                    class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded"
+                                >
                                     {{ type.name }}
                                 </button>
                             </li>
@@ -111,173 +203,511 @@
                     </div>
                 </div>
             </div>
-            <div v-if="courseData.type.name === 'Relais' || courseData.type.name === 'Groupe'"
-        class="flex justify-between items-center gap-4 my-4">
-        <label for="maxNbPersonne" class="basis-1/3 block mb-2.5 text-sm font-medium text-heading">
-            {{ courseData.type.name === 'Relais' ? 'Nombre de coureurs par équipe' : 'Nombre maximum de personnes par groupe' }}
-        </label>
-        <div class="w-full flex flex-col gap-1">
-            <input type="number" id="maxNbPersonne" v-model="courseData.maxNbPersonne" min="2"
-                class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
-                :placeholder="courseData.type.name === 'Relais' ? 'Ex: 4' : 'Ex: 10'" />
-            <p v-if="courseData.type.name === 'Groupe'" class="text-xs text-body">
-                Minimum 2 personnes par groupe.
-            </p>
-        </div>
-    </div>
+            <div
+                v-if="
+                    courseData.type.name === 'Relais' ||
+                    courseData.type.name === 'Groupe'
+                "
+                class="flex justify-between items-center gap-4 my-4"
+            >
+                <label
+                    for="maxNbPersonne"
+                    class="basis-1/3 block mb-2.5 text-sm font-medium text-heading"
+                >
+                    {{
+                        courseData.type.name === "Relais"
+                            ? "Nombre de coureurs par équipe"
+                            : "Nombre maximum de personnes par groupe"
+                    }}
+                </label>
+                <div class="w-full flex flex-col gap-1">
+                    <input
+                        type="number"
+                        id="maxNbPersonne"
+                        v-model="courseData.maxNbPersonne"
+                        min="2"
+                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
+                        :placeholder="
+                            courseData.type.name === 'Relais'
+                                ? 'Ex: 4'
+                                : 'Ex: 10'
+                        "
+                    />
+                    <p
+                        v-if="courseData.type.name === 'Groupe'"
+                        class="text-xs text-body"
+                    >
+                        Minimum 2 personnes par groupe.
+                    </p>
+                </div>
+            </div>
 
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
             <div class="flex justify-between items-center gap-4 my-4">
-                <label for="maxRunners" class="basis-1/3 block mb-2.5 text-sm font-medium text-heading">Nombre de coureur maximum</label>
-                <input type="number" id="maxRunners" v-model="courseData.maxRunners" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                <label
+                    for="maxRunners"
+                    class="basis-1/3 block mb-2.5 text-sm font-medium text-heading"
+                    >Nombre de coureur maximum</label
+                >
+                <input
+                    type="number"
+                    id="maxRunners"
+                    v-model="courseData.maxRunners"
+                    class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                    required
+                />
             </div>
-            
-           
+
             <div class="flex flex-col-2 gap-4 mb-4">
                 <div class="w-full">
-                    <label for="firstDossard" class="block mb-2.5 text-sm font-medium text-heading">Premier dossard</label>
-                    <input type="number" id="firstDossard" v-model="courseData.dossard.first" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                    <label
+                        for="firstDossard"
+                        class="block mb-2.5 text-sm font-medium text-heading"
+                        >Premier dossard</label
+                    >
+                    <input
+                        type="number"
+                        id="firstDossard"
+                        v-model="courseData.dossard.first"
+                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                        placeholder=""
+                        required
+                    />
                 </div>
                 <div class="w-full">
-                    <label for="lastDossard" class="block mb-2.5 text-sm font-medium text-heading">Dernier dossard</label>
-                    <input type="number" id="lastDossard" v-model="courseData.dossard.last" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                    <label
+                        for="lastDossard"
+                        class="block mb-2.5 text-sm font-medium text-heading"
+                        >Dernier dossard</label
+                    >
+                    <input
+                        type="number"
+                        id="lastDossard"
+                        v-model="courseData.dossard.last"
+                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                        required
+                    />
                 </div>
             </div>
             <div class="flex flex-col-3 gap-4 mb-4">
                 <div class="w-full">
-                    <label for="ageMin" class="block mb-2.5 text-sm font-medium text-heading">Limite âge min</label>
-                    <input type="number" id="ageMin" v-model="courseData.age.min" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                    <label
+                        for="ageMin"
+                        class="block mb-2.5 text-sm font-medium text-heading"
+                        >Limite âge min</label
+                    >
+                    <input
+                        type="number"
+                        id="ageMin"
+                        v-model="courseData.age.min"
+                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                        placeholder=""
+                        required
+                    />
                 </div>
                 <div class="w-full">
-                    <label for="ageMax" class="block mb-2.5 text-sm font-medium text-heading">Limite âge max</label>
-                    <input type="number" id="ageMax" v-model="courseData.age.max" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                    <label
+                        for="ageMax"
+                        class="block mb-2.5 text-sm font-medium text-heading"
+                        >Limite âge max</label
+                    >
+                    <input
+                        type="number"
+                        id="ageMax"
+                        v-model="courseData.age.max"
+                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                        required
+                    />
                 </div>
                 <div class="w-full">
-                    <label for="conditionMineur" class="block mb-2.5 text-sm font-medium text-heading">Condition participant mineur</label>
-                    <input type="text" id="conditionMineur" v-model="courseData.age.conditionMineur" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                    <label
+                        for="conditionMineur"
+                        class="block mb-2.5 text-sm font-medium text-heading"
+                        >Condition participant mineur</label
+                    >
+                    <input
+                        type="text"
+                        id="conditionMineur"
+                        v-model="courseData.age.conditionMineur"
+                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                        required
+                    />
                 </div>
             </div>
             <div class="w-full">
-                <label for="tempsMoyen" class="block mb-2.5 text-sm font-medium text-heading">Temps moyen pour X km</label>
-                <input type="text" id="tempsMoyen" v-model="courseData.tempsMoyen" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" required />
+                <label
+                    for="tempsMoyen"
+                    class="block mb-2.5 text-sm font-medium text-heading"
+                    >Temps moyen pour X km</label
+                >
+                <input
+                    type="text"
+                    id="tempsMoyen"
+                    v-model="courseData.tempsMoyen"
+                    class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                    required
+                />
             </div>
-            
+
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
             <!-- PARAMÈTRES -->
             <div class="flex flex-col m-4 gap-2">
                 <div class="flex flex-row justify-between items-center mb-4">
-                    <label class="text-sm font-medium text-heading">Actif</label>
+                    <label class="text-sm font-medium text-heading"
+                        >Actif</label
+                    >
                     <label class="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" v-model="courseData.parameters.actif" class="sr-only peer">
-                        <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
+                        <input
+                            type="checkbox"
+                            v-model="courseData.parameters.actif"
+                            class="sr-only peer"
+                        />
+                        <div
+                            class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"
+                        ></div>
                     </label>
                 </div>
                 <div class="flex flex-row justify-between items-center mb-4">
-                    <label class="text-sm font-medium text-heading">Dossard personnalisé</label>
+                    <label class="text-sm font-medium text-heading"
+                        >Dossard personnalisé</label
+                    >
                     <label class="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" v-model="courseData.parameters.dossardPersonalise" class="sr-only peer">
-                        <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
+                        <input
+                            type="checkbox"
+                            v-model="courseData.parameters.dossardPersonalise"
+                            class="sr-only peer"
+                        />
+                        <div
+                            class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"
+                        ></div>
                     </label>
                 </div>
                 <div class="flex flex-row justify-between items-center mb-4">
-                    <label class="text-sm font-medium text-heading">Challenge</label>
+                    <label class="text-sm font-medium text-heading"
+                        >Challenge</label
+                    >
                     <label class="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" v-model="courseData.parameters.challenge" class="sr-only peer">
-                        <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
+                        <input
+                            type="checkbox"
+                            v-model="courseData.parameters.challenge"
+                            class="sr-only peer"
+                        />
+                        <div
+                            class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"
+                        ></div>
                     </label>
                 </div>
-<div v-if="courseData.parameters.challenge" class="ml-4 mt-2 border-l-2 border-tertiary/30 pl-4 flex flex-col gap-3">
-    <p class="text-xs text-body font-medium">Organisations du challenge</p>
- 
-    <!-- Liste existante -->
-    <div v-if="courseData.challengeOrganisations.length > 0" class="flex flex-col gap-1">
-        <div
-            v-for="(org, index) in courseData.challengeOrganisations"
-            :key="index"
-            class="flex items-center justify-between bg-neutral-secondary-medium rounded-base px-3 py-1.5 text-sm"
-        >
-            <span class="text-body">
-                <span class="text-xs px-1.5 py-0.5 rounded mr-2"
-                    :class="org.type === 'Groupe' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'">
-                    {{ org.type === 'Groupe' ? 'Université' : 'Entreprise' }}
-                </span>
-                {{ org.nom }}
-            </span>
-            <button type="button" @click="supprimerOrganisation(index, org)"
-                class="text-accent hover:text-red-700 ml-2">
-                <Icon icon="mdi:close" class="w-4 h-4" />
-            </button>
-        </div>
-    </div>
-    <p v-else class="text-xs text-body italic">Aucune organisation ajoutée.</p>
- 
-    <!-- Formulaire ajout -->
-    <div class="flex gap-2 items-end">
-        <div class="flex flex-col gap-1 flex-1">
-            <label class="text-xs text-body">Nom</label>
-            <input
-                v-model="nouvelleOrg.nom"
-                type="text"
-                placeholder="Ex: UNIGE, Nestlé..."
-                class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-2.5 py-2 shadow-xs"
-            />
-        </div>
-        <div class="flex flex-col gap-1">
-            <label class="text-xs text-body">Type</label>
-            <select v-model="nouvelleOrg.type"
-                class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-2.5 py-2 shadow-xs">
-                <option value="Groupe">Université</option>
-                <option value="Entreprise">Entreprise</option>
-            </select>
-        </div>
-        <button type="button" @click="ajouterOrganisation"
-            :disabled="!nouvelleOrg.nom.trim()"
-            class="bg-tertiary border border-default-medium text-heading text-sm rounded-base px-3 py-2 disabled:opacity-50">
-            <Icon icon="mdi:plus" class="w-4 h-4" />
-        </button>
-    </div>
-</div>
+                <div
+                    v-if="courseData.parameters.challenge"
+                    class="ml-4 mt-2 border-l-2 border-tertiary/30 pl-4 flex flex-col gap-3"
+                >
+                    <p class="text-xs text-body font-medium">
+                        Organisations du challenge
+                    </p>
+
+                    <!-- Liste existante -->
+                    <div
+                        v-if="courseData.challengeOrganisations.length > 0"
+                        class="flex flex-col gap-1"
+                    >
+                        <div
+                            v-for="(
+                                org, index
+                            ) in courseData.challengeOrganisations"
+                            :key="index"
+                            class="flex items-center justify-between bg-neutral-secondary-medium rounded-base px-3 py-1.5 text-sm"
+                        >
+                            <span class="text-body">
+                                <span
+                                    class="text-xs px-1.5 py-0.5 rounded mr-2"
+                                    :class="
+                                        org.type === 'Groupe'
+                                            ? 'bg-blue-100 text-blue-700'
+                                            : 'bg-orange-100 text-orange-700'
+                                    "
+                                >
+                                    {{
+                                        org.type === "Groupe"
+                                            ? "Université"
+                                            : "Entreprise"
+                                    }}
+                                </span>
+                                {{ org.nom }}
+                            </span>
+                            <button
+                                type="button"
+                                @click="supprimerOrganisation(index, org)"
+                                class="text-accent hover:text-red-700 ml-2"
+                            >
+                                <Icon icon="mdi:close" class="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                    <p v-else class="text-xs text-body italic">
+                        Aucune organisation ajoutée.
+                    </p>
+
+                    <!-- Formulaire ajout -->
+                    <div class="flex gap-2 items-end">
+                        <div class="flex flex-col gap-1 flex-1">
+                            <label class="text-xs text-body">Nom</label>
+                            <input
+                                v-model="nouvelleOrg.nom"
+                                type="text"
+                                placeholder="Ex: UNIGE, Nestlé..."
+                                class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-2.5 py-2 shadow-xs"
+                            />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs text-body">Type</label>
+                            <select
+                                v-model="nouvelleOrg.type"
+                                class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-2.5 py-2 shadow-xs"
+                            >
+                                <option value="Groupe">Université</option>
+                                <option value="Entreprise">Entreprise</option>
+                            </select>
+                        </div>
+                        <button
+                            type="button"
+                            @click="ajouterOrganisation"
+                            :disabled="!nouvelleOrg.nom.trim()"
+                            class="bg-tertiary border border-default-medium text-heading text-sm rounded-base px-3 py-2 disabled:opacity-50"
+                        >
+                            <Icon icon="mdi:plus" class="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
 
                 <div class="flex flex-row justify-between items-center mb-4">
-                    <label class="text-sm font-medium text-heading">Avertissement</label>
+                    <label class="text-sm font-medium text-heading"
+                        >Avertissement</label
+                    >
                     <label class="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" v-model="courseData.parameters.avertissement" class="sr-only peer">
-                        <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
+                        <input
+                            type="checkbox"
+                            v-model="courseData.parameters.avertissement"
+                            class="sr-only peer"
+                        />
+                        <div
+                            class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"
+                        ></div>
                     </label>
                 </div>
                 <div class="flex flex-row justify-between items-center mb-4">
-                    <label class="text-sm font-medium text-heading">Documents</label>
+                    <label class="text-sm font-medium text-heading"
+                        >Documents</label
+                    >
                     <label class="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" v-model="courseData.parameters.document" class="sr-only peer">
-                        <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
+                        <input
+                            type="checkbox"
+                            v-model="courseData.parameters.document"
+                            class="sr-only peer"
+                        />
+                        <div
+                            class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"
+                        ></div>
                     </label>
                 </div>
                 <div class="flex flex-row justify-between items-center mb-4">
-                    <label class="text-sm font-medium text-heading">Questionnaire</label>
+                    <label class="text-sm font-medium text-heading"
+                        >Questionnaire</label
+                    >
                     <label class="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" v-model="courseData.parameters.questionnaire" class="sr-only peer">
-                        <div class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"></div>
+                        <input
+                            type="checkbox"
+                            v-model="courseData.parameters.questionnaire"
+                            class="sr-only peer"
+                        />
+                        <div
+                            class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"
+                        ></div>
                     </label>
+                </div>
+                <div class="flex flex-row justify-between items-center mb-4">
+                    <label class="text-sm font-medium text-heading"
+                        >Prix évolutif</label
+                    >
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            v-model="courseData.parameters.prixEvolutif"
+                            class="sr-only peer"
+                        />
+                        <div
+                            class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"
+                        ></div>
+                    </label>
+                </div>
+
+                <!-- Section prix évolutif (visible si toggle activé) -->
+                <div
+                    v-if="courseData.parameters.prixEvolutif"
+                    class="ml-4 mt-2 border-l-2 border-tertiary/30 pl-4 flex flex-col gap-4"
+                >
+                    <!-- Choix du mode -->
+                    <div class="flex gap-3">
+                        <button
+                            type="button"
+                            @click="changerModePrixEvolutif('dossards')"
+                            :class="[
+                                'flex-1 px-4 py-2.5 rounded-base border text-sm font-medium transition-all',
+                                courseData.prixEvolutif.type === 'dossards'
+                                    ? 'border-tertiary bg-tertiary text-primary'
+                                    : 'border-default-medium bg-neutral-secondary-medium text-heading hover:border-tertiary',
+                            ]"
+                        >
+                            Par nombre de dossards
+                        </button>
+                        <button
+                            type="button"
+                            @click="changerModePrixEvolutif('dates')"
+                            :class="[
+                                'flex-1 px-4 py-2.5 rounded-base border text-sm font-medium transition-all',
+                                courseData.prixEvolutif.type === 'dates'
+                                    ? 'border-tertiary bg-tertiary text-primary'
+                                    : 'border-default-medium bg-neutral-secondary-medium text-heading hover:border-tertiary',
+                            ]"
+                        >
+                            Par dates
+                        </button>
+                    </div>
+
+                    <!-- Liste des paliers -->
+                    <div
+                        v-if="courseData.prixEvolutif.paliers.length > 0"
+                        class="flex flex-col gap-2"
+                    >
+                        <div
+                            v-for="(palier, index) in courseData.prixEvolutif
+                                .paliers"
+                            :key="index"
+                            class="flex items-center gap-2 bg-neutral-secondary-medium rounded-base px-3 py-2"
+                        >
+                            <!-- Palier par dossards -->
+                            <template
+                                v-if="
+                                    courseData.prixEvolutif.type === 'dossards'
+                                "
+                            >
+                                <input
+                                    type="number"
+                                    v-model="palier.valeur_debut"
+                                    placeholder="De (dossard)"
+                                    class="w-28 bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs"
+                                />
+                                <span class="text-body text-xs">→</span>
+                                <input
+                                    type="number"
+                                    v-model="palier.valeur_fin"
+                                    placeholder="À (dossard, vide=∞)"
+                                    class="w-28 bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs"
+                                />
+                            </template>
+
+                            <!-- Palier par dates -->
+                            <template v-else>
+                                <input
+                                    type="date"
+                                    v-model="palier.valeur_debut"
+                                    class="w-36 bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs"
+                                />
+                                <span class="text-body text-xs">→</span>
+                                <input
+                                    type="date"
+                                    v-model="palier.valeur_fin"
+                                    placeholder="Vide=sans fin"
+                                    class="w-36 bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs"
+                                />
+                            </template>
+
+                            <span class="text-body text-xs ml-1">CHF</span>
+                            <input
+                                type="number"
+                                v-model="palier.tarif"
+                                placeholder="Tarif"
+                                class="w-24 bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs"
+                            />
+
+                            <button
+                                type="button"
+                                @click="supprimerPalier(index, palier)"
+                                class="text-accent hover:text-red-700 ml-auto"
+                            >
+                                <Icon icon="mdi:close" class="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                    <p v-else class="text-xs text-body italic">
+                        Aucun palier ajouté.
+                    </p>
+
+                    <!-- Bouton ajouter un palier -->
+                    <button
+                        type="button"
+                        @click="ajouterPalier"
+                        class="flex items-center gap-2 text-sm text-heading border border-default-medium bg-neutral-secondary-medium rounded-base px-3 py-2 hover:border-tertiary transition-colors w-fit"
+                    >
+                        <Icon icon="mdi:plus" class="w-4 h-4" />
+                        Ajouter un palier
+                    </button>
+
+                    <p class="text-xs text-body">
+                        <template
+                            v-if="courseData.prixEvolutif.type === 'dossards'"
+                        >
+                            Le tarif s'applique selon le nombre de dossards
+                            vendus au moment de l'inscription.
+                        </template>
+                        <template v-else>
+                            Le tarif s'applique selon la date d'inscription.
+                        </template>
+                    </p>
                 </div>
             </div>
 
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
             <div class="flex flex-col-2 gap-4">
-                <div class="flex justify-between items-center gap-4 my-4 w-full">
-                    <label for="dropdown" class="text-sm font-medium text-heading">Catégorie</label>
+                <div
+                    class="flex justify-between items-center gap-4 my-4 w-full"
+                >
+                    <label
+                        for="dropdown"
+                        class="text-sm font-medium text-heading"
+                        >Catégorie</label
+                    >
                     <div class="relative">
-                        <button data-dropdown-toggle="dropdownCategory" class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5" type="button">
-                            {{courseData.category.nom || "Sélectionner une catégorie"}}
-                            <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
+                        <button
+                            data-dropdown-toggle="dropdownCategory"
+                            class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5"
+                            type="button"
+                        >
+                            {{
+                                courseData.category.nom ||
+                                "Sélectionner une catégorie"
+                            }}
+                            <Icon
+                                icon="mdi:chevron-down"
+                                class="ml-2 w-6 h-6"
+                            />
                         </button>
-                        <div id="dropdownCategory" class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
+                        <div
+                            id="dropdownCategory"
+                            class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44"
+                        >
                             <ul class="p-2 text-sm text-body font-medium">
-                                <li v-for="category in categories" :key="category.id">
-                                    <button type="button" @click="selectCategory(category);" 
-                                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                                <li
+                                    v-for="category in categories"
+                                    :key="category.id"
+                                >
+                                    <button
+                                        type="button"
+                                        @click="selectCategory(category)"
+                                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded"
+                                    >
                                         {{ category.nom }}
                                     </button>
                                 </li>
@@ -285,18 +715,43 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-between items-center gap-4 my-4 w-full">
-                    <label for="dropdownSubcategory" class="text-sm font-medium text-heading">Sous-catégorie</label>
+                <div
+                    class="flex justify-between items-center gap-4 my-4 w-full"
+                >
+                    <label
+                        for="dropdownSubcategory"
+                        class="text-sm font-medium text-heading"
+                        >Sous-catégorie</label
+                    >
                     <div class="relative">
-                        <button data-dropdown-toggle="dropdownSubcategory" class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5" type="button">
-                            {{courseData.subCategory.nom || "Sélectionner une sous-catégorie"}}
-                            <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
+                        <button
+                            data-dropdown-toggle="dropdownSubcategory"
+                            class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5"
+                            type="button"
+                        >
+                            {{
+                                courseData.subCategory.nom ||
+                                "Sélectionner une sous-catégorie"
+                            }}
+                            <Icon
+                                icon="mdi:chevron-down"
+                                class="ml-2 w-6 h-6"
+                            />
                         </button>
-                        <div id="dropdownSubcategory" class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44">
+                        <div
+                            id="dropdownSubcategory"
+                            class="hidden absolute left-0 mt-1 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44"
+                        >
                             <ul class="p-2 text-sm text-body font-medium">
-                                <li v-for="subCategory in subCategories" :key="subCategory.id">
-                                    <button type="button" @click="selectSubCategory(subCategory);" 
-                                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
+                                <li
+                                    v-for="subCategory in subCategories"
+                                    :key="subCategory.id"
+                                >
+                                    <button
+                                        type="button"
+                                        @click="selectSubCategory(subCategory)"
+                                        class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded"
+                                    >
                                         {{ subCategory.nom }}
                                     </button>
                                 </li>
@@ -308,52 +763,113 @@
         </div>
 
         <!-- ETAPE OPTIONS -->
-        <div v-if="etape==formulaireEtape.OPTIONS">
+        <div v-if="etape == formulaireEtape.OPTIONS">
             <p class="text-subtitle my-4">Options supplémentaires</p>
             <div v-for="(option, index) in courseData.options" class="my-4">
-                <OptionTemplate :optionModel="option" @remove-option="removeOption(index)"/>
+                <OptionTemplate
+                    :optionModel="option"
+                    @remove-option="removeOption(index)"
+                />
             </div>
             <div class="flex pt-4 items-center">
                 <div class="flex-grow border-t border-gray-700"></div>
                 <span class="mx-4">
-                    <button type="button" @click="handleModalState" class="bg-tertiary border border-default-medium text-heading text-sm rounded-full focus:border-tertiary-900 px-2.5 py-2.5">
+                    <button
+                        type="button"
+                        @click="handleModalState"
+                        class="bg-tertiary border border-default-medium text-heading text-sm rounded-full focus:border-tertiary-900 px-2.5 py-2.5"
+                    >
                         <Icon icon="mdi:plus" class="w-4 h-4" />
                     </button>
                 </span>
                 <div class="flex-grow border-t border-gray-700"></div>
             </div>
-            <div v-if="modal==optionModal.SELECTION" class="flex items-center justify-center z-50">
-                <OptionList :elements="optionElements" @select-item="handleOptionSelection"/>
+            <div
+                v-if="modal == optionModal.SELECTION"
+                class="flex items-center justify-center z-50"
+            >
+                <OptionList
+                    :elements="optionElements"
+                    @select-item="handleOptionSelection"
+                />
             </div>
-            <div v-if="modal==optionModal.EXISTANT" class="flex items-center justify-center z-50">
-                <OptionList :elements="optionModels.map(o => o.nom)" @select-item="handleOptionSelection"/>
+            <div
+                v-if="modal == optionModal.EXISTANT"
+                class="flex items-center justify-center z-50"
+            >
+                <OptionList
+                    :elements="optionModels.map((o) => o.nom)"
+                    @select-item="handleOptionSelection"
+                />
             </div>
         </div>
 
         <!-- ETAPE AVERTISSEMENT -->
-        <div v-if="etape==formulaireEtape.AVERTISSEMENT">
+        <div v-if="etape == formulaireEtape.AVERTISSEMENT">
             <p class="text-subtitle mt-4">Avertissement</p>
-            <p class="mb-4">Cette page apparaitra dès la sélection de la course. Elle sert à avertir les participants de risques potentiels.</p>
+            <p class="mb-4">
+                Cette page apparaitra dès la sélection de la course. Elle sert à
+                avertir les participants de risques potentiels.
+            </p>
             <div class="flex flex-col-2 gap-4 h-128">
-                <textarea type="text" id="avertissement" v-model="courseData.avertissement.contenu" class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                <textarea
+                    type="text"
+                    id="avertissement"
+                    v-model="courseData.avertissement.contenu"
+                    class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                    placeholder=""
+                    required
+                />
                 <div class="basis-1/3">
-                    <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
-                    <button v-for="avertissementModel in avertissementModels" :key="avertissementModel.name" type="button" @click="courseData.avertissement.contenu = avertissementModel.contenu" class="btn-model">
+                    <h2 class="text-sm font-medium text-heading mb-2.5">
+                        Mes modèles
+                    </h2>
+                    <button
+                        v-for="avertissementModel in avertissementModels"
+                        :key="avertissementModel.name"
+                        type="button"
+                        @click="
+                            courseData.avertissement.contenu =
+                                avertissementModel.contenu
+                        "
+                        class="btn-model"
+                    >
                         {{ avertissementModel.titre }}
                     </button>
                 </div>
             </div>
         </div>
 
-            <!-- ETAPE DOCUMENT -->
-        <div v-if="etape==formulaireEtape.DOCUMENT">
+        <!-- ETAPE DOCUMENT -->
+        <div v-if="etape == formulaireEtape.DOCUMENT">
             <p class="text-subtitle mt-4">Documents</p>
-            <p class="mb-4">Décrivez quels documents doivent être fournis et quels type de personnes sont concernées.</p>
+            <p class="mb-4">
+                Décrivez quels documents doivent être fournis et quels type de
+                personnes sont concernées.
+            </p>
             <div class="flex flex-col-2 gap-4 h-128">
-                <textarea type="text" id="documents" v-model="courseData.document.description" class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                <textarea
+                    type="text"
+                    id="documents"
+                    v-model="courseData.document.description"
+                    class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                    placeholder=""
+                    required
+                />
                 <div class="basis-1/3">
-                    <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
-                    <button v-for="documentModel in documentModels" :key="documentModel.name" type="button" @click="courseData.document.description = documentModel.description" class="btn-model">
+                    <h2 class="text-sm font-medium text-heading mb-2.5">
+                        Mes modèles
+                    </h2>
+                    <button
+                        v-for="documentModel in documentModels"
+                        :key="documentModel.name"
+                        type="button"
+                        @click="
+                            courseData.document.description =
+                                documentModel.description
+                        "
+                        class="btn-model"
+                    >
                         {{ documentModel.name }}
                     </button>
                 </div>
@@ -361,67 +877,114 @@
         </div>
 
         <!-- ETAPE QUESTIONNAIRE -->
-        <div v-if="etape==formulaireEtape.QUESTIONNAIRE">
+        <div v-if="etape == formulaireEtape.QUESTIONNAIRE">
             <p class="text-subtitle my-4">Questionnaires</p>
             <div v-for="(question, index) in courseData.questions" class="my-4">
-                <QuestionTemplate :questionModel="question" @remove-question="courseData.questions.splice(index, 1)"/>
+                <QuestionTemplate
+                    :questionModel="question"
+                    @remove-question="courseData.questions.splice(index, 1)"
+                />
             </div>
             <div class="flex pt-4 items-center">
-                <div class="flex-grow border-t border-gray-700 "></div>
+                <div class="flex-grow border-t border-gray-700"></div>
                 <span class="mx-4">
-                    <button type="button" @click="handleModalState" class="bg-tertiary border border-default-medium text-heading text-sm rounded-full focus:border-tertiary-900 px-2.5 py-2.5">
+                    <button
+                        type="button"
+                        @click="handleModalState"
+                        class="bg-tertiary border border-default-medium text-heading text-sm rounded-full focus:border-tertiary-900 px-2.5 py-2.5"
+                    >
                         <Icon icon="mdi:plus" class="w-4 h-4" />
                     </button>
                 </span>
                 <div class="flex-grow border-t border-gray-700"></div>
             </div>
-            <div v-if="modal==optionModal.SELECTION" class="flex items-center justify-center z-50">
-                <OptionList :elements="this.optionElements" @select-item="handleOptionSelection"/>
+            <div
+                v-if="modal == optionModal.SELECTION"
+                class="flex items-center justify-center z-50"
+            >
+                <OptionList
+                    :elements="this.optionElements"
+                    @select-item="handleOptionSelection"
+                />
             </div>
-            <div v-if="modal==optionModal.EXISTANT" class="flex items-center justify-center z-50">
-                <OptionList :elements="questionModels.map(q => q.enonce)" @select-item="handleOptionSelection"/>
+            <div
+                v-if="modal == optionModal.EXISTANT"
+                class="flex items-center justify-center z-50"
+            >
+                <OptionList
+                    :elements="questionModels.map((q) => q.enonce)"
+                    @select-item="handleOptionSelection"
+                />
             </div>
         </div>
-
 
         <!-- NAVIGATION ETAPES -->
         <div class="flex flex-row mt-6 gap-4">
-            <button v-if="etapesActives.indexOf(etape) > 0" class="btn-accent-300" @click="etape = etapesActives[etapesActives.indexOf(etape) - 1]">
+            <button
+                v-if="etapesActives.indexOf(etape) > 0"
+                class="btn-accent-300"
+                @click="etape = etapesActives[etapesActives.indexOf(etape) - 1]"
+            >
                 Etape précédente
             </button>
-            <button v-if="etapesActives.indexOf(etape) < etapesActives.length - 1" class="btn-tertiary ml-auto" @click="etape = etapesActives[etapesActives.indexOf(etape) + 1]">
+            <button
+                v-if="etapesActives.indexOf(etape) < etapesActives.length - 1"
+                class="btn-tertiary ml-auto"
+                @click="etape = etapesActives[etapesActives.indexOf(etape) + 1]"
+            >
                 Etape suivante
             </button>
-            <button v-else class="btn-tertiary ml-auto" @click="confirmationPopup=true">
-                {{ isEditMode ? 'Enregistrer les modifications' : 'Créer la course' }}
+            <button
+                v-else
+                class="btn-tertiary ml-auto"
+                @click="confirmationPopup = true"
+            >
+                {{
+                    isEditMode
+                        ? "Enregistrer les modifications"
+                        : "Créer la course"
+                }}
             </button>
         </div>
 
-        <PopupConfirmation v-if="confirmationPopup" @cancel="confirmationPopup = false" @confirm="insertCourse()"/>
-        <PopupConfirmation v-if="dataInserted" :message="isEditMode ? 'La course a été modifiée avec succès !' : 'La course a été créée avec succès !'" :icon="'mdi:check'" :showButtons="false"/>
+        <PopupConfirmation
+            v-if="confirmationPopup"
+            @cancel="confirmationPopup = false"
+            @confirm="insertCourse()"
+        />
+        <PopupConfirmation
+            v-if="dataInserted"
+            :message="
+                isEditMode
+                    ? 'La course a été modifiée avec succès !'
+                    : 'La course a été créée avec succès !'
+            "
+            :icon="'mdi:check'"
+            :showButtons="false"
+        />
     </div>
 </template>
 
 <script>
-import { Icon } from '@iconify/vue';
-import { initDropdowns } from 'flowbite';
-import PopupConfirmation from './PopupConfirmation.vue';
-import OptionList from './OptionList.vue';
-import OptionTemplate from './OptionTemplate.vue';
+import { Icon } from "@iconify/vue";
+import { initDropdowns } from "flowbite";
+import PopupConfirmation from "./PopupConfirmation.vue";
+import OptionList from "./OptionList.vue";
+import OptionTemplate from "./OptionTemplate.vue";
 import QuestionTemplate from "./QuestionTemplate.vue";
-import evenementOrganisateurService from '../services/evenementOrganisateurService';
-import courseOrganisateurService from '../services/courseOrganisateurService';
-import optionOrganisateurService from '../services/optionOrganisateurService';
-import IndicateurEtapes from './IndicateurEtapes.vue';
-import avertissementOrganisateurService from '../services/avertissementOrganisateurService';
-import optionCourseService from '../services/optionCourseService';
-import categorieOrganisateurService from '../services/categorieOrganisateurService';
-import sousCategorieOrganisateurService from '../services/sousCategorieOrganisateurService';
-import questionOrganisateurService from '../services/questionOrganisateurService';
-import optionQuestionOrganisateurService from '../services/optionQuestionOrganisateurService';
-import courseQuestionOrganisateurService from '../services/courseQuestionOrganisateurService';
-import challengeOrganisationService from '../services/challengeOrganisationService';
-
+import evenementOrganisateurService from "../services/evenementOrganisateurService";
+import courseOrganisateurService from "../services/courseOrganisateurService";
+import optionOrganisateurService from "../services/optionOrganisateurService";
+import IndicateurEtapes from "./IndicateurEtapes.vue";
+import avertissementOrganisateurService from "../services/avertissementOrganisateurService";
+import optionCourseService from "../services/optionCourseService";
+import categorieOrganisateurService from "../services/categorieOrganisateurService";
+import sousCategorieOrganisateurService from "../services/sousCategorieOrganisateurService";
+import questionOrganisateurService from "../services/questionOrganisateurService";
+import optionQuestionOrganisateurService from "../services/optionQuestionOrganisateurService";
+import courseQuestionOrganisateurService from "../services/courseQuestionOrganisateurService";
+import challengeOrganisationService from "../services/challengeOrganisationService";
+import prixEvolutifService from "../services/prixEvolutifService";
 const formulaireEtape = {
     GENERAL: 1,
     OPTIONS: 2,
@@ -454,19 +1017,19 @@ export default {
             confirmationPopup: false,
             dataInserted: false,
             evenements: [],
-            nouvelleOrg: { nom: '', type: 'Entreprise' },
+            nouvelleOrg: { nom: "", type: "Entreprise" },
             formulaireEtapesLabels: ["Général", "Options supplémentaires"],
             typesCourse: [
                 { name: "Individuel", id: 1 },
-                { name: "Relais",     id: 2 },
-                { name: "Groupe",     id: 3 },
+                { name: "Relais", id: 2 },
+                { name: "Groupe", id: 3 },
             ],
             categories: [],
             subCategories: [],
             questionModels: [
                 {
                     enonce: "Comment avez-vous connu l'évènement ?",
-                    choix:  [
+                    choix: [
                         { texte_option: "Réseaux sociaux" },
                         { texte_option: "Bouche à oreille" },
                         { texte_option: "Autre" },
@@ -476,12 +1039,14 @@ export default {
             documentModels: [
                 {
                     name: "Etudiant",
-                    description: "Si vous êtes étudiant, veuillez fournir l'attestation de scolarité."
-                }, 
+                    description:
+                        "Si vous êtes étudiant, veuillez fournir l'attestation de scolarité.",
+                },
                 {
                     name: "Etudiant + santé",
-                    description: "Étudiant inscrit à un cours avec attestation de santé."
-                }
+                    description:
+                        "Étudiant inscrit à un cours avec attestation de santé.",
+                },
             ],
             optionElements: ["Existant", "Nouveau"],
             optionModels: [],
@@ -489,7 +1054,12 @@ export default {
             courseData: {
                 name: "",
                 event: { name: "", id: "" },
-                date: { start: "", end: "", inscriptionStart: "", inscriptionEnd: "" },
+                date: {
+                    start: "",
+                    end: "",
+                    inscriptionStart: "",
+                    inscriptionEnd: "",
+                },
                 distance: "",
                 tarif: "",
                 tarifInfo: "",
@@ -507,16 +1077,21 @@ export default {
                     avertissement: false,
                     document: false,
                     questionnaire: false,
+                    prixEvolutif: false,
                 },
                 category: { nom: "", id: "" },
                 subCategory: { nom: "", id: "" },
                 options: [],
-                avertissement: { contenu: "", id:"" },
+                avertissement: { contenu: "", id: "" },
                 questions: [],
                 document: {
-                    description: '',
+                    description: "",
                 },
-                challengeOrganisations: [],   // [{ id?, nom, type }]
+                challengeOrganisations: [], // [{ id?, nom, type }]
+                prixEvolutif: {
+                    type: "dossards", // 'dossards' ou 'dates'
+                    paliers: [], // [{ id?, valeur_debut, valeur_fin, tarif, ordre }]
+                },
             },
         };
     },
@@ -547,28 +1122,34 @@ export default {
             }
             this.formulaireEtapesLabels = labels;
             return etapes.sort((a, b) => a - b);
-        }
+        },
     },
     watch: {
-        'courseData.date.start'(newStart) {
+        "courseData.date.start"(newStart) {
             if (!newStart) return;
-            if (!this.courseData.date.end || this.courseData.date.end < newStart) {
+            if (
+                !this.courseData.date.end ||
+                this.courseData.date.end < newStart
+            ) {
                 this.courseData.date.end = newStart;
             }
         },
-        'courseData.date.inscriptionStart'(newStart) {
+        "courseData.date.inscriptionStart"(newStart) {
             if (!newStart) return;
-            if (!this.courseData.date.inscriptionEnd || this.courseData.date.inscriptionEnd < newStart) {
+            if (
+                !this.courseData.date.inscriptionEnd ||
+                this.courseData.date.inscriptionEnd < newStart
+            ) {
                 this.courseData.date.inscriptionEnd = newStart;
             }
         },
-        'courseData.parameters.avertissement'(val) {
-            if (!val) this.courseData.avertissement = { contenu: '' };
+        "courseData.parameters.avertissement"(val) {
+            if (!val) this.courseData.avertissement = { contenu: "" };
         },
-           'courseData.parameters.document'(val) {
-            if (!val) this.courseData.document = { name: '', description: '' };
+        "courseData.parameters.document"(val) {
+            if (!val) this.courseData.document = { name: "", description: "" };
         },
-        'courseData.parameters.questionnaire'(val) {
+        "courseData.parameters.questionnaire"(val) {
             if (!val) this.courseData.questions = [];
         },
         courseId(newId) {
@@ -577,34 +1158,60 @@ export default {
             } else {
                 this.resetFormulaire();
             }
-        }
+        },
     },
     methods: {
         resetFormulaire() {
             this.courseData = {
-                name: "", event: { name: "", id: "" },
-                date: { start: "", end: "", inscriptionStart: "", inscriptionEnd: "" },
-                distance: "", tarif: "", tarifInfo: "", popupInfo: "",
-                type: { name: "", id: "" }, maxRunners: "",
+                name: "",
+                event: { name: "", id: "" },
+                date: {
+                    start: "",
+                    end: "",
+                    inscriptionStart: "",
+                    inscriptionEnd: "",
+                },
+                distance: "",
+                tarif: "",
+                tarifInfo: "",
+                popupInfo: "",
+                type: { name: "", id: "" },
+                maxRunners: "",
                 dossard: { first: "", last: "" },
                 age: { min: "", max: "", conditionMineur: "" },
                 tempsMoyen: "",
-                parameters: { actif: false, dossardPersonalise: false, challenge: false, avertissement: false, document: false, questionnaire: false, },
-                category: { nom: "", id: "" }, subCategory: { nom: "", id: "" },
+                parameters: {
+                    actif: false,
+                    dossardPersonalise: false,
+                    challenge: false,
+                    avertissement: false,
+                    document: false,
+                    questionnaire: false,
+                },
+                category: { nom: "", id: "" },
+                subCategory: { nom: "", id: "" },
                 options: [],
-                avertissement: { contenu: "", id: ""},
-                document: { description: '' },
+                avertissement: { contenu: "", id: "" },
+                document: { description: "" },
                 challengeOrganisations: [],
+                prixEvolutif: { type: "dossards", paliers: [] },
             };
             this.etape = formulaireEtape.GENERAL;
         },
 
         async chargerDonneesCourse() {
             try {
-                const response = await courseOrganisateurService.getCourse(this.courseId);
+                const response = await courseOrganisateurService.getCourse(
+                    this.courseId,
+                );
 
-                if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-                    console.error("ERREUR : L'API a renvoyé une page HTML. La route Backend n'existe pas.");
+                if (
+                    typeof response.data === "string" &&
+                    response.data.includes("<!DOCTYPE html>")
+                ) {
+                    console.error(
+                        "ERREUR : L'API a renvoyé une page HTML. La route Backend n'existe pas.",
+                    );
                     return;
                 }
 
@@ -627,35 +1234,54 @@ export default {
                     this.courseData.type = { name: course.type, id: "" };
                 }
                 if (course.date_debut) {
-                    this.courseData.date.start = String(course.date_debut).split('T')[0];
+                    this.courseData.date.start = String(
+                        course.date_debut,
+                    ).split("T")[0];
                 }
                 if (course.date_fin) {
-                    this.courseData.date.end = String(course.date_fin).split('T')[0];
+                    this.courseData.date.end = String(course.date_fin).split(
+                        "T",
+                    )[0];
                 }
                 if (course.debut_inscription) {
-                    this.courseData.date.inscriptionStart = String(course.debut_inscription).split('T')[0];
+                    this.courseData.date.inscriptionStart = String(
+                        course.debut_inscription,
+                    ).split("T")[0];
                 }
                 if (course.fin_inscription) {
-                    this.courseData.date.inscriptionEnd = String(course.fin_inscription).split('T')[0];
+                    this.courseData.date.inscriptionEnd = String(
+                        course.fin_inscription,
+                    ).split("T")[0];
                 }
 
-                this.courseData.parameters.actif = (course.is_actif == 1 || course.is_actif === true);
-                this.courseData.parameters.dossardPersonalise = (course.is_dossard == 1 || course.is_dossard === true);
-                this.courseData.parameters.challenge = (course.is_challenge == 1 || course.challenge === true);
-                this.courseData.parameters.avertissement = (course.is_avertissement == 1 || course.is_avertissement === true);
-                this.courseData.parameters.document = (course.is_document == 1 || course.is_document === true);
-                this.courseData.parameters.questionnaire = (course.is_questionnaire == 1 || course.is_questionnaire === true);
+                this.courseData.parameters.actif =
+                    course.is_actif == 1 || course.is_actif === true;
+                this.courseData.parameters.dossardPersonalise =
+                    course.is_dossard == 1 || course.is_dossard === true;
+                this.courseData.parameters.challenge =
+                    course.is_challenge == 1 || course.challenge === true;
+                this.courseData.parameters.avertissement =
+                    course.is_avertissement == 1 ||
+                    course.is_avertissement === true;
+                this.courseData.parameters.document =
+                    course.is_document == 1 || course.is_document === true;
+                this.courseData.parameters.questionnaire =
+                    course.is_questionnaire == 1 ||
+                    course.is_questionnaire === true;
 
                 if (course.is_avertissement && course.avertissement) {
-                    this.courseData.avertissement.contenu = course.avertissement.contenu;
+                    this.courseData.avertissement.contenu =
+                        course.avertissement.contenu;
                     this.courseData.avertissement.id = course.avertissement.id;
                 }
 
                 if (course.id_evenement && this.evenements.length > 0) {
-                    this.courseData.event = this.evenements.find(e => e.id === course.id_evenement) || { name: "", id: "" };
+                    this.courseData.event = this.evenements.find(
+                        (e) => e.id === course.id_evenement,
+                    ) || { name: "", id: "" };
                 }
                 if (course.options && Array.isArray(course.options)) {
-                    this.courseData.options = course.options.map(opt => {
+                    this.courseData.options = course.options.map((opt) => {
                         return {
                             id: opt.id,
                             nom: opt.nom,
@@ -663,17 +1289,23 @@ export default {
                             tarif: opt.tarif,
                             type: opt.type,
                             // Reconstitution de l'objet pour OptionTemplate
-                            quantifiable: opt.quantifiable ? {
-                                quantiteMin: opt.quantifiable.quantiteMin,
-                                quantiteMax: opt.quantifiable.quantiteMax
-                            } : { quantiteMin: 0, quantiteMax: 0 }
+                            quantifiable: opt.quantifiable
+                                ? {
+                                      quantiteMin: opt.quantifiable.quantiteMin,
+                                      quantiteMax: opt.quantifiable.quantiteMax,
+                                  }
+                                : { quantiteMin: 0, quantiteMax: 0 },
                         };
                     });
-                    console.log("Options injectées dans le formulaire :", this.courseData.options);
+                    console.log(
+                        "Options injectées dans le formulaire :",
+                        this.courseData.options,
+                    );
                 }
 
                 if (course.is_document === 1 && course.document_description) {
-                    this.courseData.document.description = course.document_description;
+                    this.courseData.document.description =
+                        course.document_description;
                 }
 
                 console.log("Course chargée avec succès :", course);
@@ -682,77 +1314,103 @@ export default {
             }
 
             if (this.courseData.parameters.challenge) {
-    try {
-        const orgsResp = await challengeOrganisationService.getOrganisations(this.courseId);
-        this.courseData.challengeOrganisations = orgsResp.data;
-    } catch (e) {
-        console.error('Erreur chargement organisations challenge:', e);
-    }
-}
-        },
-        handleModalState(){
-            if(this.modal === optionModal.FERMEE) {
-                this.modal = optionModal.SELECTION;
+                try {
+                    const orgsResp =
+                        await challengeOrganisationService.getOrganisations(
+                            this.courseId,
+                        );
+                    this.courseData.challengeOrganisations = orgsResp.data;
+                } catch (e) {
+                    console.error(
+                        "Erreur chargement organisations challenge:",
+                        e,
+                    );
+                }
             }
-            else {
+            // Charger les paliers TOUJOURS (pas seulement si challenge)
+            try {
+                const prixResp = await prixEvolutifService.getPaliers(
+                    this.courseId,
+                );
+                if (prixResp.data && prixResp.data.length > 0) {
+                    this.courseData.parameters.prixEvolutif = true;
+                    this.courseData.prixEvolutif.type = prixResp.data[0].type;
+                    this.courseData.prixEvolutif.paliers = prixResp.data;
+                }
+            } catch (e) {
+                console.error("Erreur chargement prix évolutif:", e);
+            }
+        },
+
+        handleModalState() {
+            if (this.modal === optionModal.FERMEE) {
+                this.modal = optionModal.SELECTION;
+            } else {
                 this.modal = optionModal.FERMEE;
             }
         },
         handleOptionSelection(option) {
             console.log("Option sélectionnée :", option);
-            if(option === "Existant") {
+            if (option === "Existant") {
                 this.modal = optionModal.EXISTANT;
-            }
-            else if(option === "Nouveau") {
-                if(this.etape === formulaireEtape.OPTIONS)
+            } else if (option === "Nouveau") {
+                if (this.etape === formulaireEtape.OPTIONS)
                     this.courseData.options.push({
-                        nom: '',
-                        description: '',
-                        tarif: '',
+                        nom: "",
+                        description: "",
+                        tarif: "",
                         quantifiable: {
                             quantiteMin: 0,
                             quantiteMax: 0,
-                        }
+                        },
                     });
-                else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
+                else if (this.etape === formulaireEtape.QUESTIONNAIRE)
                     this.courseData.questions.push({
-                        enonce: '',
-                        choix: []
+                        enonce: "",
+                        choix: [],
                     });
-                this.modal = optionModal.FERMEE; 
-            }
-            else if(this.modal === optionModal.EXISTANT) {
-                if(this.etape === formulaireEtape.OPTIONS) {
-                    const { id, ...optionSansId } = this.optionModels.find(o => o.nom === option);
+                this.modal = optionModal.FERMEE;
+            } else if (this.modal === optionModal.EXISTANT) {
+                if (this.etape === formulaireEtape.OPTIONS) {
+                    const { id, ...optionSansId } = this.optionModels.find(
+                        (o) => o.nom === option,
+                    );
                     this.courseData.options.push(optionSansId);
-                }
-                else if(this.etape === formulaireEtape.QUESTIONNAIRE) 
-                    this.courseData.questions.push(this.questionModels.find(q => q.enonce === option));
+                } else if (this.etape === formulaireEtape.QUESTIONNAIRE)
+                    this.courseData.questions.push(
+                        this.questionModels.find((q) => q.enonce === option),
+                    );
                 this.modal = optionModal.FERMEE;
             }
         },
         selectEvent(event) {
             this.courseData.event = event;
-            FlowbiteInstances.getInstance('Dropdown', 'dropdownEvent').hide();
+            FlowbiteInstances.getInstance("Dropdown", "dropdownEvent").hide();
         },
         selectType(type) {
             this.courseData.type = type;
-            FlowbiteInstances.getInstance('Dropdown', 'dropdownType').hide();
+            FlowbiteInstances.getInstance("Dropdown", "dropdownType").hide();
         },
         selectCategory(category) {
             this.courseData.category = category;
-            FlowbiteInstances.getInstance('Dropdown', 'dropdownCategory').hide();
+            FlowbiteInstances.getInstance(
+                "Dropdown",
+                "dropdownCategory",
+            ).hide();
         },
         selectSubCategory(subCategory) {
             this.courseData.subCategory = subCategory;
-            FlowbiteInstances.getInstance('Dropdown', 'dropdownSubcategory').hide();
+            FlowbiteInstances.getInstance(
+                "Dropdown",
+                "dropdownSubcategory",
+            ).hide();
         },
         async removeOption(index) {
             const option = this.courseData.options[index];
             if (option.id) {
-                await optionCourseService.deleteOptionCourse({ 
-                    id_course: this.courseId, 
-                    id_option: option.id 
+                await optionCourseService.deleteOptionCourse({
+                    id_course: this.courseId,
+                    id_option: option.id,
                 });
                 await optionOrganisateurService.deleteOption(option.id);
             }
@@ -766,161 +1424,276 @@ export default {
                 type: option.type,
                 modele: false,
             };
-            if (option.type === 'Quantifiable') {
-                payload.quantiteMin = parseInt(option.quantifiable?.quantiteMin) || 0;
-                payload.quantiteMax = parseInt(option.quantifiable?.quantiteMax) || 0;
+            if (option.type === "Quantifiable") {
+                payload.quantiteMin =
+                    parseInt(option.quantifiable?.quantiteMin) || 0;
+                payload.quantiteMax =
+                    parseInt(option.quantifiable?.quantiteMax) || 0;
             }
             return payload;
+        },
+        changerModePrixEvolutif(nouveauMode) {
+            if (this.courseData.prixEvolutif.type === nouveauMode) return;
+            if (this.courseData.prixEvolutif.paliers.length > 0) {
+                if (
+                    !confirm(
+                        "Changer de mode supprimera tous les paliers existants. Continuer ?",
+                    )
+                )
+                    return;
+            }
+            this.courseData.prixEvolutif.type = nouveauMode;
+            this.courseData.prixEvolutif.paliers = [];
+        },
+
+        ajouterPalier() {
+            const ordre = this.courseData.prixEvolutif.paliers.length + 1;
+            this.courseData.prixEvolutif.paliers.push({
+                valeur_debut: "",
+                valeur_fin: "",
+                tarif: "",
+                ordre,
+            });
+        },
+
+        async supprimerPalier(index, palier) {
+            // Si le palier a un id → supprimer en DB (mode édition)
+            if (palier.id && this.isEditMode) {
+                await prixEvolutifService.deletePalier(palier.id);
+            }
+            this.courseData.prixEvolutif.paliers.splice(index, 1);
         },
         async insertCourse() {
             try {
                 // 1. Gestion de l'avertissement
                 let id_avertissement = this.courseData.avertissement.id || null;
 
-                if (this.courseData.parameters.avertissement && this.courseData.avertissement.contenu) {
+                if (
+                    this.courseData.parameters.avertissement &&
+                    this.courseData.avertissement.contenu
+                ) {
                     const avertissementPayload = {
                         titre: this.courseData.name,
-                        contenu: this.courseData.avertissement.contenu
+                        contenu: this.courseData.avertissement.contenu,
                     };
                     if (this.isEditMode && id_avertissement) {
-                        await avertissementOrganisateurService.modifyAvertissement(id_avertissement, avertissementPayload);
+                        await avertissementOrganisateurService.modifyAvertissement(
+                            id_avertissement,
+                            avertissementPayload,
+                        );
                     } else {
-                        const avertissementResponse = await avertissementOrganisateurService.createAvertissement(avertissementPayload);
-                        id_avertissement = avertissementResponse.data.avertissement.id;
+                        const avertissementResponse =
+                            await avertissementOrganisateurService.createAvertissement(
+                                avertissementPayload,
+                            );
+                        id_avertissement =
+                            avertissementResponse.data.avertissement.id;
                     }
                 }
 
                 // 2. Payload course
                 const payload = {
-                    id_evenement:      this.courseData.event.id,
-                    nom:               this.courseData.name,
-                    date_debut:        this.courseData.date.start || null,
-                    date_fin:          this.courseData.date.end || null,
-                    debut_inscription: this.courseData.date.inscriptionStart || null,
-                    fin_inscription:   this.courseData.date.inscriptionEnd || null,
-                    tarif:             this.courseData.tarif,
-                    max_inscription:   this.courseData.maxRunners,
-                    premier_dossard:   this.courseData.dossard.first,
-                    dernier_dossard:   this.courseData.dossard.last,
-                    age_minimum:       this.courseData.age.min,
-                    age_maximum:       this.courseData.age.max,
-                    distance:          this.courseData.distance,
-                    status:            "actif",
-                    type:              this.courseData.type.name,
-                    is_actif:          Boolean(this.courseData.parameters.actif),
-                    is_dossard:        Boolean(this.courseData.parameters.dossardPersonalise),
-                    is_avertissement:  Boolean(this.courseData.parameters.avertissement),
-                    is_challenge:      Boolean(this.courseData.parameters.challenge),
-                    is_document:       Boolean(this.courseData.parameters.document),
-                    is_questionnaire:  Boolean(this.courseData.parameters.questionnaire),
-                    id_avertissement:  id_avertissement,
-                    id_categorie:      this.courseData.category.id,
+                    id_evenement: this.courseData.event.id,
+                    nom: this.courseData.name,
+                    date_debut: this.courseData.date.start || null,
+                    date_fin: this.courseData.date.end || null,
+                    debut_inscription:
+                        this.courseData.date.inscriptionStart || null,
+                    fin_inscription:
+                        this.courseData.date.inscriptionEnd || null,
+                    tarif: this.courseData.tarif,
+                    max_inscription: this.courseData.maxRunners,
+                    premier_dossard: this.courseData.dossard.first,
+                    dernier_dossard: this.courseData.dossard.last,
+                    age_minimum: this.courseData.age.min,
+                    age_maximum: this.courseData.age.max,
+                    distance: this.courseData.distance,
+                    status: "actif",
+                    type: this.courseData.type.name,
+                    is_actif: Boolean(this.courseData.parameters.actif),
+                    is_dossard: Boolean(
+                        this.courseData.parameters.dossardPersonalise,
+                    ),
+                    is_avertissement: Boolean(
+                        this.courseData.parameters.avertissement,
+                    ),
+                    is_challenge: Boolean(this.courseData.parameters.challenge),
+                    is_document: Boolean(this.courseData.parameters.document),
+                    is_questionnaire: Boolean(
+                        this.courseData.parameters.questionnaire,
+                    ),
+                    id_avertissement: id_avertissement,
+                    id_categorie: this.courseData.category.id,
                     id_sous_categorie: this.courseData.subCategory.id,
+                    is_prix_evolutif: Boolean(
+                        this.courseData.parameters.prixEvolutif,
+                    ),
                 };
 
                 // 3. Création ou modification de la course
                 let response;
                 if (this.isEditMode) {
-                    response = await courseOrganisateurService.modifyCourse(this.courseId, payload);
+                    response = await courseOrganisateurService.modifyCourse(
+                        this.courseId,
+                        payload,
+                    );
                 } else {
-                    response = await courseOrganisateurService.createCourse(payload);
+                    response =
+                        await courseOrganisateurService.createCourse(payload);
                 }
 
-                const courseId = this.isEditMode ? this.courseId : response.data.course.id;
-                
+                const courseId = this.isEditMode
+                    ? this.courseId
+                    : response.data.course.id;
+                // Synchroniser les paliers de prix évolutif
+                if (this.courseData.parameters.prixEvolutif) {
+                    const nouveauxPaliers =
+                        this.courseData.prixEvolutif.paliers.filter(
+                            (p) => !p.id,
+                        );
+                    for (const palier of nouveauxPaliers) {
+                        if (palier.valeur_debut && palier.tarif) {
+                            await prixEvolutifService.createPalier({
+                                id_course: courseId,
+                                type: this.courseData.prixEvolutif.type,
+                                valeur_debut: String(palier.valeur_debut),
+                                valeur_fin: palier.valeur_fin
+                                    ? String(palier.valeur_fin)
+                                    : null,
+                                tarif: parseFloat(palier.tarif),
+                                ordre: palier.ordre,
+                            });
+                        }
+                    }
+                } else if (this.isEditMode) {
+                    // Si on désactive le prix évolutif → supprimer tous les paliers
+                    await prixEvolutifService.deleteAllPaliers(courseId);
+                }
+
                 // Synchroniser les organisations challenge
-if (this.courseData.parameters.challenge) {
-    // Supprimer les anciennes (en édition, elles ont été supprimées une par une via supprimerOrganisation)
-    // Créer les nouvelles (celles sans id)
-    const nouvellesOrgs = this.courseData.challengeOrganisations.filter(o => !o.id);
-    for (const org of nouvellesOrgs) {
-        await challengeOrganisationService.createOrganisation({
-            id_course: courseId,
-            nom:       org.nom,
-            type:      org.type,
-        });
-    }
-}
+                if (this.courseData.parameters.challenge) {
+                    // Supprimer les anciennes (en édition, elles ont été supprimées une par une via supprimerOrganisation)
+                    // Créer les nouvelles (celles sans id)
+                    const nouvellesOrgs =
+                        this.courseData.challengeOrganisations.filter(
+                            (o) => !o.id,
+                        );
+                    for (const org of nouvellesOrgs) {
+                        await challengeOrganisationService.createOrganisation({
+                            id_course: courseId,
+                            nom: org.nom,
+                            type: org.type,
+                        });
+                    }
+                }
 
                 // 4a. Options existantes → modification
-                const optionsExistantes = this.courseData.options.filter(o => o.id);
+                const optionsExistantes = this.courseData.options.filter(
+                    (o) => o.id,
+                );
                 for (const option of optionsExistantes) {
-                    await optionOrganisateurService.modifyOption(option.id, this.buildOptionPayload(option));
+                    await optionOrganisateurService.modifyOption(
+                        option.id,
+                        this.buildOptionPayload(option),
+                    );
                 }
 
                 // 4b. Nouvelles options → création + association
-                const optionsNouvelles = this.courseData.options.filter(o => !o.id);
+                const optionsNouvelles = this.courseData.options.filter(
+                    (o) => !o.id,
+                );
                 for (const option of optionsNouvelles) {
-                    const optionResponse = await optionOrganisateurService.createOption(this.buildOptionPayload(option));
+                    const optionResponse =
+                        await optionOrganisateurService.createOption(
+                            this.buildOptionPayload(option),
+                        );
                     await optionCourseService.createOptionCourse({
                         id_course: courseId,
-                        id_option: optionResponse.data.option.id
+                        id_option: optionResponse.data.option.id,
                     });
                 }
 
                 // 5a. Questions existantes → modification enonce + choix
-                const questionsExistantes = this.courseData.questions.filter(q => q.id);
+                const questionsExistantes = this.courseData.questions.filter(
+                    (q) => q.id,
+                );
                 for (const question of questionsExistantes) {
                     // Mise à jour de la table Question
-                    await questionOrganisateurService.modifyQuestion(question.id, {
-                        enonce: question.enonce,
-                        modele: false,
-                    });
+                    await questionOrganisateurService.modifyQuestion(
+                        question.id,
+                        {
+                            enonce: question.enonce,
+                            modele: false,
+                        },
+                    );
 
                     // Mise à jour de la table OptionQuestion
                     for (const choix of question.choix ?? []) {
                         if (choix.id) {
-                            await optionQuestionOrganisateurService.modifyChoix(choix.id, {
-                                texte_option: choix.texte_option,
-                            });
+                            await optionQuestionOrganisateurService.modifyChoix(
+                                choix.id,
+                                {
+                                    texte_option: choix.texte_option,
+                                },
+                            );
                         } else {
-                            await optionQuestionOrganisateurService.createChoix(question.id, {
-                                texte_option: choix.texte_option,
-                            });
+                            await optionQuestionOrganisateurService.createChoix(
+                                question.id,
+                                {
+                                    texte_option: choix.texte_option,
+                                },
+                            );
                         }
                     }
                 }
 
                 // 5b. Nouvelles questions → Question + OptionQuestion + CourseQuestion
-                const questionsNouvelles = this.courseData.questions.filter(q => !q.id);
+                const questionsNouvelles = this.courseData.questions.filter(
+                    (q) => !q.id,
+                );
                 const nouvellesAvecId = []; // pour mémoriser les ids créés
 
                 for (const question of questionsNouvelles) {
-
                     // 1. Insérer dans la table Question
-                    const questionResponse = await questionOrganisateurService.createQuestion({
-                        enonce:      question.enonce,
-                        modele:      false,
-                        ids_courses: [courseId], // ← liaison CourseQuestion faite ici dans le controller
-                    });
+                    const questionResponse =
+                        await questionOrganisateurService.createQuestion({
+                            enonce: question.enonce,
+                            modele: false,
+                            ids_courses: [courseId], // ← liaison CourseQuestion faite ici dans le controller
+                        });
                     const questionId = questionResponse.data.question.id;
                     nouvellesAvecId.push({ ...question, id: questionId });
 
                     // 2. Insérer dans la table OptionQuestion (choix de réponse)
                     for (const choix of question.choix ?? []) {
-                        await optionQuestionOrganisateurService.createChoix(questionId, {
-                            texte_option: choix.texte_option,
-                        });
+                        await optionQuestionOrganisateurService.createChoix(
+                            questionId,
+                            {
+                                texte_option: choix.texte_option,
+                            },
+                        );
                     }
                 }
 
                 // 5c. Réordonner toutes les questions (existantes + nouvelles) dans CourseQuestion
                 const toutesLesQuestions = [
-                    ...this.courseData.questions.filter(q => q.id),
+                    ...this.courseData.questions.filter((q) => q.id),
                     ...nouvellesAvecId,
                 ];
 
                 if (toutesLesQuestions.length > 0) {
-                    await courseQuestionOrganisateurService.reordonnerQuestions(courseId, {
-                        questions: toutesLesQuestions.map((q, index) => ({
-                            id_question: q.id,
-                            ordre:       index + 1,
-                        })),
-                    });
+                    await courseQuestionOrganisateurService.reordonnerQuestions(
+                        courseId,
+                        {
+                            questions: toutesLesQuestions.map((q, index) => ({
+                                id_question: q.id,
+                                ordre: index + 1,
+                            })),
+                        },
+                    );
                 }
                 this.confirmPopup();
                 console.log(response.data);
-
             } catch (e) {
                 console.log("Erreur:", e.response?.data);
             }
@@ -933,7 +1706,9 @@ if (this.courseData.parameters.challenge) {
                 this.dataInserted = false;
                 if (this.isEditMode) {
                     if (this.courseData.event.id) {
-                        this.$router.push(`/organisateur/evenements/${this.courseData.event.id}/courses`);
+                        this.$router.push(
+                            `/organisateur/evenements/${this.courseData.event.id}/courses`,
+                        );
                     } else {
                         this.$router.push(`/organisateur/evenements`);
                     }
@@ -941,32 +1716,35 @@ if (this.courseData.parameters.challenge) {
             }, 2000);
         },
         ajouterOrganisation() {
-    if (!this.nouvelleOrg.nom.trim()) return;
-    const doublon = this.courseData.challengeOrganisations.some(
-        o => o.nom.trim().toLowerCase() === this.nouvelleOrg.nom.trim().toLowerCase()
-            && o.type === this.nouvelleOrg.type
-    );
-    if (doublon) return;
-    this.courseData.challengeOrganisations.push({
-        nom:  this.nouvelleOrg.nom.trim(),
-        type: this.nouvelleOrg.type,
-    });
-    this.nouvelleOrg.nom = '';
-},
- 
-async supprimerOrganisation(index, org) {
-    // Si l'org a un id DB → supprimer via API (en mode édition)
-    if (org.id && this.isEditMode) {
-        await challengeOrganisationService.deleteOrganisation(org.id);
-    }
-    this.courseData.challengeOrganisations.splice(index, 1);
-}
+            if (!this.nouvelleOrg.nom.trim()) return;
+            const doublon = this.courseData.challengeOrganisations.some(
+                (o) =>
+                    o.nom.trim().toLowerCase() ===
+                        this.nouvelleOrg.nom.trim().toLowerCase() &&
+                    o.type === this.nouvelleOrg.type,
+            );
+            if (doublon) return;
+            this.courseData.challengeOrganisations.push({
+                nom: this.nouvelleOrg.nom.trim(),
+                type: this.nouvelleOrg.type,
+            });
+            this.nouvelleOrg.nom = "";
+        },
+
+        async supprimerOrganisation(index, org) {
+            // Si l'org a un id DB → supprimer via API (en mode édition)
+            if (org.id && this.isEditMode) {
+                await challengeOrganisationService.deleteOrganisation(org.id);
+            }
+            this.courseData.challengeOrganisations.splice(index, 1);
+        },
     },
     async mounted() {
         initDropdowns();
 
         try {
-            const response = await evenementOrganisateurService.getAllEvenements();
+            const response =
+                await evenementOrganisateurService.getAllEvenements();
             this.evenements = response.data;
         } catch (e) {
             console.log("Erreur lors de la récupération de l'évènement ", e);
@@ -980,29 +1758,38 @@ async supprimerOrganisation(index, org) {
         }
 
         try {
-            const response = await categorieOrganisateurService.getAllCategorie();
+            const response =
+                await categorieOrganisateurService.getAllCategorie();
             this.categories = response.data;
         } catch (e) {
             console.error("Erreur lors de la récupération des categories: ", e);
         }
         try {
-            const response = await sousCategorieOrganisateurService.getAllSousCategorie();
+            const response =
+                await sousCategorieOrganisateurService.getAllSousCategorie();
             this.subCategories = response.data;
         } catch (e) {
-            console.error("Erreur lors de la récupération des sous categories: ", e);
+            console.error(
+                "Erreur lors de la récupération des sous categories: ",
+                e,
+            );
         }
 
-        try{
-            const response = await avertissementOrganisateurService.getAllAvertissement();
+        try {
+            const response =
+                await avertissementOrganisateurService.getAllAvertissement();
             this.avertissementModels = response.data;
             console.log(response.data);
         } catch (e) {
-            console.error("Erreur lors de la récupération des avertissements: ", e);
+            console.error(
+                "Erreur lors de la récupération des avertissements: ",
+                e,
+            );
         }
 
         if (this.isEditMode) {
             await this.chargerDonneesCourse();
         }
-    }
-}
+    },
+};
 </script>
