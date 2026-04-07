@@ -19,7 +19,7 @@ class SousCategorieController extends Controller
         
         $sousCategorie = SousCategorie::whereHas('courses', function ($query) use ($id_course) {
             $query->where('id_course', $id_course);
-        });
+        })->get();
 
         if ($sousCategorie->isEmpty()) {
             return response()->json(['message' => 'Aucune sous categorie disponible pour cette course.'], 404);
