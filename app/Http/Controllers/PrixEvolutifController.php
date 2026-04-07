@@ -94,7 +94,7 @@ class PrixEvolutifController extends Controller
             // Compter le nombre d'inscriptions validées pour cette course
             $nbInscrits = $course->inscriptions()
                 ->whereIn('status_paiement', ['Validé', 'En attente'])
-                ->count();
+                ->count()+1;
 
             foreach ($paliers as $palier) {
                 $debut = (int) $palier->valeur_debut;
