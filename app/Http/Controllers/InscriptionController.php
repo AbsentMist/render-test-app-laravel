@@ -12,6 +12,8 @@ use App\Models\Participant;
 use App\Models\Groupe;
 use App\Exports\InscriptionsExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Mail\ConfirmationInscriptionMail;
+use Illuminate\Support\Facades\Mail;
 
 class InscriptionController extends Controller
 {
@@ -145,6 +147,9 @@ class InscriptionController extends Controller
                     }
                 }
 
+                
+ 
+
                 // On renvoie 200 (OK) au lieu de 201 car modification
                 return response()->json($inscriptionExistante->load(['course', 'dossard']), 200);
             }
@@ -190,6 +195,24 @@ class InscriptionController extends Controller
                 ], 400);
             }
         }
+
+// Envoi du mail de confirmation
+                try {
+                    $inscriptionAvecDetails = $inscription->load([
+                        'course.evenement',
+                        'participant.user',
+                        'dossard',
+                        'groupe',
+                    ]);
+ 
+                    if ($inscriptionAvecDetails->participant->user?->email) {
+                            Mail::to($inscriptionAvecDetails->participant->user->email)
+                                ->send(new ConfirmationInscriptionMail($inscriptionAvecDetails));
+                    }
+                } catch (\Exception $e) {
+                    // On ne bloque pas l'inscription si le mail échoue
+                    \Log::error("Erreur envoi mail confirmation inscription : " . $e->getMessage());
+                }
 
         return response()->json($inscription->load(['course', 'dossard']), 201);
     }
