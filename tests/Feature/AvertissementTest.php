@@ -91,7 +91,7 @@ class AvertissementTest extends TestCase
         $response->assertStatus(201)
                  ->assertJsonFragment(['titre' => 'Verglas']);
 
-        $this->assertDatabaseHas('avertissement', ['titre' => 'Verglas']);
+        $this->assertDatabaseHas('Avertissement', ['titre' => 'Verglas']);
     }
 
     public function test_create_avertissement_fails_without_contenu()
@@ -123,7 +123,7 @@ class AvertissementTest extends TestCase
         $response->assertStatus(200)
                  ->assertJsonFragment(['titre' => 'Course des Ponts de Noel']);
 
-        $this->assertDatabaseHas('avertissement', ['titre' => 'Course des Ponts de Noel']);
+        $this->assertDatabaseHas('Avertissement', ['titre' => 'Course des Ponts de Noel']);
     }
 
     public function test_update_avertissement_returns_404_if_not_found()
@@ -152,7 +152,7 @@ class AvertissementTest extends TestCase
         $response->assertStatus(200)
                  ->assertJsonFragment(['message' => 'Modèle d\'avertissement supprimé avec succès.']);
 
-        $this->assertDatabaseMissing('avertissement', ['id' => $avertissement->id]);
+        $this->assertDatabaseMissing('Avertissement', ['id' => $avertissement->id]);
     }
 
     public function test_delete_avertissement_returns_404_if_not_found()

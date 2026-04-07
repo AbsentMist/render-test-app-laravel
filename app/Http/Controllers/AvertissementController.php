@@ -24,7 +24,7 @@ class AvertissementController extends Controller
         
         $avertissement = Avertissement::whereHas('courses', function ($query) use ($id_course) {
             $query->where('id_course', $id_course);
-        });
+        })->get();
 
         if ($avertissement->isEmpty()) {
             return response()->json(['message' => 'Aucun avertissement disponible pour cette course.'], 404);
