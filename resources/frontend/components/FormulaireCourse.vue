@@ -995,6 +995,13 @@
             :icon="'mdi:check'"
             :showButtons="false"
         />
+        <PopupConfirmation
+            v-if="confirmationChangementModePrix"
+            message="Changer de mode supprimera tous les paliers existants. Continuer ?"
+            icon="mdi:alert-circle-outline"
+            @confirm="confirmerChangementModePrixEvolutif"
+            @cancel="annulerChangementModePrixEvolutif"
+        />
     </div>
 </template>
 
@@ -1050,6 +1057,8 @@ export default {
             modal: optionModal.FERMEE,
             confirmationPopup: false,
             dataInserted: false,
+            confirmationChangementModePrix: false,
+            modePrixEvolutifEnAttente: null,
             evenements: [],
             nouvelleOrg: { nom: "", type: "Entreprise" },
             formulaireEtapesLabels: ["Général", "Options supplémentaires"],
@@ -1577,6 +1586,37 @@ export default {
                     parseInt(option.quantifiable?.quantiteMax) || 0;
             }
             return payload;
+        },
+        changerModePrixEvolutif(nouveauMode) {
+            if (this.courseData.prixEvolutif.type === nouveauMode) return;
+            if (this.courseData.prixEvolutif.paliers.length > 0) {
+                this.modePrixEvolutifEnAttente = nouveauMode;
+                this.confirmationChangementModePrix = true;
+                return;
+            }
+            this.courseData.prixEvolutif.type = nouveauMode;
+            this.courseData.prixEvolutif.paliers = [];
+        },
+        confirmerChangementModePrixEvolutif() {
+            if (!this.modePrixEvolutifEnAttente) return;
+            this.courseData.prixEvolutif.type = this.modePrixEvolutifEnAttente;
+            this.courseData.prixEvolutif.paliers = [];
+            this.modePrixEvolutifEnAttente = null;
+            this.confirmationChangementModePrix = false;
+        },
+        annulerChangementModePrixEvolutif() {
+            this.modePrixEvolutifEnAttente = null;
+            this.confirmationChangementModePrix = false;
+        },
+
+        ajouterPalier() {
+            const ordre = this.courseData.prixEvolutif.paliers.length + 1;
+            this.courseData.prixEvolutif.paliers.push({
+                valeur_debut: "",
+                valeur_fin: "",
+                tarif: "",
+                ordre,
+            });
         },
 
         async insertCourse() {

@@ -289,6 +289,8 @@ class InscriptionController extends Controller
         }
 
         $validatedData = $request->validate([
+            'participant_prenom' => 'sometimes|string|max:100',
+            'participant_nom' => 'sometimes|string|max:100',
             'status_paiement' => 'sometimes|in:Validé,En attente,Annulé',
             'tarif' => 'sometimes|numeric',
             'montant_rabais' => 'sometimes|numeric',
@@ -300,6 +302,21 @@ class InscriptionController extends Controller
             'date_paiement' => 'sometimes|date',
             'id_course' => 'sometimes|exists:Course,id',
         ]);
+
+        if (array_key_exists('participant_prenom', $validatedData) || array_key_exists('participant_nom', $validatedData)) {
+            $participantData = [];
+            if (array_key_exists('participant_prenom', $validatedData)) {
+                $participantData['prenom'] = $validatedData['participant_prenom'];
+            }
+            if (array_key_exists('participant_nom', $validatedData)) {
+                $participantData['nom'] = $validatedData['participant_nom'];
+            }
+            if (!empty($participantData) && $inscription->participant) {
+                $inscription->participant->update($participantData);
+            }
+        }
+
+        unset($validatedData['participant_prenom'], $validatedData['participant_nom']);
 
         $inscription->update($validatedData);
 

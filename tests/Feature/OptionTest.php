@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Option;
 use App\Models\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -11,7 +12,7 @@ use Tests\TestCase;
 
 class OptionTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected $admin;
 
@@ -96,7 +97,7 @@ class OptionTest extends TestCase
         $response->assertStatus(201)
                  ->assertJsonFragment(['nom' => 'T-shirt']);
 
-        $this->assertDatabaseHas('options', ['nom' => 'T-shirt']);
+        $this->assertDatabaseHas('Options', ['nom' => 'T-shirt']);
     }
 
     public function test_admin_can_create_option_quantifiable()
@@ -115,7 +116,7 @@ class OptionTest extends TestCase
         $response->assertStatus(201)
                  ->assertJsonFragment(['nom' => 'Repas']);
 
-        $this->assertDatabaseHas('options', ['nom' => 'Repas']);
+        $this->assertDatabaseHas('Options', ['nom' => 'Repas']);
     }
 
     public function test_create_option_fails_without_required_fields()
@@ -161,7 +162,7 @@ class OptionTest extends TestCase
         $response->assertStatus(200)
                  ->assertJsonFragment(['nom' => 'Nouveau nom']);
 
-        $this->assertDatabaseHas('options', ['nom' => 'Nouveau nom']);
+        $this->assertDatabaseHas('Options', ['nom' => 'Nouveau nom']);
     }
 
     public function test_update_option_returns_404_if_not_found()
@@ -190,7 +191,7 @@ class OptionTest extends TestCase
         $response->assertStatus(200)
                  ->assertJsonFragment(['message' => 'Option supprimée avec succès.']);
 
-        $this->assertDatabaseMissing('options', ['id' => $option->id]);
+        $this->assertDatabaseMissing('Options', ['id' => $option->id]);
     }
 
     public function test_delete_option_returns_404_if_not_found()

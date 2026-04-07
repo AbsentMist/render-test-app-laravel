@@ -14,22 +14,32 @@
                 <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
                 <button v-for="(option, index) in optionModels" :key="index" @click="copyDatas(option)" class="btn-model flex flex-row items-center justify-between">
                     {{ option.nom }}
-                    <Icon icon="mdi:delete" width="20" height="20" class="text-primary-900 hover:text-accent ml-2 shrink-0" @click.stop="removeOption(index)"/>
+                    <Icon icon="lucide:trash-2" width="20" height="20" class="text-accent hover:bg-accent-300 rounded-lg flex-shrink-0" @click.stop="removeOption(index)"/>
                 </button>
             </div>
         </div>
+
+        <PopupConfirmation
+            v-if="optionASupprimer"
+            :message="`Supprimer l'option ${optionASupprimer.nom} ?`"
+            icon="mdi:alert-circle-outline"
+            @confirm="confirmerSuppressionOption"
+            @cancel="optionASupprimer = null"
+        />
     </div>
 </template>
 
 <script>
 import { Icon } from '@iconify/vue';
 import OptionTemplate from './OptionTemplate.vue';
+import PopupConfirmation from './PopupConfirmation.vue';
 import optionOrganisateurService from '../services/optionOrganisateurService';
 
 export default {
     components: {
         Icon,
         OptionTemplate,
+        PopupConfirmation,
         optionOrganisateurService
     },
     data() {
@@ -47,6 +57,7 @@ export default {
                 }
             },
             optionModels: [],
+            optionASupprimer: null,
 
         };
     },
@@ -61,14 +72,17 @@ export default {
         },
         async removeOption(index) {
             const option = this.optionModels[index];
-            if(confirm(`Supprimer l'option ${option.nom} ?`)){
-                try {
-                    const option = this.optionModels[index];
-                    await optionOrganisateurService.deleteOption(option.id);
-                    this.optionModels.splice(index, 1);
-                } catch (e) {
-                    console.error("Erreur lors de la suppression :", error.response?.data || error);
-                }
+            if (!option) return;
+            this.optionASupprimer = { ...option, index };
+        },
+        async confirmerSuppressionOption() {
+            if (!this.optionASupprimer) return;
+            try {
+                await optionOrganisateurService.deleteOption(this.optionASupprimer.id);
+                this.optionModels.splice(this.optionASupprimer.index, 1);
+                this.optionASupprimer = null;
+            } catch (error) {
+                console.error("Erreur lors de la suppression :", error.response?.data || error);
             }
         },
         async handleSubmit() {

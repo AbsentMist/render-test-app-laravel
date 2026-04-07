@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\Evenement;
 use App\Models\User;
 use App\Models\Avertissement;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -13,7 +14,7 @@ use Tests\TestCase;
 
 class CourseTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected $admin;
     protected $evenement;
@@ -51,10 +52,10 @@ class CourseTest extends TestCase
             'nom'             => 'Course active',
             'is_actif'        => true,
             'tarif'           => 35,
-            'date_debut'      => '2025-05-15',
-            'date_fin'        => '2025-05-15',
-            'debut_inscription' => '2025-01-01',
-            'fin_inscription' => '2025-05-10',
+            'date_debut'      => '2027-05-15',
+            'date_fin'        => '2027-05-15',
+            'debut_inscription' => '2027-01-01',
+            'fin_inscription' => '2027-05-10',
             'status'          => 'Ouvert',
             'type'            => 'Route',
             'max_inscription' => 500,
@@ -62,6 +63,8 @@ class CourseTest extends TestCase
             'dernier_dossard' => 500,
             'age_minimum'     => 16,
         ]);
+        
+        // Ne doit pas apparaitre car fermé
         Course::create([
             'id_evenement'    => $this->evenement->id,
             'nom'             => 'Course inactive',
@@ -80,7 +83,7 @@ class CourseTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->admin)
-                         ->getJson("/api/participant/courses/{$this->evenement->id}");
+                 ->getJson("/api/participant/evenements/{$this->evenement->id}/courses");
 
         $response->assertStatus(200)
                  ->assertJsonFragment(['nom_course' => 'Course active'])
@@ -93,7 +96,7 @@ class CourseTest extends TestCase
                          ->getJson('/api/participant/courses/999');
 
         $response->assertStatus(404)
-                 ->assertJsonFragment(['message' => 'Événement introuvable.']);
+                 ->assertJsonFragment(['message' => 'Course introuvable.']);
     }
 
     // ===== INDEX ADMIN =====
@@ -202,7 +205,7 @@ class CourseTest extends TestCase
         $response->assertStatus(201)
                  ->assertJsonFragment(['nom' => 'Nouvelle course']);
 
-        $this->assertDatabaseHas('course', ['nom' => 'Nouvelle course']);
+        $this->assertDatabaseHas('Course', ['nom' => 'Nouvelle course']);
     }
 
     public function test_create_course_fails_without_required_fields()
@@ -247,7 +250,7 @@ class CourseTest extends TestCase
         $response->assertStatus(200)
                  ->assertJsonFragment(['nom' => 'Nouveau nom']);
 
-        $this->assertDatabaseHas('course', ['nom' => 'Nouveau nom']);
+        $this->assertDatabaseHas('Course', ['nom' => 'Nouveau nom']);
     }
 
     public function test_update_course_returns_404_if_not_found()
@@ -286,7 +289,7 @@ class CourseTest extends TestCase
         $response->assertStatus(200)
                  ->assertJsonFragment(['message' => 'Course supprimée avec succès.']);
 
-        $this->assertDatabaseMissing('course', ['id' => $course->id]);
+        $this->assertDatabaseMissing('Course', ['id' => $course->id]);
     }
 
     public function test_delete_course_returns_404_if_not_found()
@@ -314,10 +317,10 @@ class CourseTest extends TestCase
             'is_actif'          => true,
             'id_avertissement'  => $avertissement->id,
             'tarif'             => 35,
-            'date_debut'        => '2025-05-15',
-            'date_fin'          => '2025-05-15',
-            'debut_inscription' => '2025-01-01',
-            'fin_inscription'   => '2025-05-10',
+            'date_debut'        => '2027-05-15',
+            'date_fin'          => '2027-05-15',
+            'debut_inscription' => '2027-01-01',
+            'fin_inscription'   => '2027-05-10',
             'status'            => 'Ouvert',
             'type'              => 'Route',
             'max_inscription'   => 500,
@@ -327,10 +330,10 @@ class CourseTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->admin)
-                        ->getJson("/api/participant/courses/{$this->evenement->id}");
+                ->getJson("/api/participant/evenements/{$this->evenement->id}/courses");
 
         $response->assertStatus(200)
-                ->assertJsonFragment(['contenu' => 'Attention au verglas.']);
+            ->assertJsonPath('courses.0.avertissement.contenu', 'Attention au verglas.');
     }
 
     public function test_participant_gets_course_without_avertissement()
@@ -340,10 +343,10 @@ class CourseTest extends TestCase
             'nom'               => 'Course sans avertissement',
             'is_actif'          => true,
             'tarif'             => 35,
-            'date_debut'        => '2025-05-15',
-            'date_fin'          => '2025-05-15',
-            'debut_inscription' => '2025-01-01',
-            'fin_inscription'   => '2025-05-10',
+            'date_debut'        => '2027-05-15',
+            'date_fin'          => '2027-05-15',
+            'debut_inscription' => '2027-01-01',
+            'fin_inscription'   => '2027-05-10',
             'status'            => 'Ouvert',
             'type'              => 'Route',
             'max_inscription'   => 500,
@@ -353,9 +356,9 @@ class CourseTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->admin)
-                        ->getJson("/api/participant/courses/{$this->evenement->id}");
+                ->getJson("/api/participant/evenements/{$this->evenement->id}/courses");
 
         $response->assertStatus(200)
-                ->assertJsonFragment(['avertissement' => null]);
+            ->assertJsonFragment(['avertissement' => null]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class GroupeControllerTest extends TestCase
 {
     //Relance la base de données à chaque test
-    use RefreshDatabase; 
+    use DatabaseTransactions; 
 
     protected $user;   
     protected $participantId; 

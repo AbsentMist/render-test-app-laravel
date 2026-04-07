@@ -7,6 +7,7 @@ use App\Models\OptionPourCourse;
 use App\Models\Course;
 use App\Models\Evenement;
 use App\Models\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -14,7 +15,7 @@ use Tests\TestCase;
 
 class OptionPourCourseTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected $admin;
     protected $course;

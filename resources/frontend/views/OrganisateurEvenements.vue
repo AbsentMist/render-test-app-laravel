@@ -72,10 +72,7 @@
                   class="p-1.5 rounded-lg text-primary hover:bg-tertiary transition-colors"
                   title="Modifier"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
+                  <Icon icon="lucide:square-pen" class="w-4 h-4" />
                 </button>
 
                 <button
@@ -83,10 +80,7 @@
                   class="p-1.5 rounded-lg text-accent hover:bg-red-50 transition-colors"
                   title="Supprimer"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <Icon icon="lucide:trash-2" class="w-4 h-4" />
                 </button>
               </div>
             </td>
@@ -95,25 +89,15 @@
       </table>
     </div>
 
-    <div v-if="evenementASupprimer" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-2xl p-6 shadow-xl max-w-sm w-full mx-4">
-        <h2 class="text-heading font-bold text-lg mb-2">Confirmer la suppression</h2>
-        <p class="text-body mb-6">
-          Voulez-vous vraiment supprimer l'évènement <strong>{{ evenementASupprimer.nom }}</strong> ?
-          Cette action est irréversible.
-        </p>
-        <div class="flex justify-end gap-3">
-          <button @click="evenementASupprimer = null" class="btn-accent-300 px-4 py-2 rounded-xl">
-            Annuler
-          </button>
-          <button @click="supprimerEvenement" class="bg-accent text-white px-4 py-2 rounded-xl hover:opacity-90">
-            Supprimer
-          </button>
-        </div>
-      </div>
-    </div>
+    <PopupConfirmation
+      v-if="evenementASupprimer"
+      icon="mdi:alert-circle-outline"
+      :message="`Voulez-vous vraiment supprimer l'évènement ${evenementASupprimer.nom} ? Cette action est irréversible.`"
+      @confirm="supprimerEvenement"
+      @cancel="evenementASupprimer = null"
+    />
 
-  </div>
+  </div> 
 </template>
 
 <script setup>
@@ -121,6 +105,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
 import Title from '../components/Title.vue'
+import PopupConfirmation from '../components/PopupConfirmation.vue'
+import { Icon } from '@iconify/vue'
 
 const router = useRouter()
 const evenements = ref([])

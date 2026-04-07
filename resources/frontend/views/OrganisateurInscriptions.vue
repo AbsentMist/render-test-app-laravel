@@ -122,6 +122,13 @@
     @modifier-inscription="onModifierInscription"
     @close="popupDetail = false"
   />
+  <PopupConfirmation
+    v-if="inscriptionASupprimer"
+    :message="`Annuler l'inscription ${inscriptionASupprimer.id} ?`"
+    icon="mdi:alert-circle-outline"
+    @confirm="confirmerSuppression"
+    @cancel="inscriptionASupprimer = null"
+  />
 </template>
 
 <script>
@@ -132,6 +139,7 @@ import inscriptionService from '../services/inscriptionService.js';
 import PopupAvertissementCourse from '../components/PopupAvertissementCourse.vue';
 import PopupChangementCourseOrganisateur from '../components/PopupChangementCourseOrganisateur.vue';
 import PopupInscriptionDetailOrganisateur from '../components/PopupInscriptionDetailOrganisateur.vue';
+import PopupConfirmation from '../components/PopupConfirmation.vue';
 
 export default {
   components: {
@@ -141,6 +149,7 @@ export default {
     PopupAvertissementCourse,
     PopupChangementCourseOrganisateur,
     PopupInscriptionDetailOrganisateur,
+    PopupConfirmation,
   },
   emits: ['close'],
   data() {
@@ -153,6 +162,7 @@ export default {
       popupAvertissement: false,
       popupChangement: false,
       popupDetail: false,
+      inscriptionASupprimer: null,
       inscription: { actuel: null },
       texteInfo: "En cas de sélection de course où le montant est supérieur à la course actuel, la différence devra être réglée.",
       // Filtres reçus du composant FiltreInscriptions
@@ -293,13 +303,16 @@ export default {
       }
     },
     async suppression(inscription) {
-      if (confirm(`Annuler l'inscription ${inscription.id} ?`)) {
-        try {
-          await inscriptionService.updateInscriptionAdmin(inscription.id, { status_paiement: 'Annulé' });
-          await this.chargerInscriptions();
-        } catch (error) {
-          console.error('Erreur annulation :', error);
-        }
+      this.inscriptionASupprimer = inscription;
+    },
+    async confirmerSuppression() {
+      if (!this.inscriptionASupprimer) return;
+      try {
+        await inscriptionService.updateInscriptionAdmin(this.inscriptionASupprimer.id, { status_paiement: 'Annulé' });
+        this.inscriptionASupprimer = null;
+        await this.chargerInscriptions();
+      } catch (error) {
+        console.error('Erreur annulation :', error);
       }
     },
     afficherPopupChangement() {

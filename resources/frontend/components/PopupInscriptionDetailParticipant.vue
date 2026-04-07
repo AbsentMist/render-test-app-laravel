@@ -466,19 +466,28 @@
         @close="showChangementCourse = false"
         @confirmer="onChangementConfirme"
       />
+
+      <PopupConfirmation
+        v-if="documentASupprimer"
+        message="Supprimer ce document ?"
+        icon="mdi:alert-circle-outline"
+        @confirm="confirmerSuppressionDocument"
+        @cancel="documentASupprimer = null"
+      />
   </div>
 </template>
 
 <script>
 import { Icon } from '@iconify/vue';
 import PopupChangementCourseParticipant from './PopupChangementCourseParticipant.vue';
+import PopupConfirmation from './PopupConfirmation.vue';
 import courseOrganisateurService from '../services/courseOrganisateurService';
 import documentService from '../services/documentService';
 import inscriptionService from '../services/inscriptionService';
 
 export default {
   name: 'PopupInscriptionDetailParticipant',
-  components: { Icon, PopupChangementCourseParticipant },
+  components: { Icon, PopupChangementCourseParticipant, PopupConfirmation },
   emits: ['close', 'modifier-inscription', 'ajouter-panier'],
   props: {
     inscription: { type: Object, required: true },
@@ -493,6 +502,7 @@ export default {
       isEdit: false,
       inscriptionEdit: null,
       showChangementCourse: false,
+      documentASupprimer: null,
       tabs: [
         { key: 'general',   label: 'Général',   icon: 'mdi:information-outline' },
         { key: 'options',   label: 'Options',   icon: 'mdi:cog-outline' },
@@ -624,14 +634,18 @@ export default {
     },
 
     async supprimerDocument(idDoc) {
-      if (confirm('Supprimer ce document ?')) {
-        try {
-          await documentService.deleteDocument(idDoc);
-          const idx = (this.inscription.documents_fournis ?? []).findIndex(d => d.id === idDoc);
-          if (idx > -1) this.inscription.documents_fournis.splice(idx, 1);
-        } catch (e) {
-          console.error('Erreur suppression :', e);
-        }
+      this.documentASupprimer = idDoc;
+    },
+
+    async confirmerSuppressionDocument() {
+      if (!this.documentASupprimer) return;
+      try {
+        await documentService.deleteDocument(this.documentASupprimer);
+        const idx = (this.inscription.documents_fournis ?? []).findIndex(d => d.id === this.documentASupprimer);
+        if (idx > -1) this.inscription.documents_fournis.splice(idx, 1);
+        this.documentASupprimer = null;
+      } catch (e) {
+        console.error('Erreur suppression :', e);
       }
     },
 

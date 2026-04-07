@@ -38,8 +38,8 @@
                         @click="copyDatas(avertissement)" 
                         class="btn-model flex flex-row items-center justify-between w-full text-left min-h-[42px]">
                         <span class="truncate pr-2">{{ avertissement.titre }}</span>
-                        <Icon icon="mdi:delete" width="20" height="20" 
-                            class="text-primary-900 hover:text-accent flex-shrink-0" 
+                        <Icon icon="lucide:trash-2" width="20" height="20" 
+                            class="text-accent hover:bg-accent-300 rounded-lg flex-shrink-0" 
                             @click.stop="removeAvertissement(index)"/>
                     </button>
 
@@ -49,16 +49,26 @@
                 </div>
             </div>
         </div>
+
+        <PopupConfirmation
+            v-if="avertissementASupprimer"
+            :message="`Supprimer l'avertissement ${avertissementASupprimer.titre} ?`"
+            icon="mdi:alert-circle-outline"
+            @confirm="confirmerSuppressionAvertissement"
+            @cancel="avertissementASupprimer = null"
+        />
     </div>
 </template>
 
 <script>
 import { Icon } from '@iconify/vue';
+import PopupConfirmation from './PopupConfirmation.vue';
 import avertissementOrganisateurService from '../services/avertissementOrganisateurService';
 
 export default {
     components: {
         Icon,
+        PopupConfirmation,
     },
     data() {
         return {
@@ -69,6 +79,7 @@ export default {
             },
             avertissementModels: [],
             dataInserted: false, // Pour gérer l'état de succès
+            avertissementASupprimer: null,
         }
     },
     methods: {
@@ -77,15 +88,18 @@ export default {
             this.avertissementData.contenu = avertissement.contenu;
         },
         async removeAvertissement(index) {
-            avertissement = this.avertissementModels[index];
-            if(confirm(`Supprimer l'avertissement ${avertissement.titre} ?`)){
-                try {
-                    const avertissement = this.avertissementModels[index];
-                    await avertissementOrganisateurService.deleteAvertissement(avertissement.id);
-                    this.avertissementModels.splice(index, 1);
-                } catch (error) {
-                     console.error("Erreur lors de la suppression :", error.response?.data || error);
-                }
+            const avertissement = this.avertissementModels[index];
+            if (!avertissement) return;
+            this.avertissementASupprimer = { ...avertissement, index };
+        },
+        async confirmerSuppressionAvertissement() {
+            if (!this.avertissementASupprimer) return;
+            try {
+                await avertissementOrganisateurService.deleteAvertissement(this.avertissementASupprimer.id);
+                this.avertissementModels.splice(this.avertissementASupprimer.index, 1);
+                this.avertissementASupprimer = null;
+            } catch (error) {
+                 console.error("Erreur lors de la suppression :", error.response?.data || error);
             }
         },
         async handleSubmit() {
