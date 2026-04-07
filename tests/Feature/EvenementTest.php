@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Evenement;
 use App\Models\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -11,7 +12,7 @@ use Tests\TestCase;
 
 class EvenementTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected $admin;
 
@@ -101,7 +102,7 @@ class EvenementTest extends TestCase
         $response->assertStatus(201)
                  ->assertJsonFragment(['nom' => 'Course des Ponts 2025']);
 
-        $this->assertDatabaseHas('evenement', ['nom' => 'Course des Ponts 2025']);
+        $this->assertDatabaseHas('Evenement', ['nom' => 'Course des Ponts 2025']);
     }
 
     public function test_create_evenement_fails_without_required_fields()
@@ -133,7 +134,7 @@ class EvenementTest extends TestCase
         $response->assertStatus(200)
                  ->assertJsonFragment(['nom' => 'Course des Ponts 2026']);
 
-        $this->assertDatabaseHas('evenement', ['nom' => 'Course des Ponts 2026']);
+        $this->assertDatabaseHas('Evenement', ['nom' => 'Course des Ponts 2026']);
     }
 
     public function test_update_evenement_returns_404_if_not_found()
@@ -162,7 +163,7 @@ class EvenementTest extends TestCase
         $response->assertStatus(200)
                  ->assertJsonFragment(['message' => 'Évènement supprimé avec succès.']);
 
-        $this->assertDatabaseMissing('evenement', ['id' => $evenement->id]);
+        $this->assertDatabaseMissing('Evenement', ['id' => $evenement->id]);
     }
 
     public function test_delete_evenement_returns_404_if_not_found()

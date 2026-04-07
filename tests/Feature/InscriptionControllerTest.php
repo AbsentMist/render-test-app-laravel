@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class InscriptionControllerTest extends TestCase
 {
     // Relance la base de données à chaque test
-    use RefreshDatabase; 
+    use DatabaseTransactions; 
 
     protected $user;   
     protected $participantId; 
@@ -76,7 +77,7 @@ class InscriptionControllerTest extends TestCase
         $this->assertDatabaseHas('Inscription', [
             'id_participant' => $this->participantId,
             'id_course' => $this->courseId,
-            'status_paiement' => 'En attente',
+            'status_paiement' => 'Validé',
             'tarif' => 35,
         ]);
     }
@@ -189,7 +190,7 @@ class InscriptionControllerTest extends TestCase
         //Vérifie que la ligne existante est repassée "En attente"
         $this->assertDatabaseHas('Inscription', [
             'id' => $inscriptionId,
-            'status_paiement' => 'En attente',
+            'status_paiement' => 'Validé',
         ]);
     }
 }

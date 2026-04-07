@@ -11,6 +11,40 @@ use Illuminate\Support\Facades\Storage;
 
 class DocumentController extends Controller
 {
+    private function isAdmin($user): bool
+    {
+        return $user->roles()->where('type', 'Administrateur')->exists();
+    }
+
+    private function validateUpload(Request $request): array
+    {
+        return $request->validate([
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'date_debut' => 'nullable|date',
+            'date_fin' => 'nullable|date',
+        ]);
+    }
+
+    private function replaceDocumentForInscription(Inscription $inscription, array $validatedData, Request $request): Document
+    {
+        $oldDocument = Document::where('id_inscription', $inscription->id)->first();
+        if ($oldDocument && $oldDocument->url) {
+            Storage::disk('documents')->delete($oldDocument->url);
+            $oldDocument->delete();
+        }
+
+        $path = $request->file('file')->store('inscriptions/' . $inscription->id, 'documents');
+
+        return Document::create([
+            'id_inscription' => $inscription->id,
+            'id_participant' => $inscription->id_participant,
+            'url' => $path,
+            'date_debut' => $validatedData['date_debut'] ?? null,
+            'date_fin' => $validatedData['date_fin'] ?? null,
+            'valable' => true,
+        ]);
+    }
+
     // GET (PARTICIPANT) - Récupérer le document pour une inscription
     public function indexByInscription($id_inscription): JsonResponse
     {
@@ -45,31 +79,26 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Accès non autorisé.'], 403);
         }
 
-        $validatedData = $request->validate([
-            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240', // Max 10MB
-            'date_debut' => 'nullable|date',
-            'date_fin' => 'nullable|date',
-        ]);
+        $validatedData = $this->validateUpload($request);
+        $document = $this->replaceDocumentForInscription($inscription, $validatedData, $request);
 
-        // Supprimer l'ancien document s'il existe
-        $oldDocument = Document::where('id_inscription', $id_inscription)->first();
-        if ($oldDocument && $oldDocument->url) {
-            Storage::disk('documents')->delete($oldDocument->url);
-            $oldDocument->delete();
+        return response()->json([
+            'message' => 'Document uploadé avec succès.',
+            'document' => $document
+        ], 201);
+    }
+
+    // POST (ADMIN) - Uploader un document pour une inscription
+    public function storeForInscriptionAdmin(Request $request, $id_inscription): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$this->isAdmin($user)) {
+            return response()->json(['message' => 'Accès non autorisé.'], 403);
         }
 
-        // Stocker le nouveau fichier
-        $path = $request->file('file')->store('inscriptions/' . $id_inscription, 'documents');
-
-        // Créer le document
-        $document = Document::create([
-            'id_inscription' => $id_inscription,
-            'id_participant' => $inscription->id_participant,
-            'url' => $path,
-            'date_debut' => $validatedData['date_debut'] ?? null,
-            'date_fin' => $validatedData['date_fin'] ?? null,
-            'valable' => true,
-        ]);
+        $inscription = Inscription::findOrFail($id_inscription);
+        $validatedData = $this->validateUpload($request);
+        $document = $this->replaceDocumentForInscription($inscription, $validatedData, $request);
 
         return response()->json([
             'message' => 'Document uploadé avec succès.',
@@ -83,7 +112,7 @@ class DocumentController extends Controller
         $document = Document::findOrFail($id);
 
         $user = Auth::user();
-        $isAdmin = $user->roles()->where('type', 'Administrateur')->exists();
+        $isAdmin = $this->isAdmin($user);
 
         if (!$isAdmin && $document->id_participant !== $user->participant->id) {
             return response()->json(['message' => 'Accès non autorisé.'], 403);

@@ -962,6 +962,13 @@
             :icon="'mdi:check'"
             :showButtons="false"
         />
+        <PopupConfirmation
+            v-if="confirmationChangementModePrix"
+            message="Changer de mode supprimera tous les paliers existants. Continuer ?"
+            icon="mdi:alert-circle-outline"
+            @confirm="confirmerChangementModePrixEvolutif"
+            @cancel="annulerChangementModePrixEvolutif"
+        />
     </div>
 </template>
 
@@ -1016,6 +1023,8 @@ export default {
             modal: optionModal.FERMEE,
             confirmationPopup: false,
             dataInserted: false,
+            confirmationChangementModePrix: false,
+            modePrixEvolutifEnAttente: null,
             evenements: [],
             nouvelleOrg: { nom: "", type: "Entreprise" },
             formulaireEtapesLabels: ["Général", "Options supplémentaires"],
@@ -1435,15 +1444,23 @@ export default {
         changerModePrixEvolutif(nouveauMode) {
             if (this.courseData.prixEvolutif.type === nouveauMode) return;
             if (this.courseData.prixEvolutif.paliers.length > 0) {
-                if (
-                    !confirm(
-                        "Changer de mode supprimera tous les paliers existants. Continuer ?",
-                    )
-                )
-                    return;
+                this.modePrixEvolutifEnAttente = nouveauMode;
+                this.confirmationChangementModePrix = true;
+                return;
             }
             this.courseData.prixEvolutif.type = nouveauMode;
             this.courseData.prixEvolutif.paliers = [];
+        },
+        confirmerChangementModePrixEvolutif() {
+            if (!this.modePrixEvolutifEnAttente) return;
+            this.courseData.prixEvolutif.type = this.modePrixEvolutifEnAttente;
+            this.courseData.prixEvolutif.paliers = [];
+            this.modePrixEvolutifEnAttente = null;
+            this.confirmationChangementModePrix = false;
+        },
+        annulerChangementModePrixEvolutif() {
+            this.modePrixEvolutifEnAttente = null;
+            this.confirmationChangementModePrix = false;
         },
 
         ajouterPalier() {

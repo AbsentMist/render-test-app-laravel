@@ -211,6 +211,14 @@
       </div>
 
     </div>
+
+    <PopupConfirmation
+      v-if="membreARetirer"
+      :message="`Retirer ${membreARetirer.prenom} ${membreARetirer.nom} du groupe ?`"
+      icon="mdi:alert-circle-outline"
+      @confirm="confirmerRetraitMembre"
+      @cancel="membreARetirer = null"
+    />
   </div>
 </template>
 
@@ -218,9 +226,11 @@
 import groupeService from '../services/groupeService';
 import api from '../services/api';
 import { useAuthStore } from '../stores/auth';
+import PopupConfirmation from './PopupConfirmation.vue';
 
 export default {
   name: 'PopupGestionGroupe',
+  components: { PopupConfirmation },
   props: {
     groupe:          { type: Object, required: true },
     mesParticipants: { type: Array, default: () => [] },
@@ -240,6 +250,7 @@ export default {
       erreurRecherche:   null,
       enCours:           false,
       messageAction:     null,
+      membreARetirer:    null,
     };
   },
   computed: {
@@ -391,11 +402,15 @@ export default {
 
     // ── Retirer membre (Challenge) ─────────────────────────────────────────────
     async retirerMembre(membre) {
-      if (!confirm(`Retirer ${membre.prenom} ${membre.nom} du groupe ?`)) return;
+      this.membreARetirer = membre;
+    },
+    async confirmerRetraitMembre() {
+      if (!this.membreARetirer) return;
       try {
-        await groupeService.removeParticipant(this.groupeLocal.id, membre.id);
+        await groupeService.removeParticipant(this.groupeLocal.id, this.membreARetirer.id);
         const response = await groupeService.getGroupe(this.groupeLocal.id);
         this.groupeLocal = response.data;
+        this.membreARetirer = null;
         this.$emit('mis-a-jour', this.groupeLocal);
       } catch (e) {
         console.error('Erreur retrait membre:', e);

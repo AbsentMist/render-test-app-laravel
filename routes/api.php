@@ -196,6 +196,7 @@ use App\Http\Controllers\PrixEvolutifController;
 
             // Documents (admin)
             Route::get('/inscriptions/{id_inscription}/documents', [DocumentController::class, 'indexByInscription']);
+            Route::post('/inscriptions/{id_inscription}/documents', [DocumentController::class, 'storeForInscriptionAdmin']);
             Route::delete('/documents/{id}', [DocumentController::class, 'destroyAdmin']);
 
             Route::get('/courses/{id_course}/challenge-organisations', [ChallengeOrganisationController::class, 'index']);

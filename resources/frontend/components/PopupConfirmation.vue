@@ -1,11 +1,13 @@
 <template>
     <div class="fixed inset-0 flex items-center justify-center z-50">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="$emit('cancel')"></div>
-        <div class="relative bg-secondary rounded-base shadow-xl p-8 w-96 flex flex-col items-center gap-4">
-            <div class="w-14 h-14 rounded-full border-2 border-primary flex items-center justify-center text-primary">
+        <div class="relative bg-secondary rounded-base shadow-xl p-8 w-full max-w-md flex flex-col items-center gap-4 border border-default-medium mx-4">
+            <div v-if="icon" class="w-14 h-14 rounded-full border-2 border-primary flex items-center justify-center text-primary">
                 <Icon :icon="icon" width="28" height="28" />
             </div>
-            <p class="text-heading text-center text-sm">{{ message }}</p>
+            <div class="w-full text-center space-y-1">
+                <p class="text-heading text-sm">{{ message }}</p>
+            </div>
             <div v-if="showButtons" class="flex flex-row gap-4 mt-2 w-full">
                 <button type="button" @click="$emit('confirm')" class="btn-tertiary flex-1">
                     Continuer
@@ -34,7 +36,7 @@ export default {
         },
         icon: {
             type: String,
-            default: "mdi:alert-outline"
+            default: null
         }
     }
 }

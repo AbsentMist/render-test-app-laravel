@@ -563,12 +563,21 @@
         @confirmer="onChangementConfirme"
       />
     </Transition>
+
+    <PopupConfirmation
+      v-if="documentASupprimer"
+      message="Supprimer ce document ?"
+      icon="mdi:alert-circle-outline"
+      @confirm="confirmerSuppressionDocument"
+      @cancel="documentASupprimer = null"
+    />
   </div>
 </template>
 
 <script>
 import { Icon } from '@iconify/vue';
 import PopupChangementCourseOrganisateur      from './PopupChangementCourseOrganisateur.vue';
+import PopupConfirmation                       from './PopupConfirmation.vue';
 import courseOrganisateurService              from '../services/courseOrganisateurService';
 import documentService                        from '../services/documentService';
 import inscriptionService                     from '../services/inscriptionService';
@@ -577,7 +586,7 @@ import reponseQuestionOrganisateurService     from '../services/reponseQuestionO
 
 export default {
   name: 'PopupInscriptionDetailOrganisateur',
-  components: { Icon, PopupChangementCourseOrganisateur },
+  components: { Icon, PopupChangementCourseOrganisateur, PopupConfirmation },
   emits: ['close', 'ajouter-panier', 'modifier-inscription'],
   props: {
     inscription: { type: Object, required: true },
@@ -593,6 +602,7 @@ export default {
       chargementDocument: false,
       isEdit: false,
       inscriptionEdit: null,
+      documentASupprimer: null,
       tabs: [
         { key: 'general',   label: 'Général',   icon: 'mdi:information-outline' },
         { key: 'options',   label: 'Options',   icon: 'mdi:cog-outline' },
@@ -814,14 +824,18 @@ export default {
     },
 
     async supprimerDocument(idDoc) {
-      if (confirm('Supprimer ce document ?')) {
-        try {
-          await documentService.deleteDocument(idDoc);
-          const idx = (this.inscription.documents_fournis ?? []).findIndex(d => d.id === idDoc);
-          if (idx > -1) this.inscription.documents_fournis.splice(idx, 1);
-        } catch (e) {
-          console.error('Erreur suppression :', e);
-        }
+      this.documentASupprimer = idDoc;
+    },
+
+    async confirmerSuppressionDocument() {
+      if (!this.documentASupprimer) return;
+      try {
+        await documentService.deleteDocumentAdmin(this.documentASupprimer);
+        const idx = (this.inscription.documents_fournis ?? []).findIndex(d => d.id === this.documentASupprimer);
+        if (idx > -1) this.inscription.documents_fournis.splice(idx, 1);
+        this.documentASupprimer = null;
+      } catch (e) {
+        console.error('Erreur suppression :', e);
       }
     },
 
@@ -842,7 +856,7 @@ export default {
         this.chargementDocument = true;
         const formData = new FormData();
         formData.append('file', fichier);
-        const response = await documentService.uploadDocument(this.inscription.id, formData);
+        const response = await documentService.uploadDocumentAdmin(this.inscription.id, formData);
         if (!this.inscription.documents_fournis) this.inscription.documents_fournis = [];
         this.inscription.documents_fournis.push(response.data.document);
       } catch (e) {

@@ -29,6 +29,14 @@ export default {
         return api.get(`/organisateur/inscriptions/${id_inscription}/documents`);
     },
 
+    uploadDocumentAdmin(id_inscription, formData) {
+        return api.post(`/organisateur/inscriptions/${id_inscription}/documents`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    },
+
     deleteDocumentAdmin(id) {
         return api.delete(`/organisateur/documents/${id}`);
     }

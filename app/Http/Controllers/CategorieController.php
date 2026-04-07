@@ -18,7 +18,7 @@ class CategorieController extends Controller
     {
         
         $categorie = Categorie::whereHas('courses', function ($query) use ($id_course) {
-            $query->where('id_course', $id_course);
+            $query->where('id', $id_course);
         })->get();
 
         if ($categorie->isEmpty()) {

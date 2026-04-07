@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Avertissement;
 use App\Models\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -11,7 +12,7 @@ use Tests\TestCase;
 
 class AvertissementTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected $admin;
 

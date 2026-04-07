@@ -47,22 +47,14 @@
 
                 <!-- Actif -->
                 <td class="px-4 py-3 text-center">
-                <svg v-if="course.is_actif" class="w-5 h-5 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <svg v-else class="w-5 h-5 text-accent mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <Icon v-if="course.is_actif" icon="mdi:check" class="w-5 h-5 text-green-500 mx-auto" />
+                <Icon v-else icon="mdi:close" class="w-5 h-5 text-accent mx-auto" />
                 </td>
 
                 <!-- Interne -->
                 <td class="px-4 py-3 text-center">
-                <svg v-if="course.is_interne" class="w-5 h-5 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <svg v-else class="w-5 h-5 text-accent mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <Icon v-if="course.is_interne" icon="mdi:check" class="w-5 h-5 text-green-500 mx-auto" />
+                <Icon v-else icon="mdi:close" class="w-5 h-5 text-accent mx-auto" />
                 </td>
 
                 <!-- Actions -->
@@ -73,10 +65,7 @@
                     class="p-1.5 rounded-lg text-primary hover:bg-tertiary transition-colors"
                     title="Modifier"
                     >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
+                    <Icon icon="lucide:square-pen" class="w-4 h-4" />
                     </button>
 
                     <button
@@ -84,10 +73,7 @@
                     class="p-1.5 rounded-lg text-accent hover:bg-red-50 transition-colors"
                     title="Supprimer"
                     >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                    <Icon icon="lucide:trash-2" class="w-4 h-4" />
                     </button>
                 </div>
                 </td>
@@ -96,35 +82,28 @@
         </table>
         </div>
 
-        <!-- Popup confirmation suppression -->
-        <div v-if="courseASupprimer" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-2xl p-6 shadow-xl max-w-sm w-full mx-4">
-            <h2 class="text-heading font-bold text-lg mb-2">Confirmer la suppression</h2>
-            <p class="text-body mb-6">
-            Voulez-vous vraiment supprimer la course <strong>{{ courseASupprimer.nom }}</strong> ?
-            Cette action est irréversible.
-            </p>
-            <div class="flex justify-end gap-3">
-            <button @click="courseASupprimer = null" class="btn-accent-300 px-4 py-2 rounded-xl">
-                Annuler
-            </button>
-            <button @click="supprimerCourse" class="bg-accent text-white px-4 py-2 rounded-xl hover:opacity-90">
-                Supprimer
-            </button>
-            </div>
-        </div>
-    </div>
+        <PopupConfirmation
+            v-if="courseASupprimer"
+            icon="mdi:alert-circle-outline"
+            :message="`Voulez-vous vraiment supprimer la course ${courseASupprimer.nom} ? Cette action est irréversible.`"
+            @confirm="supprimerCourse"
+            @cancel="courseASupprimer = null"
+        />
   </div>
 </template>
 
 <script>
 import Title from '../components/Title.vue';
+import { Icon } from '@iconify/vue';
+import PopupConfirmation from '../components/PopupConfirmation.vue';
 import courseOrganisateurService from '../services/courseOrganisateurService'
 import evenementOrganisateurService from '../services/evenementOrganisateurService';
 
 export default {
     components: {
         Title,
+        Icon,
+        PopupConfirmation,
     },
     computed: {
         idEvenement() {
