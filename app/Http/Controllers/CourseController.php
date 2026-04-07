@@ -27,8 +27,9 @@ class CourseController extends Controller
                 'avertissement',
                 'options.quantifiable',
                 'options.cochable',
-                'questions.choix' // charge les questions ET leurs choix de réponses
-            ])
+                'questions.choix', // charge les questions ET leurs choix de réponses
+                'prixEvolutifs',
+                ])
             ->withCount('inscriptions')
             ->where('id_evenement', $id_evenement)
             ->where('is_actif', true)
@@ -42,9 +43,20 @@ class CourseController extends Controller
                 return [
                     'id'                => $course->id,
                     'nom_course'        => $course->nom,
-                    'tarif'             => $course->tarif,
+                    'tarif' => $course->is_prix_evolutif
+                        ? (function() use ($course) {
+                            $nbInscrits = $course->inscriptions_count + 1;
+                            $palier = $course->prixEvolutifs->sortBy('ordre')->first(function($p) use ($nbInscrits) {
+                                $debut = (int) $p->valeur_debut;
+                                $fin = $p->valeur_fin !== null ? (int) $p->valeur_fin : PHP_INT_MAX;
+                                return $nbInscrits >= $debut && $nbInscrits <= $fin;
+                            });
+                            return $palier?->tarif ?? $course->tarif;
+                        })()
+                        : $course->tarif,
                     'type'              => $course->type,
                     'is_challenge'      => $course->is_challenge,
+                    'is_prix_evolutif'  => $course->is_prix_evolutif,
                     'categorie'         => $course->categorie->nom ?? null,
                     'sous_categorie'    => $course->sousCategorie->nom ?? null,
                     'avertissement'     => $course->avertissement,
@@ -155,7 +167,7 @@ class CourseController extends Controller
             'date_fin'          => 'required|date',
             'debut_inscription' => 'required|date',
             'fin_inscription'   => 'required|date|after_or_equal:debut_inscription',
-            'tarif'             => 'required|numeric|min:0',
+            'tarif'             => 'nullable|numeric|min:0',
             'status'            => 'required|string|max:50',
             'type'              => 'required|string|max:50',
             'max_inscription'   => 'required|integer|min:1',
@@ -171,6 +183,7 @@ class CourseController extends Controller
             'is_avertissement'  => 'boolean',
             'is_document'       => 'boolean',
             'is_questionnaire'  => 'boolean',
+            'is_prix_evolutif'  => 'boolean', 
         ]);
 
         $course = Course::create($validatedData);
@@ -211,6 +224,7 @@ class CourseController extends Controller
             'age_minimum'       => 'sometimes|required|integer|min:0',
             'age_maximum'       => 'sometimes|nullable|integer|gte:age_minimum',
             'is_challenge'      => 'boolean',
+            'is_prix_evolutif'  => 'boolean',
             'is_actif'          => 'boolean',
             'is_dossard'        => 'boolean',
             'is_avertissement'  => 'boolean',
