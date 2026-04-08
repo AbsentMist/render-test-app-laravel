@@ -1446,10 +1446,8 @@ export default {
          * @returns {void}
          */
         initialiserPaliers() {
-            if (
-                this.courseData.parameters.prixEvolutif &&
-                this.courseData.prixEvolutif.paliers.length === 0
-            ) {
+            if (!this.courseData.parameters.prixEvolutif) return;
+            if (this.courseData.prixEvolutif.paliers.length === 0) {
                 if (this.courseData.prixEvolutif.type === "dossards") {
                     const premier = Number(this.courseData.dossard.first) || 1;
                     const dernier = Number(this.courseData.dossard.last) || 999;
@@ -1501,7 +1499,7 @@ export default {
             const palierModifie =
                 this.courseData.prixEvolutif.paliers.length > 2 ||
                 this.courseData.prixEvolutif.paliers.some(
-                    (p) => p.tarif !== "",
+                    (p) => p.tarif !== "" && p.tarif !== null,
                 );
             if (palierModifie) {
                 if (
@@ -1522,6 +1520,10 @@ export default {
          */
         ajouterPalierIntermediaire() {
             const paliers = this.courseData.prixEvolutif.paliers;
+            if (paliers.length < 2) {
+                this.initialiserPaliers();
+                return;
+            }
             const dernier = paliers[paliers.length - 1];
             const nouveauPalier = {
                 valeur_debut: "",
