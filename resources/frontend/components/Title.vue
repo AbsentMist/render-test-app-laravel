@@ -6,7 +6,14 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant Title.
+ * @description En-tête de section réutilisable pour harmoniser les titres des écrans.
+ * @remarks Ce composant encapsule le style de titre principal avec un soulignement coloré
+ * configurable pour conserver une identité visuelle homogène.
+ */
 export default{
+    name: 'Title',
     props: {
         texte: {
             type: String,

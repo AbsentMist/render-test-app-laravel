@@ -40,6 +40,12 @@
 </template>
 
 <script setup>
+/**
+ * @fileoverview Vue ListeCourses.
+ * @description Liste des courses d'un évènement avec recherche et ouverture du tunnel d'inscription.
+ * @remarks Cette vue synchronise le thème événementiel, récupère les participants du compte
+ * et transmet les données d'inscription au panier.
+ */
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { Icon } from '@iconify/vue';
@@ -79,21 +85,30 @@ const idEvenement = computed(() => route.params.idEvenement);
 
 const courseSelectionnee = ref(null);
 
+/**
+ * Ouvre la popup d'inscription pour la course choisie.
+ * @param {Object} course
+ * @returns {void}
+ */
 function ouvrirInscription(course) {
     courseSelectionnee.value = course;
     popupInscription.value = true;
 }
 
-//Transmission des données d'inscription aux stores pour les afficher dans le panier et les sauvegarder
+/**
+ * Ajoute l'inscription préparée au panier puis ferme la popup.
+ * @param {Object} donneesInscription
+ * @returns {void}
+ */
 function gererAjoutPanier(donneesInscription) {
-    // On sauvegarde avec les détails de la course pour la miniature dynamique
     cartStore.ajouterInscription(donneesInscription, courseSelectionnee.value);
-    
-    // On ferme la grande modale
     popupInscription.value = false;
 }
 
-// Chargement des courses
+/**
+ * Charge l'évènement courant et ses courses.
+ * @returns {Promise<void>}
+ */
 async function chargerDonnees() {
   try {
     const response = await courseParticipantService.getAllCourses(idEvenement.value);
@@ -114,7 +129,10 @@ async function chargerDonnees() {
   }
 }
 
-// Filtre de recherche
+/**
+ * Filtre les courses selon la recherche texte.
+ * @type {import('vue').ComputedRef<Array>}
+ */
 const coursesFiltrees = computed(() => {
   return courses.value.filter(c => 
     c.nom_course.toLowerCase().includes(recherche.value.toLowerCase())

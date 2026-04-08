@@ -122,6 +122,13 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant FormulaireEvenement.
+ * @description Formulaire organisateur pour créer ou modifier un événement.
+ * Il couvre les informations générales, le logo, les couleurs, les paramètres
+ * de publication et le flux de confirmation de sauvegarde.
+ * @remarks Le composant adapte son comportement selon le mode création ou édition.
+ */
 import { Icon } from "@iconify/vue";
 import OptionList from "./OptionList.vue";
 import OptionTemplate from "./OptionTemplate.vue";
@@ -178,12 +185,24 @@ export default {
         };
     },
     computed: {
+        /**
+         * Indique si le composant est en mode édition à partir de l'URL.
+         * @returns {boolean}
+         */
         isEditMode() {
             return !!this.$route.query.id;
         },
+        /**
+         * Identifiant de l'évènement à charger ou modifier.
+         * @returns {string|undefined}
+         */
         eventId() {
             return this.$route.query.id;
         },
+        /**
+         * Source d'image du logo, en priorité à partir du fichier sélectionné.
+         * @returns {string|null}
+         */
         logoSrc() {
             if (this.eventData.logo) {
                 return URL.createObjectURL(this.eventData.logo);
@@ -203,7 +222,10 @@ export default {
         }
     },  
     methods: {
-        // Remet le formulaire à neuf, en cas de reset
+        /**
+         * Réinitialise l'intégralité du formulaire à son état initial.
+         * @returns {void}
+         */
         resetFormulaire() {
             this.eventData = {
                 name: '',
@@ -220,6 +242,11 @@ export default {
             };
             this.etape = this.formulaireEtape.GENERAL; 
         },
+        /**
+         * Normalise une couleur hexadécimale vers le format #RRGGBB.
+         * @param {string} value
+         * @returns {string|null}
+         */
         normalizeHexColor(value) {
             const cleaned = String(value ?? '').trim().replace(/^#/, '');
             if (!/^[0-9a-fA-F]{6}$/.test(cleaned)) {
@@ -228,6 +255,11 @@ export default {
 
             return `#${cleaned.toUpperCase()}`;
         },
+        /**
+         * Synchronise le champ texte d'une couleur avec la couleur retenue.
+         * @param {string} key
+         * @returns {void}
+         */
         onColorLabelInput(key) {
             const normalized = this.normalizeHexColor(this.colorLabels[key]);
             if (normalized) {
@@ -235,23 +267,36 @@ export default {
                 this.colorLabels[key] = normalized;
             }
         },
+        /**
+         * Corrige la couleur saisie si nécessaire lors de la perte de focus.
+         * @param {string} key
+         * @returns {void}
+         */
         onColorLabelBlur(key) {
             const normalized = this.normalizeHexColor(this.colorLabels[key]);
             const fallback = this.eventData.colors[key]?.toUpperCase() || '#000000';
             this.colorLabels[key] = normalized || fallback;
         },
+        /**
+         * Recalibre le champ texte à partir du sélecteur de couleur natif.
+         * @param {string} key
+         * @returns {void}
+         */
         onColorPickerChange(key) {
             this.colorLabels[key] = (this.eventData.colors[key] || '').toUpperCase();
         },
-        // Chargement des données en mode édition
+        /**
+         * Charge les données de l'évènement pour le mode édition.
+         * @returns {Promise<void>}
+         */
         async chargerDonneesEvenement() {
             try {
                 this.formError = '';
                 this.evenementIntrouvable = false;
                 const response = await evenementOrganisateurService.getEvenement(this.eventId);
                 const ev = response.data;
-                
-                // Pré-remplissage du formulaire
+
+                /** Pré-remplit le formulaire avec les données récupérées. */
                 this.eventData.name = ev.nom;
                 this.eventData.url = ev.site || '';
                 this.eventData.colors.primary = ev.couleur_primaire || '#0e0f54';
@@ -267,7 +312,6 @@ export default {
                 this.eventData.parameters.rabais = (ev.is_rabais == 1 || ev.is_rabais === true);
 
                 
-                console.log("Données chargées pour édition :", ev);
             } catch(e) {
                 if (e?.response?.status === 404) {
                     this.evenementIntrouvable = true;
@@ -278,6 +322,10 @@ export default {
             }
         },
 
+        /**
+         * Envoie le formulaire au service de création ou de mise à jour.
+         * @returns {Promise<void>}
+         */
         async insertData() {
             try {
                 this.formError = '';
@@ -308,7 +356,6 @@ export default {
                 }
 
                 this.confirmPopup();
-                console.log(response.data);
             } catch(e) {
                 if (e?.response?.status === 404) {
                     this.evenementIntrouvable = true;
@@ -319,12 +366,15 @@ export default {
                 console.log("Erreur:", e.response?.data);
             }
         },
+        /**
+         * Affiche la popup de succès puis redirige en mode édition après délai.
+         * @returns {void}
+         */
         confirmPopup() {
             this.confirmationPopup = false;
             this.dataInserted = true; 
             setTimeout(() => {
                 this.dataInserted = false; 
-                // Redirection vers le tableau de bord après modification
                 if (this.isEditMode) {
                     this.$router.push('/organisateur/evenements');
                 }

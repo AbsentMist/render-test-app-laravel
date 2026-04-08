@@ -54,8 +54,15 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant OptionTemplate.
+ * @description Bloc d'édition et d'affichage d'une option de course (nom, type, tarif, quantités).
+ * @remarks Ce composant sert de brique de formulaire réutilisable pour saisir ou modifier
+ * une option, avec bascule entre mode cochable et quantifiable.
+ */
 import { Icon } from "@iconify/vue";
 export default {
+    name: 'OptionTemplate',
     components: { Icon },
     props: {
         optionModel: {
@@ -75,6 +82,10 @@ export default {
         },
     },
     methods: {
+        /**
+         * Demande au parent de retirer l'option courante.
+         * @returns {void}
+         */
         removeOption() {
             this.$emit('remove-option', this.optionModel);
         }

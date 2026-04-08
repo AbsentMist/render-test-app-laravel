@@ -1,8 +1,6 @@
 <template>
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
         <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
-
-            <!-- Contenu -->
             <div class="px-6 py-6">
                 <div class="flex gap-4">
                     <div class="shrink-0 mt-1">
@@ -22,7 +20,6 @@
                 </div>
             </div>
 
-            <!-- Footer -->
             <div class="flex justify-between items-center px-6 py-4 border-t border-gray-100 gap-3">
                 <button
                     @click="$emit('close')"
@@ -42,9 +39,16 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant PopupAvertissementCourse.
+ * @description Modale d'affichage d'un avertissement course avec confirmation explicite du participant.
+ * @remarks Ce composant impose une validation utilisateur avant de poursuivre
+ * l'inscription afin de tracer la prise de connaissance d'un risque ou d'une consigne.
+ */
 import { Icon } from '@iconify/vue';
 
 export default {
+    name: 'PopupAvertissementCourse',
     components: { Icon },
     emits: ['close', 'confirmer'],
     props: {

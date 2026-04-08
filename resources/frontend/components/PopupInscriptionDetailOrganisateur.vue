@@ -575,6 +575,11 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant PopupInscriptionDetailOrganisateur.
+ * @description Modale de consultation et d'édition complète d'une inscription côté organisateur.
+ * @remarks Couvre la mise à jour des champs d'inscription, des options, des réponses et des documents.
+ */
 import { Icon } from '@iconify/vue';
 import PopupChangementCourseOrganisateur      from './PopupChangementCourseOrganisateur.vue';
 import PopupConfirmation                       from './PopupConfirmation.vue';
@@ -611,24 +616,34 @@ export default {
     };
   },
   methods: {
+    /**
+     * Formate une date ISO en JJ.MM.AAAA.
+     * @param {string} dateStr
+     * @returns {string}
+     */
     formatDate(dateStr) {
       if (!dateStr) return '—';
       const [y, m, d] = dateStr.split('-');
       return `${d}.${m}.${y}`;
     },
 
+    /**
+     * Charge la course complète liée à l'inscription pour afficher options et questionnaire.
+     * @returns {Promise<void>}
+     */
     async chargerCourseComplete() {
       try {
         const response = await courseOrganisateurService.getCourse(this.inscription.id_course);
         this.coursComplet = response.data;
-        console.log('Questionnaire chargé:', this.coursComplet.questionnaire);
       } catch (e) {
         console.error('Erreur lors du chargement de la course :', e);
       }
     },
 
-    // ── Édition ──────────────────────────────────────────────────────────────
-
+    /**
+     * Active le mode édition avec une copie locale des données modifiables.
+     * @returns {void}
+     */
     activerEdition() {
       this.isEdit = true;
       this.inscriptionEdit = {
@@ -643,14 +658,21 @@ export default {
       };
     },
 
+    /**
+     * Annule l'édition locale et restaure l'affichage en mode consultation.
+     * @returns {void}
+     */
     annulerEdition() {
       this.isEdit          = false;
       this.inscriptionEdit = null;
     },
 
+    /**
+     * Sauvegarde l'édition de l'inscription, des choix d'options et des réponses.
+     * @returns {Promise<void>}
+     */
     async sauvegarderEdition() {
       try {
-        // 1. Champs de base
         await inscriptionService.updateInscriptionAdmin(this.inscription.id, {
           tarif:               this.inscriptionEdit.tarif,
           status_paiement:     this.inscriptionEdit.status_paiement,
@@ -660,7 +682,6 @@ export default {
           avertissement_valide: this.inscriptionEdit.avertissement_valide,
         });
 
-        // 2. Choix options (mise à jour partielle: ajout/modification/suppression explicite)
         const choixInitiaux = this.inscription.choix_options ?? [];
         const choixEdites = this.inscriptionEdit.choix_options ?? [];
         const mapInitiaux = new Map(choixInitiaux.map((c) => [c.id_option, c]));
@@ -697,7 +718,6 @@ export default {
           }
         }
 
-        // 3. Réponses questions
         if (this.inscriptionEdit.reponses_questions.length > 0) {
           await reponseQuestionOrganisateurService.saveReponses({
             reponses: this.inscriptionEdit.reponses_questions.map(r => ({
@@ -708,7 +728,6 @@ export default {
           });
         }
 
-        // Met à jour immédiatement l'objet affiché dans la popup et dans le parent.
         Object.assign(this.inscription, {
           tarif: this.inscriptionEdit.tarif,
           status_paiement: this.inscriptionEdit.status_paiement,
@@ -727,12 +746,20 @@ export default {
       }
     },
 
-    // ── Options ──────────────────────────────────────────────────────────────
-
+    /**
+     * Retourne le choix existant pour une option donnée.
+     * @param {number} idOption
+     * @returns {object|null}
+     */
     optionSelectionnee(idOption) {
       return (this.inscription.choix_options ?? []).find(c => c.id_option === idOption) || null;
     },
 
+    /**
+     * Retourne le choix d'option à afficher selon le mode courant (édition/lecture).
+     * @param {number} idOption
+     * @returns {object|null}
+     */
     optionSelectionneePourAffichage(idOption) {
       if (this.isEdit && this.inscriptionEdit) {
         return this.inscriptionEdit.choix_options.find(c => c.id_option === idOption) || null;
@@ -740,6 +767,11 @@ export default {
       return this.optionSelectionnee(idOption);
     },
 
+    /**
+     * Retourne la quantité associée à une option.
+     * @param {number} idOption
+     * @returns {number}
+     */
     getQuantiteOption(idOption) {
       if (this.isEdit && this.inscriptionEdit) {
         return this.inscriptionEdit.choix_options.find(c => c.id_option === idOption)?.quantite ?? 1;
@@ -747,13 +779,16 @@ export default {
       return this.optionSelectionnee(idOption)?.quantite ?? 1;
     },
 
+    /**
+     * Active ou retire une option dans la sélection en mode édition.
+     * @param {object} option
+     * @returns {void}
+     */
     toggleOption(option) {
       const idx = this.inscriptionEdit.choix_options.findIndex(c => c.id_option === option.id);
       if (idx > -1) {
-        // Désélectionner
         this.inscriptionEdit.choix_options.splice(idx, 1);
       } else {
-        // Sélectionner
         this.inscriptionEdit.choix_options.push({
           id_option:    option.id,
           id_inscription: this.inscription.id,
@@ -762,18 +797,33 @@ export default {
       }
     },
 
+    /**
+     * Met à jour la quantité d'une option sélectionnée.
+     * @param {number} idOption
+     * @param {string|number} valeur
+     * @returns {void}
+     */
     mettreAJourQuantite(idOption, valeur) {
       const choix = this.inscriptionEdit.choix_options.find(c => c.id_option === idOption);
       if (choix) choix.quantite = parseInt(valeur) || 0;
     },
 
-    // ── Questions ─────────────────────────────────────────────────────────────
-
+    /**
+     * Retourne l'identifiant de réponse choisi pour une question en mode lecture.
+     * @param {number} idQuestion
+     * @returns {number|null}
+     */
     reponseQuestion(idQuestion) {
       const reponse = (this.inscription.reponses_questions ?? []).find(r => r.id_question === idQuestion);
       return reponse?.id_option_choisie || null;
     },
 
+    /**
+     * Vérifie si une option est sélectionnée pour une question donnée.
+     * @param {number} idQuestion
+     * @param {number} idOption
+     * @returns {boolean}
+     */
     reponseQuestionEdit(idQuestion, idOption) {
       if (this.isEdit && this.inscriptionEdit) {
         const reponse = this.inscriptionEdit.reponses_questions.find(r => r.id_question === idQuestion);
@@ -782,6 +832,12 @@ export default {
       return this.reponseQuestion(idQuestion) === idOption;
     },
 
+    /**
+     * Affecte une réponse à une question en mode édition.
+     * @param {number} idQuestion
+     * @param {number} idOption
+     * @returns {void}
+     */
     selectionnerReponse(idQuestion, idOption) {
       const idx = this.inscriptionEdit.reponses_questions.findIndex(r => r.id_question === idQuestion);
       if (idx > -1) {
@@ -795,8 +851,11 @@ export default {
       }
     },
 
-    // ── Documents ─────────────────────────────────────────────────────────────
-
+    /**
+     * Télécharge un document sur le poste utilisateur.
+     * @param {object} doc
+     * @returns {Promise<void>}
+     */
     async telechargerDocument(doc) {
       try {
         const response = await documentService.downloadDocument(doc.id);
@@ -813,6 +872,11 @@ export default {
       }
     },
 
+    /**
+     * Ouvre un document dans un nouvel onglet navigateur.
+     * @param {object} doc
+     * @returns {Promise<void>}
+     */
     async ouvrirDocument(doc) {
       try {
         const response = await documentService.downloadDocument(doc.id);
@@ -823,10 +887,19 @@ export default {
       }
     },
 
+    /**
+     * Prépare la suppression d'un document en ouvrant la confirmation.
+     * @param {number} idDoc
+     * @returns {Promise<void>}
+     */
     async supprimerDocument(idDoc) {
       this.documentASupprimer = idDoc;
     },
 
+    /**
+     * Confirme la suppression d'un document et met à jour la liste locale.
+     * @returns {Promise<void>}
+     */
     async confirmerSuppressionDocument() {
       if (!this.documentASupprimer) return;
       try {
@@ -839,18 +912,33 @@ export default {
       }
     },
 
+    /**
+     * Réagit à la sélection d'un fichier via input natif.
+     * @param {Event} event
+     * @returns {Promise<void>}
+     */
     async selectionnerDocument(event) {
       const fichier = event.target.files[0];
       if (fichier) await this.uploadDocument(fichier);
       event.target.value = '';
     },
 
+    /**
+     * Gère le dépôt d'un document par glisser-déposer.
+     * @param {DragEvent} event
+     * @returns {void}
+     */
     deposerDocument(event) {
       this.glisserDocument = false;
       const fichier = event.dataTransfer.files[0];
       if (fichier) this.uploadDocument(fichier);
     },
 
+    /**
+     * Envoie un document au serveur et l'ajoute à la liste locale.
+     * @param {File} fichier
+     * @returns {Promise<void>}
+     */
     async uploadDocument(fichier) {
       try {
         this.chargementDocument = true;
@@ -866,12 +954,19 @@ export default {
       }
     },
 
-    // ── Changement de course ──────────────────────────────────────────────────
-
+    /**
+     * Ouvre la modale de changement de course.
+     * @returns {void}
+     */
     ouvrirChangementCourse() {
       this.showChangementCourse = true;
     },
 
+    /**
+     * Ferme la modale de changement et transmet les données au parent.
+     * @param {object} data
+     * @returns {void}
+     */
     onChangementConfirme(data) {
       this.showChangementCourse = false;
       this.$emit('ajouter-panier', data);

@@ -13,6 +13,12 @@
 </template>
 
 <script setup>
+/**
+ * @fileoverview Vue Evenements.
+ * @description Catalogue public des événements disponibles à l'inscription.
+ * @remarks Charge les évènements depuis l'API participante et prépare les données
+ * nécessaires à l'affichage en cartes dans le composant miniature.
+ */
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import evenementParticipantService from '../services/evenementParticipantService';
@@ -23,7 +29,10 @@ const router = useRouter();
 const evenements = ref([]);
 const chargement = ref(true);
 
-//CHARGEMENT DES DONNÉES
+/**
+ * Charge les évènements accessibles au participant.
+ * @returns {Promise<void>}
+ */
 async function chargerEvenements() {
   try {
     const response = await evenementParticipantService.getAllEvenements();

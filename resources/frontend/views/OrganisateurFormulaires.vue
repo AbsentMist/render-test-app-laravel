@@ -11,6 +11,12 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Vue OrganisateurFormulaires.
+ * @description Espace de configuration des formulaires administrateur par onglets thématiques.
+ * @remarks Cette vue sélectionne dynamiquement le sous-formulaire affiché selon l'onglet actif,
+ * avec prise en charge d'une pré-sélection par paramètre d'URL.
+ */
 import FormulaireAvertissement from '../components/FormulaireAvertissement.vue';
 import FormulaireCategorie from '../components/FormulaireCategorie.vue';
 import FormulaireCourse from '../components/FormulaireCourse.vue';
@@ -39,12 +45,20 @@ export default {
     FormulaireCategorie,
     FormulaireAvertissement,
   },
+  /**
+   * Initialise la navigation par onglets des formulaires organisateur.
+   * @returns {{formulaires: Object, activeTab: string}} État local de la vue.
+   */
   data() {
     return {
       formulaires,
       activeTab: this.$route.query.onglet || formulaires.COURSE,
     };
   },
+  /**
+   * Active les comportements modaux globaux requis par la page.
+   * @returns {void}
+   */
   mounted() {
     initModals();
   }

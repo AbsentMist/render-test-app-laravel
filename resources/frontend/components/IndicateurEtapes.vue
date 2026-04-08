@@ -37,16 +37,20 @@
 </template>
 
 <script setup>
+/**
+ * @fileoverview Composant IndicateurEtapes.
+ * @description Indicateur visuel de progression dans un flux multi-étapes.
+ * @remarks Le composant représente l'avancement sous forme de jalons et adaptent
+ * dynamiquement le style des étapes passées, active et à venir.
+ */
 defineProps({
   steps: {
     type: Array,
     required: true
-    // Exemple : ['Identifiants', 'Profil', 'Coordonnées']
   },
   currentStep: {
     type: Number,
     required: true
-    // Commence à 1
   }
 })
 </script>

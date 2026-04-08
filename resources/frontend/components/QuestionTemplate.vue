@@ -37,9 +37,17 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant QuestionTemplate.
+ * @description Gabarit d'édition d'une question et de ses choix pour les formulaires questionnaire.
+ * @remarks Le composant édite en direct l'objet question reçu par référence et notifie
+ * le parent lorsqu'une question doit être retirée de la liste.
+ */
 import { Icon } from "@iconify/vue";
 export default {
+    name: 'QuestionTemplate',
     components: { Icon },
+    emits: ['remove-question'],
     props: {
         questionModel: {
             type: Object,
@@ -48,6 +56,10 @@ export default {
         },
     },
     methods: {
+        /**
+         * Demande la suppression de la question courante au composant parent.
+         * @returns {void}
+         */
         removeQuestion() {
             this.$emit('remove-question', this.questionModel);
         },

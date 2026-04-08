@@ -30,6 +30,14 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant FormulaireOption.
+ * @description Gestion des modèles d'options organisateur.
+ * Permet la création d'options, la réutilisation d'un modèle existant et la
+ * suppression avec confirmation.
+ * @remarks Le composant orchestre la création, la suppression et la reprise de modèles
+ * d'options tout en maintenant une liste locale cohérente avec les données API.
+ */
 import { Icon } from '@iconify/vue';
 import OptionTemplate from './OptionTemplate.vue';
 import PopupConfirmation from './PopupConfirmation.vue';
@@ -40,8 +48,11 @@ export default {
         Icon,
         OptionTemplate,
         PopupConfirmation,
-        optionOrganisateurService
     },
+    /**
+     * Initialise le formulaire et la collection de modèles disponibles.
+     * @returns {Object} État local de l'éditeur d'options.
+     */
     data() {
         return {
             optionData:
@@ -58,10 +69,15 @@ export default {
             },
             optionModels: [],
             optionASupprimer: null,
-
+            dataInserted: false,
         };
     },
-     methods: {
+    methods: {
+        /**
+         * Copie un modèle existant dans le formulaire courant.
+         * @param {Object} option Option source sélectionnée dans la liste des modèles.
+         * @returns {void}
+         */
         copyDatas(option) {
             this.optionData.nom = option.nom;
             this.optionData.description = option.description;
@@ -70,11 +86,20 @@ export default {
             this.optionData.quantifiable.quantiteMin = option.quantifiable.quantiteMin;
             this.optionData.quantifiable.quantiteMax = option.quantifiable.quantiteMax;
         },
-        async removeOption(index) {
+        /**
+         * Prépare la suppression d'un modèle en ouvrant la confirmation.
+         * @param {number} index Position du modèle dans la liste.
+         * @returns {void}
+         */
+        removeOption(index) {
             const option = this.optionModels[index];
             if (!option) return;
             this.optionASupprimer = { ...option, index };
         },
+        /**
+         * Supprime le modèle confirmé puis met à jour la liste locale.
+         * @returns {Promise<void>}
+         */
         async confirmerSuppressionOption() {
             if (!this.optionASupprimer) return;
             try {
@@ -85,6 +110,10 @@ export default {
                 console.error("Erreur lors de la suppression :", error.response?.data || error);
             }
         },
+        /**
+         * Envoie une nouvelle option modèle à l'API puis recharge la liste des modèles.
+         * @returns {Promise<void>}
+         */
         async handleSubmit() {
             try {
                 const formData = new FormData();
@@ -94,38 +123,35 @@ export default {
                 formData.append('type', this.optionData.type);
                 formData.append('modele', this.optionData.modele? 1 : 0);
 
-                // On n'ajoute les IDs de quantité que si c'est nécessaire
                 if (this.optionData.type === 'Quantifiable') {
                     formData.append('quantiteMin', this.optionData.quantifiable.quantiteMin);
                     formData.append('quantiteMax', this.optionData.quantifiable.quantiteMax);
                 }
 
-                // Toujours la liaison course pour ton controller
                 formData.append('courses[]', 1); 
-                console.log("forms: ", formData);
 
                 const response = await optionOrganisateurService.createOption(formData);
                 
                 if (response.status === 201) {
                     this.dataInserted = true;
-                    // On rafraîchit la liste des modèles pour voir la nouvelle option
                     const updatedList = await optionOrganisateurService.getAllOptions();
                     this.optionModels = updatedList.data;
                     
                     setTimeout(() => { this.dataInserted = false; }, 2000);
                 }
-                console.log(response.data);
             } catch (error) {
-                // Utilise l'optionnel chaining ?. pour éviter le crash "undefined"
                 console.error("Erreur détaillée :", error.response?.data || error.message || error);
             }
         },
     },
+    /**
+     * Charge les modèles d'options à l'ouverture du composant.
+     * @returns {Promise<void>}
+     */
     async mounted(){
         try{
             const response = await optionOrganisateurService.getAllOptions();
             this.optionModels = response.data;
-            console.log(response.data);
         } catch (error) {
             console.error("Erreur lors de la récupération des options :", error);
         }

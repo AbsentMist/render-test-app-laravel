@@ -1,4 +1,10 @@
 <script setup>
+/**
+ * @fileoverview Composant SideBarAdmin.
+ * @description Barre latérale de navigation pour l'interface administrateur/organisateur.
+ * @remarks La sidebar adapte son style à la couleur de thème active et centralise
+ * la déconnexion depuis l'espace d'administration.
+ */
 import { Icon } from '@iconify/vue';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
@@ -8,6 +14,10 @@ const authStore = useAuthStore();
 const themeStore = useThemeStore();
 const router = useRouter();
 
+/**
+ * Déconnecte l'utilisateur puis redirige vers l'écran de connexion.
+ * @returns {Promise<void>}
+ */
 const handleLogout = async () => {
   await authStore.logout(); 
   router.push('/login'); 

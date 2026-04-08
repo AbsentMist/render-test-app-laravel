@@ -75,6 +75,11 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Vue ParticipantInscriptions.
+ * @description Historique des inscriptions du participant avec accès au détail et changement de course.
+ * @remarks Cette vue alimente les popups de détail/changement et synchronise la liste après action.
+ */
 import { Icon } from '@iconify/vue';
 import Title from '../components/Title.vue'
 import inscriptionService from '../services/inscriptionService.js'
@@ -109,6 +114,10 @@ export default {
     }
   },
   methods: {
+    /**
+     * Charge les inscriptions du participant et la liste unique des participants associés.
+     * @returns {Promise<void>}
+     */
     async chargerInscriptions() {
       this.chargement = true;
       this.erreur = '';
@@ -128,11 +137,20 @@ export default {
         this.chargement = false
       }
     },
+    /**
+     * Ferme la popup de changement puis recharge les inscriptions.
+     * @returns {Promise<void>}
+     */
     async fermerPopupChangement(){
       this.popupChangement = false;
       await this.chargerInscriptions();
     },
 
+    /**
+     * Ouvre/ferme le détail d'une ligne d'inscription.
+     * @param {number} id
+     * @returns {void}
+     */
     toggleExpand(id) {
       const index = this.expandedRows.indexOf(id);
       if (index === -1) {
@@ -141,20 +159,37 @@ export default {
         this.expandedRows.splice(index, 1); // fermer
       }
     },
+    /**
+     * Ouvre la popup de détail pour l'inscription sélectionnée.
+     * @param {Object} inscription
+     * @returns {void}
+     */
     detailInscription(inscription){
       this.inscription.actuel = inscription;
       this.popupDetail = true;
     },
+    /**
+     * Lance le flux de changement de course via popup d'avertissement.
+     * @param {Object} inscription
+     * @returns {void}
+     */
     changerInscription(inscription) {
-      // À implémenter selon votre logique métier
-      console.log('Changer inscription', inscription.id);
       this.inscription.actuel = inscription;
       this.popupAvertissement = true;
     },
+    /**
+     * Ouvre la popup de changement de course après confirmation de l'avertissement.
+     * @returns {void}
+     */
     afficherPopupChangement(){
       this.popupAvertissement = false;
       this.popupChangement = true;
     },
+    /**
+     * Ferme le détail et relaie les données du changement vers le parent.
+     * @param {Object} data
+     * @returns {void}
+     */
     onChangementConfirme(data) {
       this.popupDetail = false;
       this.$emit('ajouter-panier', data);

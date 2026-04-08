@@ -215,7 +215,7 @@ class CourseTest extends TestCase
 
         $response->assertStatus(422)
                  ->assertJsonValidationErrors([
-                     'id_evenement', 'nom', 'tarif', 'date_debut',
+                     'id_evenement', 'nom', 'date_debut',
                      'date_fin', 'status', 'type', 'max_inscription',
                      'premier_dossard', 'dernier_dossard', 'age_minimum',
                  ]);

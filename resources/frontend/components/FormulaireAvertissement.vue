@@ -61,6 +61,14 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant FormulaireAvertissement.
+ * @description Gestion des modèles d'avertissement utilisés dans les inscriptions.
+ * Permet de créer, préremplir depuis un modèle existant et supprimer un
+ * avertissement avec confirmation utilisateur.
+ * @remarks Le composant pilote le cycle complet des modèles (chargement, création,
+ * reprise et suppression) avec mise à jour locale immédiate après chaque action.
+ */
 import { Icon } from '@iconify/vue';
 import PopupConfirmation from './PopupConfirmation.vue';
 import avertissementOrganisateurService from '../services/avertissementOrganisateurService';
@@ -70,6 +78,10 @@ export default {
         Icon,
         PopupConfirmation,
     },
+    /**
+     * Initialise les données du formulaire et la liste des modèles existants.
+     * @returns {Object} État local de l'éditeur d'avertissements.
+     */
     data() {
         return {
             avertissementData: {
@@ -78,20 +90,34 @@ export default {
                 modele: true,
             },
             avertissementModels: [],
-            dataInserted: false, // Pour gérer l'état de succès
+            dataInserted: false,
             avertissementASupprimer: null,
         }
     },
     methods: {
+        /**
+         * Copie un modèle existant dans le formulaire courant.
+         * @param {Object} avertissement Modèle source sélectionné.
+         * @returns {void}
+         */
         copyDatas(avertissement) {
             this.avertissementData.titre = avertissement.titre;
             this.avertissementData.contenu = avertissement.contenu;
         },
+        /**
+         * Prépare la suppression d'un modèle d'avertissement.
+         * @param {number} index Position du modèle dans la liste.
+         * @returns {void}
+         */
         async removeAvertissement(index) {
             const avertissement = this.avertissementModels[index];
             if (!avertissement) return;
             this.avertissementASupprimer = { ...avertissement, index };
         },
+        /**
+         * Supprime le modèle confirmé puis met à jour la liste locale.
+         * @returns {Promise<void>}
+         */
         async confirmerSuppressionAvertissement() {
             if (!this.avertissementASupprimer) return;
             try {
@@ -102,6 +128,10 @@ export default {
                  console.error("Erreur lors de la suppression :", error.response?.data || error);
             }
         },
+        /**
+         * Enregistre un nouvel avertissement modèle puis recharge la liste disponible.
+         * @returns {Promise<void>}
+         */
         async handleSubmit() {
             try {
                 const formData = new FormData();
@@ -114,11 +144,9 @@ export default {
                 
                 if (response.status === 201 || response.status === 200) {
                     this.dataInserted = true;
-                    // Rafraîchissement de la liste
                     const updatedList = await avertissementOrganisateurService.getAllAvertissement();
                     this.avertissementModels = updatedList.data;
                     
-                    // Reset du formulaire après succès (optionnel)
                     this.avertissementData.titre = "";
                     this.avertissementData.contenu = "";
 
@@ -129,6 +157,10 @@ export default {
             }
         },
     },
+    /**
+     * Charge les modèles d'avertissement au montage du composant.
+     * @returns {Promise<void>}
+     */
     async mounted() {
         try {
             const response = await avertissementOrganisateurService.getAllAvertissement();

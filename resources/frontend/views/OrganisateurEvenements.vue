@@ -101,6 +101,12 @@
 </template>
 
 <script setup>
+/**
+ * @fileoverview Vue OrganisateurEvenements.
+ * @description Tableau de gestion des évènements organisateur.
+ * @remarks Affiche les périodes d'inscription calculées à partir des courses,
+ * et gère les opérations d'édition/suppression.
+ */
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api.js'
@@ -114,7 +120,11 @@ const chargement = ref(true)
 const erreur = ref('')
 const evenementASupprimer = ref(null)
 
-// ===== GESTION DES DATES (Calcul dynamique) =====
+/**
+ * Formate une date brute en locale suisse.
+ * @param {string} dateString
+ * @returns {string}
+ */
 function formaterDate(dateString) {
   if (!dateString) return '—'
   const date = new Date(dateString)
@@ -123,6 +133,11 @@ function formaterDate(dateString) {
   })
 }
 
+/**
+ * Retourne la première date d'inscription parmi les courses d'un évènement.
+ * @param {Object} evenement
+ * @returns {string}
+ */
 function getDateDebutEvenement(evenement) {
   if (!evenement.courses || evenement.courses.length === 0) return '—'
   
@@ -136,6 +151,11 @@ function getDateDebutEvenement(evenement) {
   return formaterDate(new Date(Math.min(...dates)))
 }
 
+/**
+ * Retourne la dernière date d'inscription parmi les courses d'un évènement.
+ * @param {Object} evenement
+ * @returns {string}
+ */
 function getDateFinEvenement(evenement) {
   if (!evenement.courses || evenement.courses.length === 0) return '—'
   
@@ -149,7 +169,10 @@ function getDateFinEvenement(evenement) {
   return formaterDate(new Date(Math.max(...dates)))
 }
 
-// ===== CHARGER LES ÉVÉNEMENTS =====
+/**
+ * Charge les évènements organisateur depuis l'API.
+ * @returns {Promise<void>}
+ */
 async function chargerEvenements() {
   chargement.value = true
   erreur.value = ''
@@ -163,16 +186,28 @@ async function chargerEvenements() {
   }
 }
 
-// ===== MODIFIER =====
+/**
+ * Redirige vers le formulaire de modification d'évènement.
+ * @param {Object} evenement
+ * @returns {void}
+ */
 function modifierEvenement(evenement) {
   router.push(`/organisateur/formulaires?onglet=Evènement&id=${evenement.id}`);
 }
 
-// ===== SUPPRIMER =====
+/**
+ * Ouvre la confirmation de suppression d'un évènement.
+ * @param {Object} evenement
+ * @returns {void}
+ */
 function confirmerSuppression(evenement) {
   evenementASupprimer.value = evenement
 }
 
+/**
+ * Supprime l'évènement confirmé puis met à jour la liste locale.
+ * @returns {Promise<void>}
+ */
 async function supprimerEvenement() {
   try {
     await api.delete(`/organisateur/evenements/${evenementASupprimer.value.id}`)

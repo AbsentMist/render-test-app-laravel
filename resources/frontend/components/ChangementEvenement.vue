@@ -10,16 +10,25 @@
 </template>
 
 <script setup>
+/**
+ * @fileoverview Composant ChangementEvenement.
+ * @description Action de changement d'événement depuis une carte événement en mode organisateur.
+ * @remarks Ce composant charge les évènements disponibles, prépare leurs données d'affichage
+ * puis relaie la sélection vers le parent.
+ */
 import { ref, onMounted } from 'vue';
 import evenementParticipantService from '../services/evenementParticipantService';
-import Title from './Title.vue';
 import MiniatureEvenement from './MiniatureEvenement.vue';
 
-const emit = defineEmits(['ouvrir']);
+const emit = defineEmits(['selectionner']);
 
 const evenements = ref([]);
 const chargement = ref(true);
 
+/**
+ * Charge et normalise les évènements destinés à la sélection.
+ * @returns {Promise<void>}
+ */
 async function chargerEvenements() {
   try {
     const response = await evenementParticipantService.getAllEvenements();

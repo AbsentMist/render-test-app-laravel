@@ -411,6 +411,11 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant EtapeParticipant.
+ * @description Étape de sélection et de création de participants pour composer une inscription.
+ * @remarks Gère les cas individuel, groupe/relais et challenge avec émission des données structurées vers le parent.
+ */
 import { Icon } from '@iconify/vue';
 import api from '../services/api';
 import participantService from '../services/participantService';
@@ -438,7 +443,7 @@ export default {
         typeSelectionne: { type: Object,  default: null },
         modelValue:      { type: Array,   default: () => [] },
         groupeValue:     { type: Object,  default: null },
-        courseId:        { type: [Number, String], default: null }, // ← nouveau : id de la course
+        courseId:        { type: [Number, String], default: null },
     },
     emits: ['update:modelValue', 'update:groupeValue', 'creer-participant'],
     data() {
@@ -446,12 +451,12 @@ export default {
             groupeData: { nom: '', participants: [] },
             challengeData: {
                 typeOrganisation: null,
-                orgSelectionnee:  null,   // org de la liste
-                orgLibre:         '',     // saisie libre
-                modeLibre:        false,  // bascule vers saisie libre
+                orgSelectionnee:  null,
+                orgLibre:         '',
+                modeLibre:        false,
                 chargementOrgs:   false,
             },
-            organisationsChallenge: [], // liste chargée depuis l'API
+            organisationsChallenge: [],
             formulaireOuvert: false,
             emailRecherche: '',
             participantTrouve: null,
@@ -467,7 +472,10 @@ export default {
         estChallenge() { return this.typeSelectionne?.id === 'challenge'; },
         tousLesParticipants() { return this.participants; },
 
-        // Organisations filtrées par type sélectionné (Groupe/Entreprise)
+        /**
+         * Organisations challenge filtrées selon le type sélectionné.
+         * @returns {Array<object>}
+         */
         organisationsFiltrees() {
             if (!this.challengeData.typeOrganisation) return [];
             return this.organisationsChallenge.filter(
@@ -475,7 +483,10 @@ export default {
             );
         },
 
-        // Nom final de l'organisation (liste ou libre)
+        /**
+         * Nom final de l'organisation challenge (liste ou saisie libre).
+         * @returns {string}
+         */
         nomOrganisationChallenge() {
             if (this.challengeData.orgSelectionnee) return this.challengeData.orgSelectionnee.nom;
             if (this.challengeData.modeLibre || this.organisationsFiltrees.length === 0) return this.challengeData.orgLibre.trim();
@@ -516,12 +527,21 @@ export default {
         },
     },
     methods: {
+        /**
+         * Émet la mise à jour du groupe (nom + participants).
+         * @returns {void}
+         */
         emitGroupe() {
             this.$emit('update:groupeValue', {
                 ...this.groupeData,
                 participants: [...this.groupeData.participants]
             });
         },
+        /**
+         * Émet la structure challenge selon le type d'organisation et les participants.
+         * @param {object|null} participant
+         * @returns {void}
+         */
         emitChallenge(participant = null) {
     const nom = this.nomOrganisationChallenge;
     const participants = participant ? [participant] : [...this.selectionnes];
@@ -533,17 +553,31 @@ export default {
         });
     }
 },
+        /**
+         * Sélectionne une organisation challenge existante.
+         * @param {object} org
+         * @returns {void}
+         */
         selectionnerOrg(org) {
             this.challengeData.orgSelectionnee = org;
             this.challengeData.modeLibre       = false;
             this.challengeData.orgLibre        = '';
             this.emitChallenge();
         },
+        /**
+         * Assigne un participant unique pour le mode challenge.
+         * @param {object} participant
+         * @returns {void}
+         */
         toggleSelectionnerChallenge(participant) {
     this.selectionnes = [participant];
-    this.$emit('update:modelValue', [participant]);  // ← émet directement
+    this.$emit('update:modelValue', [participant]);
     this.emitChallenge(participant);
 },
+        /**
+         * Charge les organisations challenge disponibles pour la course.
+         * @returns {Promise<void>}
+         */
         async chargerOrganisations() {
             if (!this.courseId) return;
             this.challengeData.chargementOrgs = true;
@@ -556,11 +590,26 @@ export default {
                 this.challengeData.chargementOrgs = false;
             }
         },
+        /**
+         * Vérifie si un participant est déjà présent dans le groupe local.
+         * @param {number} id
+         * @returns {boolean}
+         */
         estDansGroupe(id) { return this.groupeData.participants.some(p => p.id === id); },
+        /**
+         * Retourne la position d'un participant dans le groupe local.
+         * @param {number} id
+         * @returns {number|null}
+         */
         numeroMembre(id) {
             const idx = this.groupeData.participants.findIndex(p => p.id === id);
             return idx >= 0 ? idx + 1 : null;
         },
+        /**
+         * Ajoute ou retire un membre du groupe en respectant les limites.
+         * @param {object} participant
+         * @returns {void}
+         */
         toggleMembreGroupe(participant) {
             const idx = this.groupeData.participants.findIndex(p => p.id === participant.id);
             if (idx >= 0) {
@@ -573,7 +622,17 @@ export default {
             }
             this.emitGroupe();
         },
+        /**
+         * Indique si un participant est sélectionné.
+         * @param {number} id
+         * @returns {boolean}
+         */
         estSelectionne(id) { return this.selectionnes.some(p => p.id === id); },
+        /**
+         * Sélectionne ou désélectionne un participant pour le mode individuel.
+         * @param {object} participant
+         * @returns {void}
+         */
         toggleSelectionner(participant) {
             const idx = this.selectionnes.findIndex(p => p.id === participant.id);
             if (idx >= 0) {
@@ -584,7 +643,15 @@ export default {
                 }
             }
         },
+        /**
+         * Ouvre la modale de création/recherche de participant.
+         * @returns {void}
+         */
         ouvrirFormulaire() { this.formulaireOuvert = true; },
+        /**
+         * Ferme la modale et réinitialise le formulaire.
+         * @returns {void}
+         */
         fermerFormulaire() {
             this.formulaireOuvert = false;
             this.emailRecherche = '';
@@ -592,6 +659,10 @@ export default {
             this.erreurRecherche = null;
             this.form = formVide();
         },
+        /**
+         * Recherche un participant via son email.
+         * @returns {Promise<void>}
+         */
         async lancerRecherche() {
             if (!this.emailRecherche) return;
             this.participantTrouve = null;
@@ -603,6 +674,10 @@ export default {
                 this.erreurRecherche = 'Aucun participant trouvé avec cette adresse email.';
             }
         },
+        /**
+         * Intègre le participant trouvé à la sélection courante.
+         * @returns {void}
+         */
         selectionnerTrouve() {
             if (this.estGroupe || this.estRelais) {
                 if (!this.groupeData.participants.some(p => p.id === this.participantTrouve.id)) {
@@ -618,16 +693,18 @@ export default {
             }
             this.fermerFormulaire();
         },
+        /**
+         * Valide la création d'un participant puis l'intègre à la sélection/groupe.
+         * @returns {Promise<void>}
+         */
         async valider() {
     if (!this.formulaireValide) return;
 
     let nouveau;
     try {
-        // Tenter de créer le participant en DB
         const response = await participantService.creerParticipant(this.form);
-        nouveau = response.data; // participant avec vrai ID DB
+        nouveau = response.data;
     } catch (e) {
-        // Si ça échoue (ex: téléphone déjà pris), on crée localement
         console.warn('Participant non sauvegardé en DB, création locale :', e);
         nouveau = { ...this.form, id: Date.now() };
     }

@@ -317,6 +317,12 @@
 </template>
 
 <script setup>
+/**
+ * @fileoverview Vue CreationCompte.
+ * @description Parcours de création de compte participant en plusieurs étapes.
+ * @remarks Cette vue orchestre la validation progressive des champs, l'autocomplétion
+ * des coordonnées et la soumission finale du profil utilisateur.
+ */
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
