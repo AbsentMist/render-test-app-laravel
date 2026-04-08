@@ -3,7 +3,6 @@
   <div class="p-6">
     <p v-if="erreur" class="text-accent text-label mb-4">{{ erreur }}</p>
 
-    <!-- Composant de filtrage + export -->
     <FiltreInscriptions
       :nb-resultats="inscriptionsFiltrees.length"
       @update:filtres="onFiltresChange"
@@ -132,6 +131,12 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Vue OrganisateurInscriptions.
+ * @description Interface organisateur de consultation, filtrage, tri, export et gestion des inscriptions.
+ * @remarks Cette vue centralise les opérations métiers autour des inscriptions existantes:
+ * ouverture du détail, annulation, changement de course et export des données.
+ */
 import { Icon } from '@iconify/vue';
 import Title from '../components/Title.vue';
 import FiltreInscriptions from '../components/FiltreInscriptions.vue';
@@ -152,6 +157,10 @@ export default {
     PopupConfirmation,
   },
   emits: ['close'],
+  /**
+   * Initialise l'état de la vue des inscriptions organisateur.
+   * @returns {Object} État local de chargement, filtres, tri et popups.
+   */
   data() {
     return {
       inscriptions: [],
@@ -165,17 +174,18 @@ export default {
       inscriptionASupprimer: null,
       inscription: { actuel: null },
       texteInfo: "En cas de sélection de course où le montant est supérieur à la course actuel, la différence devra être réglée.",
-      // Filtres reçus du composant FiltreInscriptions
       filtres: { recherche: '', status: '', type: '' },
-      // Tri
       tri: { colonne: 'date', direction: 'desc' },
     };
   },
   computed: {
+    /**
+     * Applique les filtres et le tri sur les inscriptions chargées.
+     * @returns {Array<Object>} Liste d'inscriptions prête pour affichage dans le tableau.
+     */
     inscriptionsFiltrees() {
       let resultats = this.inscriptions.filter(inscription => {
 
-        // Filtre texte unifié : nom, prénom, dossard, groupe, entreprise, course
         if (this.filtres.recherche) {
           const r = this.filtres.recherche.toLowerCase();
           const nom       = inscription.participant?.nom?.toLowerCase() ?? '';
@@ -194,12 +204,10 @@ export default {
           }
         }
 
-        // Filtre statut
         if (this.filtres.status && inscription.status_paiement !== this.filtres.status) {
           return false;
         }
 
-        // Filtre type de course
         if (this.filtres.type && inscription.course?.type !== this.filtres.type) {
           return false;
         }
@@ -207,7 +215,6 @@ export default {
         return true;
       });
 
-      // Tri
       resultats = [...resultats].sort((a, b) => {
         let valeurA, valeurB;
         switch (this.tri.colonne) {
@@ -257,9 +264,19 @@ export default {
     },
   },
   methods: {
+    /**
+     * Met à jour les filtres courants reçus du composant de filtrage.
+     * @param {{recherche: string, status: string, type: string}} nouveauxFiltres
+     * @returns {void}
+     */
     onFiltresChange(nouveauxFiltres) {
       this.filtres = nouveauxFiltres;
     },
+    /**
+     * Change la colonne de tri active ou inverse sa direction.
+     * @param {string} colonne Nom de la colonne triée.
+     * @returns {void}
+     */
     changerTri(colonne) {
       if (this.tri.colonne === colonne) {
         this.tri.direction = this.tri.direction === 'asc' ? 'desc' : 'asc';
@@ -268,6 +285,10 @@ export default {
         this.tri.direction  = 'asc';
       }
     },
+    /**
+     * Charge les inscriptions administrateur et déduit la liste unique des participants.
+     * @returns {Promise<void>}
+     */
     async chargerInscriptions() {
       this.chargement = true;
       this.erreur = '';
@@ -285,14 +306,28 @@ export default {
         this.chargement = false;
       }
     },
+    /**
+     * Ferme la popup de changement de course puis recharge les données.
+     * @returns {Promise<void>}
+     */
     async fermerPopupChangement() {
       this.popupChangement = false;
       await this.chargerInscriptions();
     },
+    /**
+     * Ouvre la popup de détail pour une inscription donnée.
+     * @param {Object} inscription Inscription ciblée.
+     * @returns {void}
+     */
     afficherDetail(inscription) {
       this.inscription.actuel = inscription;
       this.popupDetail = true;
     },
+    /**
+     * Répercute en local une inscription mise à jour depuis la popup de détail.
+     * @param {Object} inscriptionMaj Version modifiée de l'inscription.
+     * @returns {void}
+     */
     onModifierInscription(inscriptionMaj) {
       const idx = this.inscriptions.findIndex(i => i.id === inscriptionMaj.id);
       if (idx > -1) {
@@ -302,9 +337,18 @@ export default {
         this.inscription.actuel = inscriptionMaj;
       }
     },
+    /**
+     * Prépare l'annulation d'une inscription en ouvrant la confirmation.
+     * @param {Object} inscription Inscription visée.
+     * @returns {Promise<void>}
+     */
     async suppression(inscription) {
       this.inscriptionASupprimer = inscription;
     },
+    /**
+     * Confirme l'annulation d'une inscription puis recharge la liste.
+     * @returns {Promise<void>}
+     */
     async confirmerSuppression() {
       if (!this.inscriptionASupprimer) return;
       try {
@@ -315,10 +359,19 @@ export default {
         console.error('Erreur annulation :', error);
       }
     },
+    /**
+     * Ferme l'avertissement et ouvre la popup de changement de course.
+     * @returns {void}
+     */
     afficherPopupChangement() {
       this.popupAvertissement = false;
       this.popupChangement = true;
     },
+    /**
+     * Exporte les inscriptions au format demandé (CSV ou XLSX).
+     * @param {'csv'|'xlsx'} format Format de sortie souhaité.
+     * @returns {Promise<void>}
+     */
     async exporter(format) {
       try {
         const response = await inscriptionService.exportInscriptionsAdmin(format);
@@ -337,6 +390,10 @@ export default {
       }
     },
   },
+  /**
+   * Charge les inscriptions dès l'ouverture de la vue.
+   * @returns {Promise<void>}
+   */
   async mounted() {
     await this.chargerInscriptions();
   },

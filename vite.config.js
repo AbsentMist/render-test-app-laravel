@@ -21,7 +21,8 @@ export default defineConfig({
         }),
     ],
     test: {
-        environment: 'jsdom',
+        globals: true,
+        environment: 'happy-dom',
         include: ['resources/frontend/tests/**/*.test.js'],
     }
 });

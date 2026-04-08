@@ -18,16 +18,20 @@
   <div class="p-6">
     <div v-if="chargement" class="text-center py-10">Chargement des courses...</div>
     <div v-else class="flex flex-col gap-4">
-      <MiniatureCourse :courses="courses" :evenement="evenement" mode="selection" @selectionner="$emit('selectionner', $event)"/>
+      <MiniatureCourse :courses="coursesFiltrees" :evenement="evenement" mode="selection" @selectionner="$emit('selectionner', $event)"/>
     </div>
   </div>
 </template>
 
 <script setup>
+/**
+ * @fileoverview Composant ChangementCourse.
+ * @description Action de changement de course à partir du contexte d'inscription courant.
+ * @remarks Ce composant charge les courses de l'évènement cible, applique une recherche
+ * locale et émet la course sélectionnée vers le parent.
+ */
 import { ref, computed, onMounted } from 'vue';
-import { Icon } from '@iconify/vue';
 import courseParticipantService from '../services/courseParticipantService';
-import Title from './Title.vue';
 import MiniatureCourse from './MiniatureCourse.vue';
 
 const props = defineProps({
@@ -40,10 +44,16 @@ const courses = ref([]);
 const chargement = ref(true);
 const recherche = ref('');
 
-// On utilise l'objet evenement passé en prop directement,
-// plus besoin de le recharger
+/**
+ * Référence réactive de l'évènement transmis par le parent.
+ * @type {import('vue').ComputedRef<Object>}
+ */
 const evenement = computed(() => props.evenement);
 
+/**
+ * Charge les courses liées à l'évènement sélectionné.
+ * @returns {Promise<void>}
+ */
 async function chargerCourses() {
   try {
     const response = await courseParticipantService.getAllCourses(props.evenement.id);
@@ -55,16 +65,15 @@ async function chargerCourses() {
   }
 }
 
+/**
+ * Filtre les courses selon la recherche texte.
+ * @type {import('vue').ComputedRef<Array>}
+ */
 const coursesFiltrees = computed(() =>
   courses.value.filter(c =>
     c.nom_course.toLowerCase().includes(recherche.value.toLowerCase())
   )
 );
-
-function formaterDate(dateStr) {
-  if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('fr-CH');
-}
 
 onMounted(chargerCourses);
 </script>

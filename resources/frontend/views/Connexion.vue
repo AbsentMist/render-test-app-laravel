@@ -104,6 +104,12 @@
 </template>
 
 <script setup>
+/**
+ * @fileoverview Vue Connexion.
+ * @description Page d'authentification utilisateur avec validation des identifiants.
+ * @remarks Gère l'état de chargement, l'affichage des erreurs métier et la redirection
+ * vers le tableau de bord après connexion réussie.
+ */
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
@@ -118,6 +124,10 @@ const chargement = ref(false)
 
 const showPassword = ref(false)
 
+/**
+ * Tente la connexion de l'utilisateur et gère la redirection.
+ * @returns {Promise<void>}
+ */
 async function handleLogin() {
   erreur.value = ''
   chargement.value = true

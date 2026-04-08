@@ -21,8 +21,15 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant PopupConfirmation.
+ * @description Modale de confirmation réutilisable pour valider ou annuler une action utilisateur.
+ * @remarks Le composant est générique et piloté par props pour être réutilisé
+ * dans plusieurs flux métier sans dupliquer la logique de confirmation.
+ */
 import { Icon } from "@iconify/vue";
 export default {
+    name: 'PopupConfirmation',
     components: { Icon },
     emits: ['confirm', 'cancel'],
     props: {

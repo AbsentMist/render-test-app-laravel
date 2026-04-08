@@ -34,6 +34,12 @@
 </template>
 
 <script setup>
+/**
+ * @fileoverview Composant MiniatureEvenement.
+ * @description Carte de présentation d'un événement avec navigation ou sélection selon le mode.
+ * @remarks Le composant prépare une version colorisée du logo pour chaque évènement
+ * afin de respecter la charte visuelle sans dépendre d'assets pré-calculés.
+ */
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { Icon } from '@iconify/vue';
@@ -52,6 +58,11 @@ const router = useRouter();
 const evenementsColorises = ref([]);
 const emit = defineEmits(['selectionner']);
 
+/**
+ * Gère le clic sur une carte selon le mode courant.
+ * @param {Object} evt Évènement sélectionné.
+ * @returns {void}
+ */
 function handleClick(evt) {
   if (props.mode === 'selection') {
     emit('selectionner', evt);
@@ -60,6 +71,12 @@ function handleClick(evt) {
   }
 }
 
+/**
+ * Applique une teinte sur un logo afin de l'adapter à la palette de l'évènement.
+ * @param {string} logoSrc Source de l'image à recolorer.
+ * @param {string} couleur Couleur cible.
+ * @returns {Promise<string>}
+ */
 async function coloriserLogo(logoSrc, couleur) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -78,6 +95,10 @@ async function coloriserLogo(logoSrc, couleur) {
   });
 }
 
+/**
+ * Prépare les évènements enrichis avec leur logo colorisé au montage.
+ * @returns {Promise<void>}
+ */
 onMounted(async () => {
   evenementsColorises.value = await Promise.all(
     props.evenements.map(async (evt) => ({

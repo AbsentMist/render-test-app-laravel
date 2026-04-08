@@ -93,6 +93,11 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Vue OrganisateurCourses.
+ * @description Liste des courses d'un évènement avec actions d'édition et de suppression.
+ * @remarks Cette vue sert de tableau de gestion rapide avant ouverture du formulaire course.
+ */
 import Title from '../components/Title.vue';
 import { Icon } from '@iconify/vue';
 import PopupConfirmation from '../components/PopupConfirmation.vue';
@@ -106,6 +111,10 @@ export default {
         PopupConfirmation,
     },
     computed: {
+        /**
+         * Identifiant de l'évènement parent de la liste affichée.
+         * @returns {string}
+         */
         idEvenement() {
         return this.$route.params.idEvenement
         }
@@ -120,6 +129,11 @@ export default {
         }
     },
     methods: {
+        /**
+         * Formate une date en locale suisse.
+         * @param {string} dateString
+         * @returns {string}
+         */
         formaterDate(dateString) {
             if (!dateString) return '—'; // Si pas de date
             const date = new Date(dateString);
@@ -129,6 +143,10 @@ export default {
                 year: 'numeric'
             });
         },
+        /**
+         * Charge toutes les courses de l'évènement sélectionné.
+         * @returns {Promise<void>}
+         */
         async chargerCourses() {
             this.chargement = true
             this.erreur = ''
@@ -141,12 +159,26 @@ export default {
                 this.chargement = false
             }
         },
+        /**
+         * Redirige vers le formulaire course en mode édition.
+         * @param {Object} course
+         * @returns {void}
+         */
         modifierCourse(course) {
         this.$router.push(`/organisateur/formulaires?onglet=Course&id=${course.id}&idEvenement=${this.idEvenement}`);
         },
+        /**
+         * Ouvre la confirmation de suppression d'une course.
+         * @param {Object} course
+         * @returns {void}
+         */
         confirmerSuppression(course) {
         this.courseASupprimer = course
         },
+        /**
+         * Supprime la course confirmée puis met à jour la liste locale.
+         * @returns {Promise<void>}
+         */
         async supprimerCourse() {
         try {
             await courseOrganisateurService.deleteCourse(this.courseASupprimer.id)
@@ -158,6 +190,10 @@ export default {
         }
         }
     },
+    /**
+     * Charge les courses et le nom de l'évènement au montage.
+     * @returns {Promise<void>}
+     */
     async mounted() {
         await this.chargerCourses()
         

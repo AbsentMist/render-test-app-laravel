@@ -114,6 +114,11 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant PopupChangementCourseParticipant.
+ * @description Modale permettant à un participant de demander un changement de course via le panier.
+ * @remarks Conserve l'historique de l'ancienne inscription pour permettre le recalcul du montant dans le panier.
+ */
 import { Icon } from '@iconify/vue';
 import ChangementCourse from './ChangementCourse.vue';
 import ChangementEvenement from './ChangementEvenement.vue';
@@ -153,19 +158,38 @@ export default {
     };
   },
   methods: {
+    /**
+     * Sélectionne la nouvelle course et passe à l'étape d'inscription.
+     * @param {object} course
+     * @returns {void}
+     */
     choisirCourse(course) {
       this.nouvelleInscription.course = course;
       this.etape = ETAPES.INSCRIPTION;
     },
+    /**
+     * Revient à la liste des courses disponibles.
+     * @returns {void}
+     */
     retourCourses() {
       this.nouvelleInscription.course = null;
       this.etape = ETAPES.COURSE;
     },
+    /**
+     * Ouvre la confirmation finale avec les données du changement préparé.
+     * @param {object} nouvelleInscription
+     * @returns {void}
+     */
     confirmerChangement(nouvelleInscription) {
       this.nouvelleInscriptionData = nouvelleInscription;
       this.confirmation = true;
-      console.log(nouvelleInscription)
     },
+    /**
+     * Recolore un logo avec la couleur secondaire de l'évènement.
+     * @param {string} logoSrc
+     * @param {string} couleur
+     * @returns {Promise<string>}
+     */
     async coloriserLogo(logoSrc, couleur) {
       return new Promise((resolve) => {
         const img = new Image();
@@ -183,6 +207,10 @@ export default {
         img.src = logoSrc;
       });
     },
+    /**
+     * Valide le changement de course et l'ajoute au panier avec historique.
+     * @returns {Promise<void>}
+     */
     async confirmPopup() {
       const memeCourse    = this.nouvelleInscription.course?.id    === this.inscription.course.id;
 
@@ -196,20 +224,15 @@ export default {
         return;
       }      
       try {
-        // MODIFICATION LOGIQUE CHANGEMENT : tout changement passe par le panier
-        // C'est le Panier qui gérera le calcul (différence positive ou négative) et l'annulation de l'ancienne course.
-        
         const inscriptionAvecHistorique = {
           ...this.nouvelleInscriptionData, 
           ancienneInscriptionId: this.inscription.id
         };
 
         this.cartStore.ajouterInscription(inscriptionAvecHistorique, this.nouvelleInscription.course);
-        
-        // On affiche un message clair pour l'utilisateur
+
         this.messageConfirmation = 'Changement pris en compte ! Veuillez valider votre panier.';
-        
-        // Fermeture propre des popups
+
         this.confirmation = false;
         this.dataInserted = true;
         setTimeout(() => {

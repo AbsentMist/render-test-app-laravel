@@ -38,8 +38,13 @@
 </template>
 
 <script setup>
+/**
+ * @fileoverview Composant MiniatureCourse.
+ * @description Carte de présentation d'une course avec actions contextuelles selon le mode d'usage.
+ * @remarks En mode sélection, la carte émet la course choisie; en mode navigation,
+ * la responsabilité du routage est laissée au parent selon le contexte d'affichage.
+ */
 import { Icon } from '@iconify/vue';
-import { useRouter } from 'vue-router';
 
 const props = defineProps({
   courses: { required: true, type: Array },
@@ -47,13 +52,22 @@ const props = defineProps({
   mode: { type: String, default: 'navigation' }, // 'navigation' | 'selection'
 });
 
-const router = useRouter();
 const emit = defineEmits(['selectionner']);
 
+/**
+ * Relaye la sélection d'une course au composant parent.
+ * @param {Object} course Course sélectionnée.
+ * @returns {void}
+ */
 function handleClick(course) {
   emit('selectionner', course);
 }
 
+/**
+ * Formate la date d'évènement pour affichage localisé.
+ * @param {string} dateStr Date brute au format ISO.
+ * @returns {string}
+ */
 function formaterDate(dateStr) {
   if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('fr-CH');

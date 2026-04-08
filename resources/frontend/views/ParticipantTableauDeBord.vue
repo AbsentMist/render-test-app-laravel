@@ -112,6 +112,11 @@
 </template>
 
 <script setup>
+/**
+ * @fileoverview Vue ParticipantTableauDeBord.
+ * @description Tableau de bord participant regroupant évènements, inscriptions et groupes.
+ * @remarks Cette vue charge en parallèle les données d'accueil et ouvre la gestion d'un groupe au besoin.
+ */
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import evenementParticipantService from '../services/evenementParticipantService';
@@ -130,6 +135,10 @@ import participantService from '../services/participantService';
 import groupeService from '../services/groupeService';
 const participants = ref([]);
 
+/**
+ * Charge les participants liés au compte connecté.
+ * @returns {Promise<void>}
+ */
 async function chargerParticipants() {
   try {
     const response = await participantService.getMesParticipants();
@@ -142,6 +151,10 @@ async function chargerParticipants() {
 const groupes = ref([]);
 const chargementGroupes = ref(false);
  
+/**
+ * Charge les groupes de type relais/groupe pour l'utilisateur.
+ * @returns {Promise<void>}
+ */
 async function chargerGroupes() {
   chargementGroupes.value = true;
   try {
@@ -157,7 +170,10 @@ async function chargerGroupes() {
   }
 }
 
-// CHARGEMENT DES DONNÉES DE L'API
+/**
+ * Charge les évènements affichés dans le tableau de bord.
+ * @returns {Promise<void>}
+ */
 async function chargerEvenements() {
   try {
     const response = await evenementParticipantService.getAllEvenements();
@@ -176,11 +192,20 @@ async function chargerEvenements() {
 }
 
 
+/**
+ * Ouvre la popup de gestion pour un groupe.
+ * @param {Object} groupe
+ * @returns {void}
+ */
 function ouvrirGestionGroupe(groupe) {
     groupeSelectionne.value = groupe;
 }
 
-// NAVIGATION
+/**
+ * Redirige vers la liste des courses d'un évènement.
+ * @param {number|string} idEvenement
+ * @returns {void}
+ */
 function goToListeCourses(idEvenement) {
   router.push({ name: 'ListeCourses', params: { idEvenement } });
 }

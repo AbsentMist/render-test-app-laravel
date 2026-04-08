@@ -74,6 +74,12 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Vue MesGroupes.
+ * @description Écran participant de consultation et gestion des groupes actifs.
+ * @remarks Affiche les groupes de type relais/groupe, ouvre la popup de gestion
+ * et répercute les modifications renvoyées par celle-ci.
+ */
 import Title from '../components/Title.vue';
 import PopupGestionGroupe from '../components/PopupGestionGroupe.vue';
 import groupeService from '../services/groupeService';
@@ -92,6 +98,11 @@ export default {
     };
   },
   methods: {
+    /**
+     * Détermine le rôle courant de l'utilisateur dans un groupe.
+     * @param {Object} groupe
+     * @returns {string}
+     */
     monRole(groupe) {
       const authStore = useAuthStore();
       const monId = authStore.user?.participant?.id;
@@ -101,14 +112,28 @@ export default {
       if (statut === 'Fondateur' || statut === 'fondateur') return 'Fondateur';
       return 'Membre';
     },
+    /**
+     * Ouvre la popup de gestion pour le groupe sélectionné.
+     * @param {Object} groupe
+     * @returns {void}
+     */
     ouvrirGestion(groupe) {
       this.groupeSelectionne = { ...groupe };
     },
+    /**
+     * Met à jour la liste locale après une modification validée.
+     * @param {Object} groupeMaj
+     * @returns {void}
+     */
     onGroupeMisAJour(groupeMaj) {
       const idx = this.groupes.findIndex(g => g.id === groupeMaj.id);
       if (idx > -1) this.groupes.splice(idx, 1, groupeMaj);
       this.groupeSelectionne = null;
     },
+    /**
+     * Charge les groupes gérés par le participant.
+     * @returns {Promise<void>}
+     */
     async chargerGroupes() {
     this.chargement = true;
     try {
@@ -125,6 +150,10 @@ export default {
         this.chargement = false;
     }
 },
+    /**
+     * Charge les participants liés au compte utilisateur.
+     * @returns {Promise<void>}
+     */
     async chargerParticipants() {
       try {
         const response = await participantService.getMesParticipants();

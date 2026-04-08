@@ -130,12 +130,17 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant PopupChangementCourseOrganisateur.
+ * @description Modale de changement de course côté organisateur avec passage par le panier.
+ * @remarks Le flux guide l'utilisateur sur trois étapes (évènement, course, inscription)
+ * puis ajoute une nouvelle inscription liée à l'ancienne afin de déléguer l'ajustement tarifaire au panier.
+ */
 import { Icon } from '@iconify/vue';
 import ChangementCourse from './ChangementCourse.vue';
 import ChangementEvenement from './ChangementEvenement.vue';
 import PopupInscriptionCourse from './PopupInscriptionCourse.vue';
 import PopupConfirmation from './PopupConfirmation.vue';
-import inscriptionService from '../services/inscriptionService';
 import { useCartStore } from '../stores/cart';
 const ETAPES = { EVENEMENT: 1, COURSE: 2, INSCRIPTION: 3 };
 
@@ -153,6 +158,10 @@ export default {
     participants: { type: Array, default: () => [] },
   },
   emits: ['close', 'confirmer'],
+  /**
+   * Initialise l'état interne de navigation et de confirmation du changement de course.
+   * @returns {Object} Données locales utilisées par la modale.
+   */
   data() {
     return {
       ETAPES,
@@ -170,28 +179,56 @@ export default {
     };
   },
   methods: {
+    /**
+     * Sélectionne un évènement puis avance à l'étape de choix de course.
+     * @param {Object} evenement Évènement choisi par l'utilisateur.
+     * @returns {void}
+     */
     choisirEvenement(evenement) {
       this.nouvelleInscription.evenement = evenement;
       this.etape = ETAPES.COURSE;
     },
+    /**
+     * Sélectionne la nouvelle course puis ouvre l'étape d'inscription détaillée.
+     * @param {Object} course Course choisie dans l'évènement ciblé.
+     * @returns {void}
+     */
     choisirCourse(course) {
       this.nouvelleInscription.course = course;
       this.etape = ETAPES.INSCRIPTION;
     },
+    /**
+     * Revient à la première étape et purge les sélections en cours.
+     * @returns {void}
+     */
     retourEvenements() {
       this.nouvelleInscription.evenement = null;
       this.nouvelleInscription.course = null;
       this.etape = ETAPES.EVENEMENT;
     },
+    /**
+     * Revient à l'étape de choix de course en conservant l'évènement sélectionné.
+     * @returns {void}
+     */
     retourCourses() {
       this.nouvelleInscription.course = null;
       this.etape = ETAPES.COURSE;
     },
+    /**
+     * Enregistre les données d'inscription proposées puis ouvre la confirmation finale.
+     * @param {Object} nouvelleInscription Données complètes remontées par le composant d'inscription.
+     * @returns {void}
+     */
     confirmerChangement(nouvelleInscription) {
       this.nouvelleInscriptionData = nouvelleInscription;
       this.confirmation = true;
-      console.log(nouvelleInscription)
     },
+    /**
+     * Recolore le logo de l'évènement avec la couleur secondaire pour l'affichage de la modale.
+     * @param {string} logoSrc Source image (base64 ou URL data).
+     * @param {string} couleur Couleur de teinte à appliquer.
+     * @returns {Promise<string>} Image recolorée au format data URL.
+     */
     async coloriserLogo(logoSrc, couleur) {
       return new Promise((resolve) => {
         const img = new Image();
@@ -209,6 +246,10 @@ export default {
         img.src = logoSrc;
       });
     },
+    /**
+     * Valide définitivement le changement de course après confirmation utilisateur.
+     * @returns {Promise<void>}
+     */
     async confirmPopup() {
       const memeEvenement = this.nouvelleInscription.evenement?.id === this.inscription.course.evenement.id;
       const memeCourse    = this.nouvelleInscription.course?.id    === this.inscription.course.id;
@@ -223,20 +264,13 @@ export default {
         return;
       }      
       try {
-        // MODIFICATION LOGIQUE CHANGEMENT : tout changement passe par le panier
-        // C'est le Panier qui gérera le calcul (différence positive ou négative) et l'annulation de l'ancienne course.
-        
         const inscriptionAvecHistorique = {
           ...this.nouvelleInscriptionData, 
           ancienneInscriptionId: this.inscription.id
         };
 
         this.cartStore.ajouterInscription(inscriptionAvecHistorique, this.nouvelleInscription.course);
-        
-        // On affiche un message clair pour l'utilisateur
         this.messageConfirmation = 'Changement pris en compte ! Veuillez valider votre panier.';
-        
-        // Fermeture propre des popups
         this.confirmation = false;
         this.dataInserted = true;
         setTimeout(() => {
@@ -248,6 +282,10 @@ export default {
       }
     },
   },
+  /**
+   * Prépare le store panier et le logo recoloré à l'ouverture de la modale.
+   * @returns {Promise<void>}
+   */
   async mounted() {
     this.cartStore =  useCartStore();
     const logo = this.inscription.course.evenement.logo_base64;

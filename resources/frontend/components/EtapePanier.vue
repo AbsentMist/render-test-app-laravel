@@ -9,8 +9,8 @@
                 v-model="codeInterne"
                 type="text"
                 placeholder="Code de participation"
-                @input="$emit('update:codeParticipation', codeInterne)"
-                @blur="$parent.verifierCodeEntreprise()" 
+                @input="emettreCodeParticipation"
+                @blur="verifierCodeEntrepriseParent"
                 class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-white"
             />
         </div>
@@ -34,6 +34,12 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant EtapePanier.
+ * @description Étape récapitulative panier avant validation et paiement de l'inscription.
+ * @remarks Ce composant capture le code de participation et notifie le parent afin de
+ * déclencher les vérifications métier côté formulaire principal.
+ */
 import { Icon } from '@iconify/vue';
 
 export default {
@@ -46,10 +52,40 @@ export default {
         },
     },
     emits: ['update:codeParticipation'],
+    /**
+     * Initialise l'état local du code saisi à partir de la valeur transmise par le parent.
+     * @returns {{codeInterne: string}} Valeur locale du code de participation.
+     */
     data() {
         return {
             codeInterne: this.codeParticipation || '',
         };
+    },
+    watch: {
+        /**
+         * Synchronise le champ local si la prop change depuis le parent.
+         * @param {string} valeur Nouvelle valeur de code propagée par le parent.
+         * @returns {void}
+         */
+        codeParticipation(valeur) {
+            this.codeInterne = valeur || '';
+        },
+    },
+    methods: {
+        /**
+         * Émet le code de participation courant vers le parent.
+         * @returns {void}
+         */
+        emettreCodeParticipation() {
+            this.$emit('update:codeParticipation', this.codeInterne);
+        },
+        /**
+         * Déclenche la vérification de code via le composant parent lorsque disponible.
+         * @returns {void}
+         */
+        verifierCodeEntrepriseParent() {
+            this.$parent?.verifierCodeEntreprise?.();
+        },
     },
 }
 </script>

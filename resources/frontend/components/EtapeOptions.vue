@@ -77,6 +77,12 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant EtapeOptions.
+ * @description Étape d'inscription consacrée aux options complémentaires sélectionnables pour une course.
+ * @remarks Ce composant normalise l'état local des options cochables et quantifiables,
+ * puis émet une structure homogène vers le parent pour calcul du total et persistance panier.
+ */
 export default {
     name: 'EtapeOptions',
     props: {
@@ -90,6 +96,10 @@ export default {
         },
     },
     emits: ['update:modelValue'],
+    /**
+     * Initialise l'état local des options en cours de sélection.
+     * @returns {{optionsSelectionnees: Object}} Dictionnaire indexé par identifiant d'option.
+     */
     data() {
         return {
             optionsSelectionnees: {},
@@ -98,6 +108,11 @@ export default {
     watch: {
         options: {
             immediate: true,
+            /**
+             * Réinitialise l'état local à chaque changement de liste d'options.
+             * @param {Array} opts Liste des options renvoyées pour la course sélectionnée.
+             * @returns {void}
+             */
             handler(opts) {
                 const etat = {};
                 (opts || []).forEach(opt => {
@@ -112,23 +127,47 @@ export default {
         }
     },
     methods: {
+        /**
+         * Génère les quantités autorisées pour une option quantifiable.
+         * @param {Object} option Option quantifiable contenant ses bornes min/max.
+         * @returns {number[]} Tableau de quantités utilisables dans le sélecteur.
+         */
         quantitesDisponibles(option) {
             const min = option.quantifiable?.quantite_min ?? 1;
             const max = option.quantifiable?.quantite_max ?? 10;
             return Array.from({ length: max - min + 1 }, (_, i) => i + min);
         },
+        /**
+         * Active une option cochable et propage la nouvelle sélection.
+         * @param {Object} option Option cochable à activer.
+         * @returns {void}
+         */
         ajouterCochable(option) {
             this.optionsSelectionnees[option.id].selectionne = true;
             this.mettreAJour();
         },
+        /**
+         * Désactive une option actuellement sélectionnée.
+         * @param {Object} option Option à retirer de la sélection.
+         * @returns {void}
+         */
         retirerCochable(option) {
             this.optionsSelectionnees[option.id].selectionne = false;
             this.mettreAJour();
         },
+        /**
+         * Active une option quantifiable avec la quantité courante choisie.
+         * @param {Object} option Option quantifiable à ajouter.
+         * @returns {void}
+         */
         ajouterQuantifiable(option) {
             this.optionsSelectionnees[option.id].selectionne = true;
             this.mettreAJour();
         },
+        /**
+         * Construit et émet la charge utile des options effectivement retenues.
+         * @returns {void}
+         */
         mettreAJour() {
             const resultat = {};
             Object.values(this.optionsSelectionnees).forEach(({ option, selectionne, quantite }) => {
@@ -140,6 +179,10 @@ export default {
         }
     },
     computed: {
+        /**
+         * Calcule le total courant des options sélectionnées.
+         * @returns {number} Montant cumulé des options actives.
+         */
         totalOptions() {
             return Object.values(this.optionsSelectionnees)
                 .filter(o => o.selectionne)

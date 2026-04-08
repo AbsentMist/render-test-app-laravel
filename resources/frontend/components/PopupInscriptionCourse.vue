@@ -174,6 +174,12 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant PopupInscriptionCourse.
+ * @description Modale de parcours d'inscription à une course, avec navigation par étapes et validation finale.
+ * @remarks Ce composant orchestre l'ensemble du tunnel d'inscription: choix du type,
+ * sélection des participants, options, documents, questionnaire, puis émission vers le panier.
+ */
 import { Icon } from '@iconify/vue';
 import IndicateurEtapes from './IndicateurEtapes.vue';
 import PopupAvertissementCourse from './PopupAvertissementCourse.vue';
@@ -201,6 +207,10 @@ export default {
         chargementParticipants: { type: Boolean, default: false },
         inline: { type: Boolean, default: false },
     },
+    /**
+     * Initialise l'état complet du tunnel d'inscription.
+     * @returns {Object} Données locales de progression, sélection et validation.
+     */
     data() {
         return {
             formulaireEtape, modals,
@@ -225,20 +235,37 @@ export default {
         };
     },
     watch: {
+        /**
+         * Réinitialise l'état de validation entreprise si le code de participation change.
+         * @param {string} newVal Nouvelle valeur saisie.
+         * @returns {void}
+         */
         'inscription.codeParticipation'(newVal) {
             this.entrepriseValidee = null;
             this.erreurCode = null;
         }
     },
     computed: {
+        /**
+         * Fusionne les participants reçus avec ceux ajoutés temporairement au groupe éphémère.
+         * @returns {Array<object>}
+         */
         tousLesParticipants() {
             const ids = new Set(this.participants.map(p => p.id));
             const extras = (this.inscription.groupeEphemere?.participants ?? []).filter(p => !ids.has(p.id));
             return [...this.participants, ...extras];
         },
+        /**
+         * Indique si la course demande un mode groupe.
+         * @returns {boolean}
+         */
         estCourseGroupe() {
             return this.course.type === 'Groupe';
         },
+        /**
+         * Détermine la liste active d'étapes selon la configuration de la course.
+         * @returns {Array<number>}
+         */
         etapesActives() {
             const listeEtapes = [formulaireEtape.PARAMETRE];
             const listeLabels = ['Type'];
@@ -252,15 +279,22 @@ export default {
             this.formulaireEtapesLabels = listeLabels;
             return listeEtapes;
         },
+        /**
+         * Indique si l'utilisateur est à la dernière étape du parcours.
+         * @returns {boolean}
+         */
         estDerniereEtape() {
             return this.etapesActives.indexOf(this.etape) === this.etapesActives.length - 1;
         },
+        /**
+         * Vérifie si la progression peut continuer depuis l'étape courante.
+         * @returns {boolean}
+         */
         peutContinuer() {
             if (this.etape === formulaireEtape.PARAMETRE) {
                 return !!this.inscription.type;
             }
             if (this.etape === formulaireEtape.PARTICIPANTS) {
-                // Challenge : besoin du groupe éphémère (organisation) + 1 participant
                 if (this.inscription.type?.id === 'challenge') {
                     const orgOk = !!(this.inscription.groupeEphemere?.nom?.trim());
                     const participantOk = this.inscription.participant.length > 0;
@@ -284,15 +318,27 @@ export default {
             }
             return true;
         },
+        /**
+         * Renvoie les options actuellement sélectionnées.
+         * @returns {Array<object>}
+         */
         optionsSelectionnees() {
             return Object.values(this.inscription.options || {});
         },
+        /**
+         * Calcule le montant total de l'inscription en fonction de la sélection.
+         * @returns {number}
+         */
         totalInscription() {
             const base = this.entrepriseValidee ? 0 : (parseFloat(this.course.tarif) || 0);
             const extras = this.optionsSelectionnees.reduce((acc, { option, quantite }) =>
                 acc + option.tarif * (option.type === 'Quantifiable' ? quantite : 1), 0);
             return base + extras;
         },
+        /**
+         * Prépare les choix d'options au format attendu par le panier.
+         * @returns {Array<object>}
+         */
         choixOptionsPourPanier() {
             return this.optionsSelectionnees.map(({ option, quantite }) => ({
                 id_option: option.id,
@@ -301,12 +347,20 @@ export default {
                         : 0,
             }));
         },
+                    /**
+                     * Prépare les réponses aux questions au format panier.
+                     * @returns {Array<object>}
+                     */
         reponsesPourPanier() {
             return Object.entries(this.inscription.reponses || {}).map(([id_question, valeur]) => ({
                 id_question:       parseInt(id_question),
                 id_option_choisie: valeur?.reponse?.id ?? null,
             }));
         },
+        /**
+         * Indique si le code entreprise bloque encore la progression.
+         * @returns {boolean}
+         */
         codeBloquant() {
             const code = this.inscription.codeParticipation?.trim();
             if (!code) return false; 
@@ -315,11 +369,20 @@ export default {
         },
     },
     methods: {
+        /**
+         * Revient à l'étape précédente si elle existe.
+         * @returns {void}
+         */
         etapePrecedente() {
             const idx = this.etapesActives.indexOf(this.etape);
             if (idx > 0) this.etape = this.etapesActives[idx - 1];
         },
 
+        /**
+         * Passe à l'étape suivante ou finalise l'inscription selon le contexte.
+         * Crée les groupes nécessaires et émet les données pour le panier.
+         * @returns {Promise<void>}
+         */
         async etapeSuivante() {
             this.erreurGroupe = null;
             if (!this.peutContinuer || this.creationGroupe) return;
@@ -327,7 +390,6 @@ export default {
             if (this.estDerniereEtape) {
                 let id_groupe = null;
 
-                // Si mode groupe : créer le groupe en DB
                 if ((this.inscription.type?.id === 'groupe' || this.inscription.type?.id === 'relais') 
                 && this.inscription.groupeEphemere) {
                     this.creationGroupe = true;
@@ -368,7 +430,6 @@ export default {
                     }
                 }
                 
-                // Challenge : créer ou rejoindre le groupe organisation
                 if (this.inscription.type?.id === 'challenge' && this.inscription.groupeEphemere) {
                     this.creationGroupe = true;
                     try {
@@ -391,7 +452,6 @@ export default {
                     }
                 }
 
-                // Application de l'ID final (L'entreprise écrase le reste si un code valide a été saisi)
                 let id_groupe_final = id_groupe;
                 if (this.entrepriseValidee) {
                     id_groupe_final = this.entrepriseValidee.id; 
@@ -412,12 +472,21 @@ export default {
             this.etape = this.etapesActives[idx + 1];
         },
 
+        /**
+         * Ajoute un participant supplémentaire s'il n'existe pas déjà dans la liste locale.
+         * @param {object} data
+         * @returns {void}
+         */
         ajouterParticipantSupplementaire(data) {
             if (!this.participantsSupplementaires.some(p => p.id === data.id)) {
                 this.participantsSupplementaires.push(data);
             }
         },
         
+        /**
+         * Vérifie un code entreprise et conserve le groupe validé si le code est correct.
+         * @returns {Promise<void>}
+         */
         async verifierCodeEntreprise() {
             const codeSaisi = this.inscription.codeParticipation?.trim();
             if (!codeSaisi) {
@@ -435,6 +504,10 @@ export default {
             }
         },
     },
+    /**
+     * Positionne l'étape initiale active et choisit l'écran d'ouverture selon l'avertissement course.
+     * @returns {void}
+     */
     mounted() {
         this.etape = this.etapesActives[0];
         this.modalAffichage = this.course.avertissement ? modals.AVERTISSEMENT : modals.INSCRIPTION;

@@ -104,37 +104,60 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant FormulaireCategorie.
+ * @description Gestion des catégories et sous-catégories de course avec création, édition et suppression.
+ * @remarks Ce composant fournit un écran d'administration complet pour maintenir
+ * les taxonomies utilisées dans les formulaires de création de courses.
+ */
 import { Icon } from '@iconify/vue';
 import PopupConfirmation from './PopupConfirmation.vue';
 import sousCategorieOrganisateurService from '../services/sousCategorieOrganisateurService';
 import categorieOrganisateurService from '../services/categorieOrganisateurService';
 
 export default {
+    name: 'FormulaireCategorie',
     components: { Icon, PopupConfirmation },
+    /**
+     * Initialise les listes et états de modales pour les actions sur catégories.
+     * @returns {Object} État local de la vue de gestion.
+     */
     data() {
         return {
             categories: [],
             sousCategories: [],
             modalOpen: false,
-            modalType: null,   // 'categorie' | 'sous-categorie'
+            modalType: null,
             modalAction: 'create',
             modalIndex: null,
             newNom: '',
             isSubmitting: false,
             actionModalOpen: false,
-            actionType: null, // 'edit-categorie' | 'edit-sous-categorie' | 'delete-categorie' | 'delete-sous-categorie'
+            actionType: null,
             actionIndex: null,
             actionNom: '',
             isActionSubmitting: false,
         };
     },
     computed: {
+        /**
+         * Indique si l'action en cours correspond à une édition.
+         * @returns {boolean}
+         */
         isEditAction() {
             return this.actionType === 'edit-categorie' || this.actionType === 'edit-sous-categorie';
         },
+        /**
+         * Indique si l'action en cours correspond à une suppression.
+         * @returns {boolean}
+         */
         isDeleteAction() {
             return this.actionType === 'delete-categorie' || this.actionType === 'delete-sous-categorie';
         },
+        /**
+         * Génère le texte de confirmation pour les suppressions.
+         * @returns {string}
+         */
         actionDescription() {
             if (this.actionType === 'delete-categorie') return `La catégorie "${this.categories[this.actionIndex]?.nom ?? ''}" va être supprimée.`;
             if (this.actionType === 'delete-sous-categorie') return `La sous-catégorie "${this.sousCategories[this.actionIndex]?.nom ?? ''}" va être supprimée.`;
@@ -142,10 +165,19 @@ export default {
         },
     },
     methods: {
+        /**
+         * Nettoie une liste brute en conservant uniquement les entrées valides.
+         * @param {Array} payload Données reçues de l'API.
+         * @returns {Array<Object>}
+         */
         normalizeList(payload) {
             if (!Array.isArray(payload)) return [];
             return payload.filter(item => item && typeof item === 'object' && item.nom);
         },
+        /**
+         * Charge les catégories et sous-catégories depuis l'API.
+         * @returns {Promise<void>}
+         */
         async fetchDatas() {
             try {
                 const [resCat, resSub] = await Promise.all([
@@ -159,6 +191,14 @@ export default {
             }
         },
 
+        /**
+         * Ouvre la modale de création/édition avec préremplissage éventuel.
+         * @param {'categorie'|'sous-categorie'} type Type d'entité concernée.
+         * @param {'create'|'edit'} action Action visée.
+         * @param {?number} index Index de l'élément ciblé.
+         * @param {string} nom Valeur initiale.
+         * @returns {void}
+         */
         openModal(type, action = 'create', index = null, nom = '') {
             this.modalType = type;
             this.modalAction = action;
@@ -168,6 +208,10 @@ export default {
             this.$nextTick(() => this.$refs.modalInput?.focus());
         },
 
+        /**
+         * Ferme et réinitialise la modale de création/édition.
+         * @returns {void}
+         */
         closeModal() {
             this.modalOpen = false;
             this.modalType = null;
@@ -176,6 +220,12 @@ export default {
             this.newNom = '';
         },
 
+        /**
+         * Ouvre la modale de confirmation d'action destructive.
+         * @param {string} type Type d'action à confirmer.
+         * @param {number} index Index de l'élément ciblé.
+         * @returns {void}
+         */
         openActionModal(type, index) {
             this.actionType = type;
             this.actionIndex = index;
@@ -183,6 +233,10 @@ export default {
             this.actionNom = '';
         },
 
+        /**
+         * Ferme la modale de confirmation et réinitialise son état.
+         * @returns {void}
+         */
         closeActionModal() {
             this.actionModalOpen = false;
             this.actionType = null;
@@ -191,6 +245,10 @@ export default {
             this.isActionSubmitting = false;
         },
 
+        /**
+         * Exécute la suppression confirmée d'une catégorie ou sous-catégorie.
+         * @returns {Promise<void>}
+         */
         async confirmAction() {
             if (this.isActionSubmitting) return;
 
@@ -220,6 +278,10 @@ export default {
             }
         },
 
+        /**
+         * Valide la création ou l'édition depuis la modale principale.
+         * @returns {Promise<void>}
+         */
         async confirmModal() {
             const nom = this.newNom.trim();
             if (!nom || this.isSubmitting) return;
@@ -266,25 +328,49 @@ export default {
                 this.isSubmitting = false;
             }
         },
+        /**
+         * Ouvre la modale d'édition d'une catégorie.
+         * @param {number} index Index de la catégorie ciblée.
+         * @returns {Promise<void>}
+         */
         async modifyCategorie(index) {
             const categorie = this.categories[index];
             if (!categorie) return;
 
             this.openModal('categorie', 'edit', index, categorie.nom);
         },
+        /**
+         * Ouvre la confirmation de suppression d'une catégorie.
+         * @param {number} index Index de la catégorie ciblée.
+         * @returns {Promise<void>}
+         */
         async removeCategorie(index) {
             this.openActionModal('delete-categorie', index);
         },
+        /**
+         * Ouvre la modale d'édition d'une sous-catégorie.
+         * @param {number} index Index de la sous-catégorie ciblée.
+         * @returns {Promise<void>}
+         */
         async modifySousCategorie(index) {
             const sousCategorie = this.sousCategories[index];
             if (!sousCategorie) return;
 
             this.openModal('sous-categorie', 'edit', index, sousCategorie.nom);
         },
+        /**
+         * Ouvre la confirmation de suppression d'une sous-catégorie.
+         * @param {number} index Index de la sous-catégorie ciblée.
+         * @returns {Promise<void>}
+         */
         async removeSousCategorie(index) {
             this.openActionModal('delete-sous-categorie', index);
         },
     },
+    /**
+     * Charge les données initiales au montage.
+     * @returns {Promise<void>}
+     */
     async mounted() {
         await this.fetchDatas();
     }

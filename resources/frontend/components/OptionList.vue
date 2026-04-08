@@ -5,7 +5,7 @@
     >
       <ul class="text-sm text-gray-700">
         <li v-for="element in elements">
-          <a @click="$emit('select-item', element)" class="block px-4 py-4 hover:bg-gray-200 text-center border-b border-gray-300 text-body font-medium">
+          <a @click="selectionnerElement(element)" class="block px-4 py-4 hover:bg-gray-200 text-center border-b border-gray-300 text-body font-medium">
             {{ element }}
           </a>
         </li>
@@ -15,7 +15,14 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant OptionList.
+ * @description Liste d'options cliquables qui émet le choix sélectionné au composant parent.
+ * @remarks Ce composant est volontairement stateless: il ne stocke aucun état local
+ * et se contente de relayer la sélection au parent.
+ */
 export default {
+  name: 'OptionList',
   props: {
     elements: {
       type: Array,
@@ -23,5 +30,15 @@ export default {
     }
   },
   emits: ['select-item'],
+  methods: {
+    /**
+     * Émet l'élément choisi vers le parent.
+     * @param {string} element Valeur sélectionnée dans la liste.
+     * @returns {void}
+     */
+    selectionnerElement(element) {
+      this.$emit('select-item', element);
+    },
+  },
 }
 </script>

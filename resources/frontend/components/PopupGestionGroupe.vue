@@ -223,6 +223,18 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant PopupGestionGroupe.
+ * @description
+ * Modale de gestion des membres d'un groupe d'inscription (Relais, Groupe, Challenge).
+ * Elle gère le renommage du groupe, l'ajout de membres, le remplacement,
+ * la recherche de participant par email et le retrait de membres pour les challenges.
+ *
+ * Règles métier appliquées :
+ * - Les modifications sont bloquées lorsque les inscriptions sont closes.
+ * - Le nom des groupes challenge n'est pas modifiable depuis cette interface.
+ * - Le nombre de membres respecte la limite définie par la course (si disponible).
+ */
 import groupeService from '../services/groupeService';
 import api from '../services/api';
 import { useAuthStore } from '../stores/auth';
@@ -254,14 +266,21 @@ export default {
     };
   },
   computed: {
-    // Calcul de la date de fermeture
+    /**
+      * Indique si les modifications d'inscription sont interdites.
+      * La date de fin est considérée inclusive jusqu'à 23:59:59.
+     * @returns {boolean}
+     */
     inscriptionsFermees() {
       if (!this.groupeLocal.course?.fin_inscription) return false;
       const fin = new Date(this.groupeLocal.course.fin_inscription);
       fin.setHours(23, 59, 59, 999);
       return new Date() > fin;
     },
-    // Type de la course liée
+    /**
+      * Type normalisé de la course liée.
+     * @returns {string}
+     */
     typeCourse() {
       return this.groupeLocal.course?.type ?? '';
     },
@@ -271,8 +290,13 @@ export default {
     estGroupe() {
       return this.typeCourse === 'Groupe';
     },
+    /**
+      * Détecte les groupes challenge.
+      * Un challenge est identifié soit par un type explicite `Entreprise`,
+      * soit par l'absence de fondateur dans les données pivot des participants.
+     * @returns {boolean}
+     */
     estChallenge() {
-      // Challenge = type 'Entreprise' ou 'Groupe' dans la table Groupe (pas de fondateur)
       return this.groupeLocal.type === 'Entreprise' ||
         !this.groupeLocal.participants?.some(p =>
           p.pivot?.statut === 'Fondateur' || p.pivot?.statut === 'fondateur'
@@ -294,26 +318,49 @@ export default {
       if (!this.maxMembres) return true;
       return (this.groupeLocal.participants?.length ?? 0) < this.maxMembres;
     },
-    // Participants disponibles (pas déjà dans le groupe)
+    /**
+      * Liste des participants du compte qui ne sont pas déjà dans le groupe.
+     * @returns {Array<object>}
+     */
     participantsDisponibles() {
       const idsGroupe = this.groupeLocal.participants?.map(p => p.id) ?? [];
       return this.mesParticipants.filter(p => !idsGroupe.includes(p.id));
     },
   },
   methods: {
+    /**
+      * Retourne l'identifiant du participant authentifié depuis le store.
+     * @returns {number|string|undefined}
+     */
     monId() {
       return useAuthStore().user?.participant?.id;
     },
+
+    /**
+      * Vérifie si un membre a le statut fondateur.
+     * @param {object} membre
+     * @returns {boolean}
+     */
     estFondateur(membre) {
       return membre.pivot?.statut === 'Fondateur' || membre.pivot?.statut === 'fondateur';
     },
+
+    /**
+      * Construit un libellé lisible pour le rôle d'un membre.
+     * @param {object} membre
+     * @returns {string}
+     */
     roleLabel(membre) {
       if (this.estFondateur(membre)) return 'Fondateur';
       if (membre.pivot?.statut === 'En attente') return 'En attente';
       return 'Membre';
     },
 
-    // ── Nom ──────────────────────────────────────────────────────────────────
+    /**
+      * Enregistre le changement de nom du groupe.
+      * Émet `mis-a-jour` avec l'instantané local du groupe en cas de succès.
+     * @returns {Promise<void>}
+     */
     async sauvegarderNom() {
     if (!this.nomGroupe.trim() || this.sauvegarde) return;
     this.sauvegarde = true;
@@ -324,14 +371,18 @@ export default {
         this.messageNom = { type: 'ok', texte: 'Nom modifié avec succès !' };
         this.$emit('mis-a-jour', { ...this.groupeLocal });
    } catch (e) {
-    console.log('Erreur sauvegarderNom:', e); // ← ajouter
+      console.log('Erreur sauvegarderNom:', e);
     this.messageNom = { type: 'erreur', texte: 'Impossible de modifier le nom.' };
 } finally {
         this.sauvegarde = false;
     }
 },
 
-    // ── Formulaire ajout/remplacement ─────────────────────────────────────────
+      /**
+        * Ouvre le formulaire de remplacement pour un membre donné.
+       * @param {object} membre
+       * @returns {void}
+       */
     ouvrirRemplacement(membre) {
       this.membreARemplacer  = membre;
       this.modeFormulaire    = true;
@@ -341,6 +392,11 @@ export default {
       this.erreurRecherche   = null;
       this.messageAction     = null;
     },
+
+    /**
+      * Ouvre le formulaire d'ajout de membre.
+     * @returns {void}
+     */
     ouvrirAjout() {
       this.membreARemplacer  = null;
       this.modeFormulaire    = true;
@@ -350,6 +406,11 @@ export default {
       this.erreurRecherche   = null;
       this.messageAction     = null;
     },
+
+    /**
+      * Ferme et réinitialise l'état du formulaire d'ajout/remplacement.
+     * @returns {void}
+     */
     annulerFormulaire() {
       this.membreARemplacer  = null;
       this.modeFormulaire    = false;
@@ -358,6 +419,10 @@ export default {
       this.participantTrouve = null;
     },
 
+    /**
+      * Recherche un participant par email via l'API.
+     * @returns {Promise<void>}
+     */
     async rechercherParEmail() {
       if (!this.emailRecherche) return;
       this.participantTrouve = null;
@@ -370,23 +435,24 @@ export default {
       }
     },
 
-    // ── Confirmer remplacement ou ajout ───────────────────────────────────────
+    /**
+      * Confirme un remplacement ou un ajout de membre selon l'état courant.
+      * Recharge le groupe depuis l'API et émet `mis-a-jour` en cas de succès.
+     * @returns {Promise<void>}
+     */
     async confirmerAction() {
       if (!this.nouveauMembre || this.enCours) return;
       this.enCours = true;
       this.messageAction = null;
       try {
         if (this.membreARemplacer) {
-          // Remplacement : retirer l'ancien + ajouter le nouveau
           await groupeService.removeParticipant(this.groupeLocal.id, this.membreARemplacer.id);
           await groupeService.addParticipant(this.groupeLocal.id, this.nouveauMembre.id);
           this.messageAction = { type: 'ok', texte: 'Membre remplacé avec succès !' };
         } else {
-          // Ajout simple
           await groupeService.addParticipant(this.groupeLocal.id, this.nouveauMembre.id);
           this.messageAction = { type: 'ok', texte: 'Membre ajouté avec succès !' };
         }
-        // Recharger le groupe
         const response = await groupeService.getGroupe(this.groupeLocal.id);
         this.groupeLocal = response.data;
         this.membreARemplacer = null;
@@ -400,10 +466,19 @@ export default {
       }
     },
 
-    // ── Retirer membre (Challenge) ─────────────────────────────────────────────
+    /**
+      * Ouvre la confirmation de retrait d'un membre.
+     * @param {object} membre
+     * @returns {Promise<void>}
+     */
     async retirerMembre(membre) {
       this.membreARetirer = membre;
     },
+
+    /**
+      * Confirme le retrait d'un membre, recharge le groupe et émet `mis-a-jour`.
+     * @returns {Promise<void>}
+     */
     async confirmerRetraitMembre() {
       if (!this.membreARetirer) return;
       try {

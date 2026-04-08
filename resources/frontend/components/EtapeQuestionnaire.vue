@@ -42,6 +42,12 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant EtapeQuestionnaire.
+ * @description Étape de réponse aux questions personnalisées liées à la course sélectionnée.
+ * @remarks Le composant maintient un état local des réponses puis émet un objet structuré
+ * pour simplifier l'exploitation côté parent (récapitulatif, validation et envoi API).
+ */
 export default {
     name: 'EtapeQuestionnaire',
     props: {
@@ -55,6 +61,10 @@ export default {
         },
     },
     emits: ['update:modelValue'],
+    /**
+     * Initialise le dictionnaire local des réponses indexé par identifiant de question.
+     * @returns {{reponses: Object}} État local des réponses utilisateur.
+     */
     data() {
         return {
             reponses: {},
@@ -63,6 +73,11 @@ export default {
     watch: {
         questions: {
             immediate: true,
+            /**
+             * Prépare une structure de réponses vide à chaque changement de questionnaire.
+             * @param {Array} qs Liste des questions actives pour la course.
+             * @returns {void}
+             */
             handler(qs) {
                 const rep = {};
                 (qs || []).forEach((q) => { rep[q.id] = null; });
@@ -71,6 +86,10 @@ export default {
         }
     },
     methods: {
+        /**
+         * Agrège les réponses courantes puis notifie le parent.
+         * @returns {void}
+         */
         mettreAJour() {
             const resultat = {};
             (this.questions || []).forEach((q) => {

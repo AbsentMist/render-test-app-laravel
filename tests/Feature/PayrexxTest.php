@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
-class PayrexxControllerTest extends TestCase
+class PayrexxTest extends TestCase
 {
     use DatabaseTransactions;
 

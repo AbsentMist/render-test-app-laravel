@@ -1006,6 +1006,13 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant FormulaireCourse.
+ * @description Formulaire de création et de modification d'une course organisateur.
+ * Gère les étapes (général, options, avertissement, documents, questionnaire),
+ * la synchronisation des données liées et la soumission des changements.
+ * @remarks Le composant agrège plusieurs services métier et orchestre la persistance multi-entités.
+ */
 import { Icon } from "@iconify/vue";
 import { initDropdowns } from "flowbite";
 import PopupConfirmation from "./PopupConfirmation.vue";
@@ -1137,15 +1144,31 @@ export default {
         };
     },
     computed: {
+        /**
+         * Indique si le formulaire est ouvert en mode édition.
+         * @returns {boolean}
+         */
         isEditMode() {
             return !!this.$route.query.id;
         },
+        /**
+         * Identifiant de la course à charger ou modifier.
+         * @returns {string|undefined}
+         */
         courseId() {
             return this.$route.query.id;
         },
+        /**
+         * Identifiant de l'évènement associé passé dans l'URL.
+         * @returns {string|undefined}
+         */
         eventIdFromUrl() {
             return this.$route.query.idEvenement;
         },
+        /**
+         * Étapes actives du formulaire selon les options de la course.
+         * @returns {Array<number>}
+         */
         etapesActives() {
             const etapes = [formulaireEtape.GENERAL, formulaireEtape.OPTIONS];
             const labels = ["Général", "Options supplémentaires"];
@@ -1250,6 +1273,10 @@ export default {
         },
     },
     methods: {
+        /**
+         * Remet toutes les données du formulaire à leur état initial.
+         * @returns {void}
+         */
         resetFormulaire() {
             this.courseData = {
                 name: "",
@@ -1290,6 +1317,10 @@ export default {
             this.etape = formulaireEtape.GENERAL;
         },
 
+        /**
+         * Charge une course existante puis hydrate les sections liées du formulaire.
+         * @returns {Promise<void>}
+         */
         async chargerDonneesCourse() {
             try {
                 const response = await courseOrganisateurService.getCourse(
@@ -1410,6 +1441,10 @@ export default {
         },
 
         // ── Prix évolutif ────────────────────────────────────────────────────
+        /**
+         * Initialise les paliers de prix évolutif selon le mode choisi.
+         * @returns {void}
+         */
         initialiserPaliers() {
             if (
                 this.courseData.parameters.prixEvolutif &&
@@ -1456,6 +1491,11 @@ export default {
             }
         },
 
+        /**
+         * Change le mode de prix évolutif et réinitialise les paliers si nécessaire.
+         * @param {string} nouveauMode
+         * @returns {void}
+         */
         changerModePrixEvolutif(nouveauMode) {
             if (this.courseData.prixEvolutif.type === nouveauMode) return;
             const palierModifie =
@@ -1473,10 +1513,13 @@ export default {
             }
             this.courseData.prixEvolutif.type = nouveauMode;
             this.courseData.prixEvolutif.paliers = [];
-            // Réinitialiser avec les 2 paliers du nouveau mode
             this.$nextTick(() => this.initialiserPaliers());
         },
 
+        /**
+         * Ajoute un palier intermédiaire entre le premier et le dernier.
+         * @returns {void}
+         */
         ajouterPalierIntermediaire() {
             const paliers = this.courseData.prixEvolutif.paliers;
             const dernier = paliers[paliers.length - 1];
@@ -1490,17 +1533,25 @@ export default {
             paliers.splice(paliers.length - 1, 0, nouveauPalier);
         },
 
+        /**
+         * Supprime un palier de prix évolutif et réordonne la liste restante.
+         * @param {number} index
+         * @param {object} palier
+         * @returns {Promise<void>}
+         */
         async supprimerPalier(index, palier) {
             if (palier.id && this.isEditMode)
                 await prixEvolutifService.deletePalier(palier.id);
             this.courseData.prixEvolutif.paliers.splice(index, 1);
-            // Recalculer les ordres
             this.courseData.prixEvolutif.paliers.forEach((p, i) => {
                 p.ordre = i + 1;
             });
         },
 
-        // ── Formulaire ───────────────────────────────────────────────────────
+        /**
+         * Ouvre ou ferme le menu de sélection d'élément.
+         * @returns {void}
+         */
         handleModalState() {
             this.modal =
                 this.modal === optionModal.FERMEE
@@ -1508,6 +1559,11 @@ export default {
                     : optionModal.FERMEE;
         },
 
+        /**
+         * Traite le choix effectué dans le menu d'ajout d'option ou de question.
+         * @param {string} option
+         * @returns {void}
+         */
         handleOptionSelection(option) {
             if (option === "Existant") {
                 this.modal = optionModal.EXISTANT;
@@ -1536,14 +1592,29 @@ export default {
             }
         },
 
+        /**
+         * Affecte l'évènement sélectionné à la course courante.
+         * @param {object} event
+         * @returns {void}
+         */
         selectEvent(event) {
             this.courseData.event = event;
             FlowbiteInstances.getInstance("Dropdown", "dropdownEvent").hide();
         },
+        /**
+         * Affecte le type de course choisi.
+         * @param {object} type
+         * @returns {void}
+         */
         selectType(type) {
             this.courseData.type = type;
             FlowbiteInstances.getInstance("Dropdown", "dropdownType").hide();
         },
+        /**
+         * Affecte la catégorie choisie.
+         * @param {object} category
+         * @returns {void}
+         */
         selectCategory(category) {
             this.courseData.category = category;
             FlowbiteInstances.getInstance(
@@ -1551,6 +1622,11 @@ export default {
                 "dropdownCategory",
             ).hide();
         },
+        /**
+         * Affecte la sous-catégorie choisie.
+         * @param {object} subCategory
+         * @returns {void}
+         */
         selectSubCategory(subCategory) {
             this.courseData.subCategory = subCategory;
             FlowbiteInstances.getInstance(
@@ -1559,6 +1635,11 @@ export default {
             ).hide();
         },
 
+        /**
+         * Retire une option de la course et supprime la liaison existante si besoin.
+         * @param {number} index
+         * @returns {Promise<void>}
+         */
         async removeOption(index) {
             const option = this.courseData.options[index];
             if (option.id) {
@@ -1571,6 +1652,11 @@ export default {
             this.courseData.options.splice(index, 1);
         },
 
+        /**
+         * Prépare le payload API d'une option de course.
+         * @param {object} option
+         * @returns {object}
+         */
         buildOptionPayload(option) {
             const payload = {
                 nom: option.nom,
@@ -1587,6 +1673,11 @@ export default {
             }
             return payload;
         },
+        /**
+         * Change le mode de prix évolutif et déclenche une confirmation si nécessaire.
+         * @param {string} nouveauMode
+         * @returns {void}
+         */
         changerModePrixEvolutif(nouveauMode) {
             if (this.courseData.prixEvolutif.type === nouveauMode) return;
             if (this.courseData.prixEvolutif.paliers.length > 0) {
@@ -1597,6 +1688,10 @@ export default {
             this.courseData.prixEvolutif.type = nouveauMode;
             this.courseData.prixEvolutif.paliers = [];
         },
+        /**
+         * Valide le changement de mode de prix évolutif en attente.
+         * @returns {void}
+         */
         confirmerChangementModePrixEvolutif() {
             if (!this.modePrixEvolutifEnAttente) return;
             this.courseData.prixEvolutif.type = this.modePrixEvolutifEnAttente;
@@ -1604,11 +1699,19 @@ export default {
             this.modePrixEvolutifEnAttente = null;
             this.confirmationChangementModePrix = false;
         },
+        /**
+         * Annule le changement de mode de prix évolutif en attente.
+         * @returns {void}
+         */
         annulerChangementModePrixEvolutif() {
             this.modePrixEvolutifEnAttente = null;
             this.confirmationChangementModePrix = false;
         },
 
+        /**
+         * Ajoute un nouveau palier vide à la configuration de prix évolutif.
+         * @returns {void}
+         */
         ajouterPalier() {
             const ordre = this.courseData.prixEvolutif.paliers.length + 1;
             this.courseData.prixEvolutif.paliers.push({
@@ -1619,6 +1722,10 @@ export default {
             });
         },
 
+        /**
+         * Crée ou met à jour la course puis synchronise les entités associées.
+         * @returns {Promise<void>}
+         */
         async insertCourse() {
             try {
                 let id_avertissement = this.courseData.avertissement.id || null;
@@ -1700,14 +1807,12 @@ export default {
                     ? this.courseId
                     : response.data.course.id;
 
-                // Synchroniser les paliers
                 if (this.courseData.parameters.prixEvolutif) {
                     const nouveauxPaliers =
                         this.courseData.prixEvolutif.paliers.filter(
                             (p) => !p.id,
                         );
                     for (const palier of nouveauxPaliers) {
-                        // Fix: valeur_debut peut être "0" (falsy) → vérifier !== ''
                         if (
                             palier.valeur_debut !== "" &&
                             palier.valeur_debut !== null &&
@@ -1731,7 +1836,6 @@ export default {
                     await prixEvolutifService.deleteAllPaliers(courseId);
                 }
 
-                // Synchroniser les organisations challenge
                 if (this.courseData.parameters.challenge) {
                     const nouvellesOrgs =
                         this.courseData.challengeOrganisations.filter(
@@ -1746,7 +1850,6 @@ export default {
                     }
                 }
 
-                // Options
                 const optionsExistantes = this.courseData.options.filter(
                     (o) => o.id,
                 );
@@ -1769,7 +1872,6 @@ export default {
                     });
                 }
 
-                // Questions
                 const questionsExistantes = this.courseData.questions.filter(
                     (q) => q.id,
                 );
@@ -1832,6 +1934,10 @@ export default {
             }
         },
 
+        /**
+         * Affiche le message de succès puis redirige en mode édition si nécessaire.
+         * @returns {void}
+         */
         confirmPopup() {
             this.confirmationPopup = false;
             this.dataInserted = true;
@@ -1847,6 +1953,10 @@ export default {
             }, 2000);
         },
 
+        /**
+         * Ajoute une organisation challenge locale en évitant les doublons.
+         * @returns {void}
+         */
         ajouterOrganisation() {
             if (!this.nouvelleOrg.nom.trim()) return;
             const doublon = this.courseData.challengeOrganisations.some(
@@ -1863,6 +1973,12 @@ export default {
             this.nouvelleOrg.nom = "";
         },
 
+        /**
+         * Supprime une organisation challenge du formulaire et de l'API si besoin.
+         * @param {number} index
+         * @param {object} org
+         * @returns {Promise<void>}
+         */
         async supprimerOrganisation(index, org) {
             if (org.id && this.isEditMode)
                 await challengeOrganisationService.deleteOrganisation(org.id);

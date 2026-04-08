@@ -1,4 +1,9 @@
 <script setup>
+/**
+ * @fileoverview Composant Header.
+ * @description En-tête principal de l'application avec gestion profil, invitations et mini-panier.
+ * @remarks Orchestre l'état d'affichage entre menus profil/panier et adapte la navigation selon le rôle utilisateur.
+ */
 import { Icon } from '@iconify/vue';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
@@ -16,10 +21,11 @@ const router = useRouter();
 
 const invitations = ref([]);
 const isProfileDropdownOpen = ref(false);
-
-// 🌟 NOUVEAUTÉ : Calcul de la déduction en temps réel pour le mini-panier
 const deductionChangement = ref(0);
 
+/**
+ * Observe le panier pour recalculer la déduction liée aux changements de course.
+ */
 watch(() => cartStore.inscriptions, async (nouveauPanier) => {
   let deduction = 0;
   for (const article of nouveauPanier) {
@@ -37,12 +43,19 @@ watch(() => cartStore.inscriptions, async (nouveauPanier) => {
   deductionChangement.value = deduction;
 }, { immediate: true, deep: true });
 
-// Le total affiché dans le mini-panier
+/**
+ * Total affiché dans le mini-panier après déduction éventuelle.
+ * @returns {number}
+ */
 const totalMiniPanier = computed(() => {
   let st = cartStore.cartTotal - deductionChangement.value;
   return st > 0 ? st : 0; 
 });
 
+/**
+ * Bascule entre l'affichage participant et administrateur.
+ * @returns {Promise<void>}
+ */
 const handleToggleMode = async () => {
   authStore.toggleAdminMode();
   if (authStore.showAdminLayout) {
@@ -52,6 +65,10 @@ const handleToggleMode = async () => {
   }
 };
 
+/**
+ * Nom d'affichage utilisateur selon le rôle et les données disponibles.
+ * @returns {{top: string, bottom: string}}
+ */
 const userDisplayName = computed(() => {
   if (authStore.isAdmin) {
     return { top: 'Rôle', bottom: 'Administrateur' };
@@ -61,15 +78,20 @@ const userDisplayName = computed(() => {
   return { top: prenom, bottom: nom.toUpperCase() };
 });
 
+/**
+ * Ferme le mini-panier puis navigue vers la page panier.
+ * @returns {void}
+ */
 const allerAuPanier = () => {
   cartStore.fermerDropdown();
-  isProfileDropdownOpen.value = false; // Ferme le profil si ouvert
+  isProfileDropdownOpen.value = false;
   router.push('/panier');
 };
 
-//GESTION DES INVITATIONS
-
-// Récupérer les invitations au chargement du Header
+/**
+ * Charge les invitations en attente pour le participant connecté.
+ * @returns {Promise<void>}
+ */
 const chargerInvitations = async () => {
   if (authStore.user?.participant) {
     try {
@@ -85,7 +107,10 @@ onMounted(() => {
   chargerInvitations();
 });
 
-// Gestion de l'ouverture du menu de profil
+/**
+ * Ouvre/ferme le menu profil et garantit l'exclusivité avec le panier.
+ * @returns {void}
+ */
 const toggleProfileDropdown = () => {
   isProfileDropdownOpen.value = !isProfileDropdownOpen.value;
   if (isProfileDropdownOpen.value) {
@@ -93,7 +118,10 @@ const toggleProfileDropdown = () => {
   }
 };
 
-// Gestion de l'ouverture du menu panier
+/**
+ * Ouvre/ferme le mini-panier et garantit l'exclusivité avec le profil.
+ * @returns {void}
+ */
 const toggleCartDropdown = () => {
   cartStore.toggleDropdown();
   if (cartStore.isDropdownOpen) {
@@ -101,7 +129,11 @@ const toggleCartDropdown = () => {
   }
 };
 
-// Vérifier si la date limite de l'invitation (course) est dépassée
+/**
+ * Indique si une invitation est expirée selon la date de fin d'inscription de la course.
+ * @param {object} invit
+ * @returns {boolean}
+ */
 const estInvitationExpiree = (invit) => {
   if (!invit.course?.fin_inscription) return false;
   const fin = new Date(invit.course.fin_inscription);
@@ -109,7 +141,11 @@ const estInvitationExpiree = (invit) => {
   return new Date() > fin;
 };
 
-// Lors de l'acceptation d'une invitation
+/**
+ * Accepte une invitation groupe et met à jour la liste locale.
+ * @param {number} idGroupe
+ * @returns {Promise<void>}
+ */
 const accepterInvitation = async (idGroupe) => {
   try {
     await groupeService.accepterInvitation(idGroupe);
@@ -120,13 +156,16 @@ const accepterInvitation = async (idGroupe) => {
   }
 };
 
-// Lors d'un refus d'une invitation
+/**
+ * Refuse une invitation groupe et met à jour la liste locale.
+ * @param {number} idGroupe
+ * @returns {Promise<void>}
+ */
 const refuserInvitation = async (idGroupe) => {
   try {
     await groupeService.refuserInvitation(idGroupe);
     invitations.value = invitations.value.filter(g => g.id !== idGroupe);
-    
-    //Message de confirmation du refus
+
     alert("L'invitation a bien été refusée/supprimée."); 
     
   } catch (error) {

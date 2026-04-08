@@ -10,9 +10,9 @@ use App\Models\Participant;
 use App\Models\Inscription;
 use Illuminate\Support\Facades\DB;
 
-class InscriptionControllerTest extends TestCase
+class InscriptionTest extends TestCase
 {
-    // Relance la base de données à chaque test
+    // Roll back DB changes after each test
     use DatabaseTransactions; 
 
     protected $user;   
@@ -23,7 +23,7 @@ class InscriptionControllerTest extends TestCase
     {
         parent::setUp();
 
-        //Création d'un participant
+        // Create a participant
         $this->user = User::factory()->create();
         
         $participant = Participant::factory()->create([
@@ -32,7 +32,7 @@ class InscriptionControllerTest extends TestCase
         
         $this->participantId = $participant->id;
 
-        //Création d'un évènement
+        // Create an event
         $evenementId = DB::table('Evenement')->insertGetId([
             'nom' => 'Course Test',
             'site' => 'https://test.ch',
@@ -41,7 +41,7 @@ class InscriptionControllerTest extends TestCase
             'is_actif' => 1
         ]);
 
-        //Création d'une course
+        // Create a course
         $this->courseId = DB::table('Course')->insertGetId([
             'id_evenement' => $evenementId,
             'nom' => '10km de Test',
@@ -60,20 +60,20 @@ class InscriptionControllerTest extends TestCase
         ]);
     }
 
-    public function test_un_participant_peut_creer_une_inscription()
+    public function test_participant_can_create_registration()
     {
         $payload = [
             'id_course' => $this->courseId,
         ];
 
-        //Récupère l'user créer dans le setUp()
+        // Use the authenticated user created in setUp()
         $response = $this->actingAs($this->user)->postJson('/api/participant/inscriptions', $payload);
 
-        // Vérifie de la réponse HTTP 
+        // Validate HTTP response
         $response->assertStatus(201)
                  ->assertJsonStructure(['id', 'tarif', 'status_paiement']);
 
-        // Vérifie si l'inscription est bien en base de données
+        // Validate registration row in database
         $this->assertDatabaseHas('Inscription', [
             'id_participant' => $this->participantId,
             'id_course' => $this->courseId,
@@ -82,28 +82,28 @@ class InscriptionControllerTest extends TestCase
         ]);
     }
 
-    public function test_erreur_si_avertissement_obligatoire_non_coche()
+    public function test_fails_when_required_warning_not_accepted()
     {
-        // On modifie la course pour rendre l'avertissement obligatoire
+        // Make warning acceptance mandatory for this course
         DB::table('Course')->where('id', $this->courseId)->update(['is_avertissement' => 1]);
 
         $payload = [
             'id_course' => $this->courseId,
-            'avertissement_valide' => false // Oubli intentionnel
+            'avertissement_valide' => false // Intentionally omitted
         ];
 
         $response = $this->actingAs($this->user)->postJson('/api/participant/inscriptions', $payload);
 
-        // Vérification de l'erreur (422 Unprocessable Entity)
+        // Validate expected validation error (422)
         $response->assertStatus(422)
                  ->assertJsonFragment([
                      'message' => 'Vous devez accepter les conditions/avertissements liés à cette course pour vous inscrire.'
                  ]);
     }
 
-    public function test_un_participant_ne_peut_pas_sinscrire_en_double()
+    public function test_participant_cannot_register_twice()
     {
-        //Inscription manuelle du participant une première fois
+        // First manual registration for this participant
         DB::table('Inscription')->insert([
             'id_participant' => $this->participantId,
             'id_course' => $this->courseId,
@@ -111,23 +111,23 @@ class InscriptionControllerTest extends TestCase
             'tarif' => 35
         ]);
 
-        //On tente de le réinscrire à la même course
+        // Try registering the same participant again
         $payload = [
             'id_course' => $this->courseId,
         ];
 
         $response = $this->actingAs($this->user)->postJson('/api/participant/inscriptions', $payload);
 
-        // Vérification du blocage
+        // Validate duplicate registration is blocked
         $response->assertStatus(409)
                  ->assertJsonFragment([
                      'message' => 'Vous êtes déjà inscrit à cette course (ou votre inscription est en attente de paiement).'
                  ]);
     }
 
-    public function test_un_participant_peut_annuler_son_inscription_en_attente()
+    public function test_participant_can_cancel_pending_registration()
     {
-        // Création d'une inscription en attente
+        // Create a pending registration
         $inscriptionId = DB::table('Inscription')->insertGetId([
             'id_participant' => $this->participantId,
             'id_course' => $this->courseId,
@@ -135,21 +135,21 @@ class InscriptionControllerTest extends TestCase
             'tarif' => 35
         ]);
 
-        // Requête DELETE
+        // Send DELETE request
         $response = $this->actingAs($this->user)->deleteJson("/api/participant/inscriptions/{$inscriptionId}");
 
         $response->assertStatus(200);
 
-        // On vérifie que le statut a bien changé
+        // Validate status update in database
         $this->assertDatabaseHas('Inscription', [
             'id' => $inscriptionId,
             'status_paiement' => 'Annulé',
         ]);
     }
 
-    public function test_un_participant_ne_peut_pas_annuler_une_inscription_payee()
+    public function test_participant_cannot_cancel_paid_registration()
     {
-        // Création d'une inscription déjà payée
+        // Create a paid registration
         $inscriptionId = DB::table('Inscription')->insertGetId([
             'id_participant' => $this->participantId,
             'id_course' => $this->courseId,
@@ -157,19 +157,19 @@ class InscriptionControllerTest extends TestCase
             'tarif' => 35
         ]);
 
-        // Requête DELETE
+        // Send DELETE request
         $response = $this->actingAs($this->user)->deleteJson("/api/participant/inscriptions/{$inscriptionId}");
 
-        // Doit renvoyer une erreur 400 (Bad Request)
+        // Should return 400 (Bad Request)
         $response->assertStatus(400)
                  ->assertJsonFragment([
                      'message' => 'Impossible d\'annuler une inscription déjà payée. Veuillez contacter l\'organisateur pour toute demande d\'annulation ou de remboursement.'
                  ]);
     }
 
-    public function test_un_participant_peut_se_reinscrire_apres_une_annulation()
+    public function test_participant_can_reregister_after_cancellation()
     {
-        // Création d'une inscription Annulée
+        // Create a canceled registration
         $inscriptionId = DB::table('Inscription')->insertGetId([
             'id_participant' => $this->participantId,
             'id_course' => $this->courseId,
@@ -177,17 +177,17 @@ class InscriptionControllerTest extends TestCase
             'tarif' => 35
         ]);
 
-        // Il tente de se réinscrire (POST)
+        // Try to register again (POST)
         $payload = [
             'id_course' => $this->courseId,
         ];
 
         $response = $this->actingAs($this->user)->postJson('/api/participant/inscriptions', $payload);
 
-        // Vérification : Code 200 (Mise à jour pour réinscription)
+        // Validate status code 200 (re-registration update)
         $response->assertStatus(200);
 
-        //Vérifie que la ligne existante est repassée "En attente"
+        // Validate existing row has been updated
         $this->assertDatabaseHas('Inscription', [
             'id' => $inscriptionId,
             'status_paiement' => 'Validé',

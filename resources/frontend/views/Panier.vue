@@ -401,6 +401,12 @@
 </template>
 
 <script setup>
+/**
+ * @fileoverview Vue Panier.
+ * @description Vue de validation finale des inscriptions avant paiement.
+ * @remarks Calcule les montants (déductions, frais, total), crée les inscriptions associées
+ * puis redirige vers la passerelle de paiement ou finalise un changement gratuit.
+ */
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../stores/cart";
@@ -425,7 +431,9 @@ const fraisServiceFixe = 2.5;
 // Déduction du prix pour le Changement de course
 const deductionChangement = ref(0);
 
-// Surveillance panier s'il y a un ID d'ancienne inscription, on recherche son prix
+/**
+ * Surveille le panier pour recalculer la déduction liée aux anciennes inscriptions.
+ */
 watch(
     panier,
     async (nouveauPanier) => {
@@ -451,6 +459,10 @@ watch(
     },
     { immediate: true },
 );
+
+/**
+ * Surveille le panier pour rafraîchir les tarifs évolutifs.
+ */
 watch(
     panier,
     async (nouveauPanier) => {
@@ -471,21 +483,31 @@ watch(
     },
     { immediate: true },
 );
-// Sous-total prend en compte la déduction (met gratuit si négatif lors d'un downgrade)
+
+/**
+ * Sous-total après déduction éventuelle.
+ * @type {import('vue').ComputedRef<number>}
+ */
 const sousTotal = computed(() => {
     let st = cartStore.cartTotal - deductionChangement.value;
     return st > 0 ? st : 0;
 });
 
+/**
+ * Frais de service appliqués uniquement si un montant positif est dû.
+ * @type {import('vue').ComputedRef<string>}
+ */
 const fraisService = computed(() => {
-    // Les frais s'appliquent uniquement s'il y a un vrai montant à payer ( > 0) après déduction
     return panier.value.length > 0 && sousTotal.value > 0
         ? fraisServiceFixe.toFixed(2)
         : "0.00";
 });
 
+/**
+ * Total final à payer, frais inclus.
+ * @type {import('vue').ComputedRef<string>}
+ */
 const total = computed(() => {
-    // Le total prend les frais de service uniquement si le sous-total > 0
     const tot =
         panier.value.length > 0 && sousTotal.value > 0
             ? sousTotal.value + fraisServiceFixe
@@ -493,7 +515,10 @@ const total = computed(() => {
     return tot.toFixed(2);
 });
 
-// LIAISON BACKEND (Tâche 3.9)
+/**
+ * Valide le panier: crée inscriptions/options/réponses/documents puis lance le paiement.
+ * @returns {Promise<void>}
+ */
 const procederPaiement = async () => {
     if (!accepteConditions.value || panier.value.length === 0) return;
 
@@ -652,8 +677,6 @@ const procederPaiement = async () => {
 
         // On attend que tout soit en base de données
         await Promise.all(promessesInscriptions);
-
-        // BYPASS PAYREXX TEMPORAIRE (Downgrade gratuit et Paiement normal)
         const montantTotal = parseFloat(total.value);
 
         // Si le total est à 0 (Downgrade gratuit), on valide sans passer par Payrexx

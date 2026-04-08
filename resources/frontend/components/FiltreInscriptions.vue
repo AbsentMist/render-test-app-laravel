@@ -1,7 +1,5 @@
 <template>
   <div class="flex flex-wrap gap-3 mb-4">
-
-    <!-- Barre de recherche unifiée : nom, prénom, dossard, entreprise, course... -->
     <div class="relative flex-1 min-w-[250px]">
       <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
         <svg class="w-4 h-4 text-body" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -18,7 +16,6 @@
       />
     </div>
 
-    <!-- Filtre statut -->
     <select
       v-model="filtresInternes.status"
       class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-3 py-2 focus:ring-brand focus:border-brand shadow-xs"
@@ -30,7 +27,6 @@
       <option value="Annulé">Annulé</option>
     </select>
 
-    <!-- Filtre type de course -->
     <select
       v-model="filtresInternes.type"
       class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-3 py-2 focus:ring-brand focus:border-brand shadow-xs"
@@ -42,7 +38,6 @@
       <option value="Groupe">Groupe</option>
     </select>
 
-    <!-- Bouton réinitialiser -->
     <button
       v-if="filtresActifs"
       @click="reinitialiser"
@@ -51,12 +46,10 @@
       Réinitialiser
     </button>
 
-    <!-- Compteur résultats -->
     <span class="flex items-center text-xs text-body px-2">
       {{ nbResultats }} résultat(s)
     </span>
 
-    <!-- Boutons export -->
     <div class="flex gap-2 ml-auto">
       <button
         @click="$emit('exporter', 'xlsx')"
@@ -84,12 +77,22 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant FiltreInscriptions.
+ * @description Barre de filtrage et d'export pour la liste des inscriptions côté organisateur.
+ * @remarks Le composant maintient des filtres internes puis émet une charge utile unifiée
+ * utilisée par la vue parente pour appliquer la recherche et déclencher les exports.
+ */
 export default {
   name: 'FiltreInscriptions',
   props: {
     nbResultats: { type: Number, default: 0 },
   },
   emits: ['update:filtres', 'exporter'],
+  /**
+   * Initialise les filtres manipulés localement dans l'interface.
+   * @returns {{filtresInternes: {recherche: string, status: string, type: string}}}
+   */
   data() {
     return {
       filtresInternes: {
@@ -100,6 +103,10 @@ export default {
     };
   },
   computed: {
+    /**
+     * Indique si au moins un filtre est actif.
+     * @returns {boolean}
+     */
     filtresActifs() {
       return this.filtresInternes.recherche ||
              this.filtresInternes.status ||
@@ -107,9 +114,17 @@ export default {
     },
   },
   methods: {
+    /**
+     * Émet l'état courant des filtres vers le parent.
+     * @returns {void}
+     */
     emitFiltres() {
       this.$emit('update:filtres', { ...this.filtresInternes });
     },
+    /**
+     * Réinitialise les filtres puis notifie le parent.
+     * @returns {void}
+     */
     reinitialiser() {
       this.filtresInternes = { recherche: '', status: '', type: '' };
       this.emitFiltres();

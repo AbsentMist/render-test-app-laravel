@@ -38,6 +38,12 @@
 </template>
 
 <script>
+/**
+ * @fileoverview Composant EtapeParametre.
+ * @description Étape de paramétrage du mode d'inscription pour une course.
+ * @remarks Le composant calcule les modes disponibles selon la configuration de la course
+ * et transmet au parent le type retenu pour piloter les étapes suivantes.
+ */
 import { Icon } from '@iconify/vue';
 
 export default {
@@ -49,10 +55,13 @@ export default {
     },
     emits: ['update:modelValue'],
     computed: {
+        /**
+         * Détermine les modes d'inscription autorisés pour la course courante.
+         * @returns {Array<{id: string, nom: string, icone: string}>} Liste des modes sélectionnables.
+         */
         typesCourse() {
             const types = [];
 
-            // Individuel est toujours disponible (sauf si la course est exclusivement Groupe ou Relais)
             if (this.course.type !== 'Relais' && this.course.type !== 'Groupe') {
                 types.push({ id: 'individuel', nom: 'Individuel', icone: 'mdi:account-outline' });
             }
@@ -60,27 +69,37 @@ export default {
             if (this.course.type === 'Groupe') types.push({ id: 'groupe',    nom: 'Groupe',    icone: 'mdi:account-group' });
             if (this.course.type === 'Relais') types.push({ id: 'relais',    nom: 'Relais',    icone: 'mdi:account-group-outline' });
 
-            // Challenge disponible uniquement si l'organisateur l'a activé
             if (this.course.is_challenge)      types.push({ id: 'challenge', nom: 'Challenge', icone: 'mdi:trophy-outline' });
 
             if (types.length === 0) types.push({ id: 'individuel', nom: 'Individuel', icone: 'mdi:account-outline' });
             return types;
         },
+        /**
+         * Proxy de la valeur sélectionnée pour usage avec v-model.
+         * @type {{get: function(): Object|null, set: function(Object|null): void}}
+         */
         typeSelectionne: {
             get() { return this.modelValue; },
             set(val) { this.$emit('update:modelValue', val); }
         }
     },
     methods: {
+        /**
+         * Applique un type d'inscription choisi par l'utilisateur.
+         * @param {{id: string, nom: string, icone: string}} type Type sélectionné.
+         * @returns {void}
+         */
         selectionner(type) { this.typeSelectionne = type; }
     },
+    /**
+     * Pré-sélectionne un mode à l'ouverture lorsque nécessaire.
+     * @returns {void}
+     */
     mounted() {
-        // Si un seul choix → auto-sélection (pas de choix à faire)
         if (this.typesCourse.length === 1 && !this.typeSelectionne) {
             this.typeSelectionne = this.typesCourse[0];
             return;
         }
-        // Sinon pré-sélectionner "Individuel" par défaut
         if (!this.typeSelectionne) {
             const defaut = this.typesCourse.find(t => t.id === 'individuel') ?? this.typesCourse[0];
             this.typeSelectionne = defaut;
