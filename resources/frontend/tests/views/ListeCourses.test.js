@@ -1,6 +1,5 @@
 import { vi } from 'vitest'
 
-// Mock localStorage AVANT tout import
 vi.stubGlobal('localStorage', {
   getItem: vi.fn(() => null),
   setItem: vi.fn(),
@@ -8,9 +7,15 @@ vi.stubGlobal('localStorage', {
   clear: vi.fn(),
 })
 
-// Mock des modules AVANT les imports
+// Mock de TOUS les services utilises par le composant
 vi.mock('../../services/courseParticipantService', () => ({
   default: { getAllCourses: vi.fn() }
+}))
+vi.mock('../../services/participantService', () => ({
+  default: { getMesParticipants: vi.fn() }   // ← manquait dans l'ancien test
+}))
+vi.mock('@iconify/vue', () => ({
+  Icon: { template: '<span />', name: 'Icon' }
 }))
 vi.mock('../../components/MiniatureCourse.vue', () => ({
   default: { template: '<div data-testid="miniature-course" />', props: ['courses', 'evenement'], name: 'MiniatureCourse' }
@@ -28,6 +33,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import ListeCourses from '../../views/ListeCourses.vue'
 import courseParticipantService from '../../services/courseParticipantService'
+import participantService from '../../services/participantService'
 
 const mockEvenement = {
   nom: 'Nocturne des Evaux',
@@ -37,10 +43,13 @@ const mockEvenement = {
 
 const mockCourses = [
   { id: 1, nom_course: '5km Populaire' },
-  { id: 2, nom_course: '10km Élite' },
+  { id: 2, nom_course: '10km Elite' },
 ]
 
 async function createWrapper() {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [{ path: '/evenements/:idEvenement', component: ListeCourses }]
@@ -50,16 +59,16 @@ async function createWrapper() {
 
   return mount(ListeCourses, {
     global: {
-      plugins: [createPinia(), router],
+      plugins: [pinia, router],
     }
   })
 }
 
 describe('VueEvenement', () => {
-
   beforeEach(() => {
-    setActivePinia(createPinia())
     vi.clearAllMocks()
+    // Mock participantService pour eviter les vraies requetes HTTP
+    participantService.getMesParticipants.mockResolvedValue({ data: [] })
   })
 
   test('affiche le chargement puis les courses', async () => {
@@ -96,13 +105,13 @@ describe('VueEvenement', () => {
     expect(wrapper.find('[data-testid="popup-inscription"]').exists()).toBe(true)
   })
 
-  test('gère une erreur de chargement sans crash', async () => {
-    courseParticipantService.getAllCourses.mockRejectedValue(new Error('Erreur réseau'))
+  test('gere une erreur de chargement sans crash', async () => {
+    courseParticipantService.getAllCourses.mockRejectedValue(new Error('Erreur reseau'))
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const wrapper = await createWrapper()
     await flushPromises()
     expect(wrapper.text()).not.toContain('Chargement des courses...')
     expect(consoleSpy).toHaveBeenCalled()
+    consoleSpy.mockRestore()
   })
-
 })
