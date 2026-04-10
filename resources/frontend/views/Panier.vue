@@ -311,6 +311,14 @@
                 </div>
             </div>
         </div>
+
+        <PopupConfirmation
+            v-if="popupInscriptionVisible"
+            :message="popupInscriptionMessage"
+            icon="mdi:check-circle-outline"
+            @confirm="confirmerPopupInscription"
+            @cancel="fermerPopupInscription"
+        />
     </div>
 </template>
 
@@ -331,6 +339,7 @@ import reponseQuestionParticipantService from "../services/reponseQuestionPartic
 import documentService from "../services/documentService";
 import api from "../services/api";
 import prixEvolutifService from "../services/prixEvolutifService";
+import PopupConfirmation from "../components/PopupConfirmation.vue";
 
 const router = useRouter();
 const cartStore = useCartStore();
@@ -341,6 +350,38 @@ const panier = computed(() => cartStore.inscriptions);
 const accepteConditions = ref(false);
 const isProcessing = ref(false);
 const fraisServiceFixe = 2.5;
+const popupInscriptionVisible = ref(false);
+const popupInscriptionMessage = ref("");
+const redirectionApresPopup = ref(null);
+
+/**
+ * Ouvre la popup de confirmation d'inscription avec le message fourni.
+ * @param {string} message
+ * @param {string|null} [redirection='/inscriptions']
+ */
+function ouvrirPopupInscription(message, redirection = "/inscriptions") {
+    popupInscriptionMessage.value = message;
+    redirectionApresPopup.value = redirection;
+    popupInscriptionVisible.value = true;
+}
+
+/**
+ * Ferme la popup de confirmation sans redirection.
+ */
+function fermerPopupInscription() {
+    popupInscriptionVisible.value = false;
+}
+
+/**
+ * Confirme la popup puis effectue la redirection cible si définie.
+ */
+function confirmerPopupInscription() {
+    popupInscriptionVisible.value = false;
+
+    if (redirectionApresPopup.value) {
+        router.push(redirectionApresPopup.value);
+    }
+}
 
 /**
  * Normalise la source du logo évènement pour l'affichage.
@@ -419,6 +460,35 @@ const getTotalLigneArticle = (article, index) => {
 };
 
 /**
+ * Calcule le supplément dû aux options pour un article du panier.
+ * @param {Object} article
+ * @returns {number}
+ */
+function calculerSupplementOptions(article) {
+    const options = Object.values(article?.options || {});
+
+    return options.reduce((total, optionSelectionnee) => {
+        const option = optionSelectionnee?.option || {};
+        const tarifOption = parseFloat(option.tarif || 0);
+
+        if (!Number.isFinite(tarifOption)) {
+            return total;
+        }
+
+        const quantite =
+            option.type === "Quantifiable"
+                ? parseFloat(optionSelectionnee?.quantite || 0)
+                : 1;
+
+        const quantiteValide = Number.isFinite(quantite)
+            ? Math.max(quantite, 0)
+            : 0;
+
+        return total + tarifOption * quantiteValide;
+    }, 0);
+}
+
+/**
  * Surveille le panier pour recalculer la déduction liée aux anciennes inscriptions.
  */
 watch(
@@ -470,13 +540,20 @@ watch(
     panier,
     async (nouveauPanier) => {
         for (const article of nouveauPanier) {
-            if (article.courseDetails?.is_prix_evolutif) {
+            if (
+                article.courseDetails?.is_prix_evolutif &&
+                !article.codeParticipation?.trim()
+            ) {
                 try {
                     const prixResp = await prixEvolutifService.getTarifActuel(
                         article.courseDetails.id,
                     );
                     if (prixResp.data?.tarif !== undefined) {
-                        article.tarif = prixResp.data.tarif;
+                        const tarifBase = parseFloat(prixResp.data.tarif);
+                        if (Number.isFinite(tarifBase)) {
+                            article.tarif =
+                                tarifBase + calculerSupplementOptions(article);
+                        }
                     }
                 } catch (e) {
                     console.error("Erreur tarif évolutif:", e);
@@ -529,7 +606,8 @@ const procederPaiement = async () => {
 
     try {
         // On boucle sur chaque article du panier
-        const promessesInscriptions = panier.value.map(async (article) => {
+        const promessesInscriptions = panier.value.map(
+            async (article, articleIndex) => {
             // On vérifie si un groupe a déjà été créé
             let idGroupeFinal = article.id_groupe || null;
 
@@ -631,6 +709,30 @@ const procederPaiement = async () => {
                 }
             };
 
+            let deductionArticle = parseFloat(
+                deductionsParArticle.value[articleIndex] ?? 0,
+            );
+
+            if (
+                article.ancienneInscriptionId &&
+                !Object.prototype.hasOwnProperty.call(
+                    deductionsParArticle.value,
+                    articleIndex,
+                )
+            ) {
+                try {
+                    const res = await api.get(
+                        `/participant/inscriptions/${article.ancienneInscriptionId}`,
+                    );
+                    deductionArticle = parseFloat(res.data?.tarif || 0);
+                } catch (e) {
+                    console.error(
+                        "Erreur récupération déduction changement inscription:",
+                        e,
+                    );
+                }
+            }
+
             const promessesParticipants = listeMembres.map(async (p) => {
                 console.log("courseDetails:", article.courseDetails);
                 console.log(
@@ -639,7 +741,10 @@ const procederPaiement = async () => {
                 );
                 // Récupérer le tarif évolutif si la course l'utilise
                 let tarifFinal = article.tarif;
-                if (article.courseDetails?.is_prix_evolutif) {
+                if (
+                    article.courseDetails?.is_prix_evolutif &&
+                    !article.codeParticipation?.trim()
+                ) {
                     try {
                         const prixResp =
                             await prixEvolutifService.getTarifActuel(
@@ -647,7 +752,12 @@ const procederPaiement = async () => {
                             );
                         console.log("Réponse tarif actuel:", prixResp.data);
                         if (prixResp.data?.tarif !== undefined) {
-                            tarifFinal = prixResp.data.tarif;
+                            const tarifBase = parseFloat(prixResp.data.tarif);
+                            if (Number.isFinite(tarifBase)) {
+                                tarifFinal =
+                                    tarifBase +
+                                    calculerSupplementOptions(article);
+                            }
                         }
                     } catch (e) {
                         console.error(
@@ -657,10 +767,21 @@ const procederPaiement = async () => {
                     }
                 }
                 console.log("tarifFinal:", tarifFinal);
+
+                const tarifApresChangement = article.ancienneInscriptionId
+                    ? Math.max(
+                          parseFloat(tarifFinal || 0) -
+                              (Number.isFinite(deductionArticle)
+                                  ? deductionArticle
+                                  : 0),
+                          0,
+                      )
+                    : parseFloat(tarifFinal || 0);
+
                 const response = await inscriptionService.createInscription({
                     id_course: article.courseDetails.id,
                     id_participant: p.id,
-                    tarif: tarifFinal,
+                    tarif: tarifApresChangement,
                     avertissement_valide: accepteConditions.value,
                     id_groupe: idGroupeFinal,
                     id_ancienne_inscription:
@@ -689,7 +810,8 @@ const procederPaiement = async () => {
                     `/participant/inscriptions/${article.ancienneInscriptionId}?is_change=1`,
                 );
             }
-        });
+        },
+        );
 
         // On attend que tout soit en base de données
         await Promise.all(promessesInscriptions);
@@ -698,8 +820,9 @@ const procederPaiement = async () => {
         // Si le total est à 0 (Downgrade gratuit), on valide sans passer par Payrexx
         if (montantTotal <= 0) {
             cartStore.viderPanier();
-            alert("Changement de course effectué avec succès ! (Gratuit)");
-            router.push("/inscriptions");
+            ouvrirPopupInscription(
+                "Inscription confirmée : votre changement de course a bien été enregistré.",
+            );
             return;
         }
 
@@ -717,12 +840,16 @@ const procederPaiement = async () => {
                 "Payrexx indisponible, simulation de paiement réussie !",
             );
             cartStore.viderPanier();
-            alert("Mode Test : Inscriptions sauvegardées ! (Payrexx ignoré)");
-            router.push("/inscriptions");
+            ouvrirPopupInscription(
+                "Inscription confirmée : vos inscriptions ont bien été enregistrées.",
+            );
         }
     } catch (error) {
         console.error("Erreur globale :", error);
-        alert("Une erreur est survenue lors de l'enregistrement.");
+        ouvrirPopupInscription(
+            "Une erreur est survenue lors de l'enregistrement. Merci de réessayer.",
+            null,
+        );
     } finally {
         isProcessing.value = false;
     }
