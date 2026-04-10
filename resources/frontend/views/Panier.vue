@@ -354,6 +354,46 @@ function getLogoSource(evenement) {
     return logo.startsWith("data:") ? logo : `data:image/png;base64,${logo}`;
 }
 
+/**
+ * Vérifie si une valeur correspond à un fichier uploadable côté navigateur.
+ * @param {unknown} valeur
+ * @returns {boolean}
+ */
+function estFichierNavigateur(valeur) {
+    return (
+        (typeof File !== "undefined" && valeur instanceof File) ||
+        (typeof Blob !== "undefined" && valeur instanceof Blob)
+    );
+}
+
+/**
+ * Extrait un fichier exploitable depuis différents formats possibles.
+ * @param {unknown} document
+ * @returns {File|Blob|null}
+ */
+function extraireFichierDocument(document) {
+    if (estFichierNavigateur(document)) {
+        return document;
+    }
+
+    if (document && typeof document === "object") {
+        const candidats = [
+            document.file,
+            document.fichier,
+            document.raw,
+            document.originFileObj,
+        ];
+
+        for (const candidat of candidats) {
+            if (estFichierNavigateur(candidat)) {
+                return candidat;
+            }
+        }
+    }
+
+    return null;
+}
+
 // Déduction du prix pour le Changement de course
 const deductionsParArticle = ref({});
 
@@ -561,8 +601,21 @@ const procederPaiement = async () => {
                 // Upload des documents s'il y en a
                 if (article.documents && article.documents.length > 0) {
                     for (const docFile of article.documents) {
+                        const fichier = extraireFichierDocument(docFile);
+                        if (!fichier) {
+                            console.warn(
+                                "Document ignoré: valeur non supportée pour l'upload.",
+                                docFile,
+                            );
+                            continue;
+                        }
+
                         const formData = new FormData();
-                        formData.append("file", docFile);
+                        const nomFichier =
+                            typeof fichier.name === "string" && fichier.name
+                                ? fichier.name
+                                : "document";
+                        formData.append("file", fichier, nomFichier);
                         try {
                             await documentService.uploadDocument(
                                 id_inscription,

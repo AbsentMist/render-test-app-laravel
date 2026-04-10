@@ -2,15 +2,55 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StatutParticipant;
 use App\Models\Document;
 use App\Models\Inscription;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class DocumentController extends Controller
 {
+    private function canManageInscriptionDocuments($user, Inscription $inscription): bool
+    {
+        if (!$user || !$user->participant) {
+            return false;
+        }
+
+        $idParticipantConnecte = $user->participant->id;
+
+        if ((int) $inscription->id_participant === (int) $idParticipantConnecte) {
+            return true;
+        }
+
+        // Un compte peut gérer les profils participants qui lui sont rattachés.
+        if ($inscription->participant && (int) $inscription->participant->id_user === (int) $user->id) {
+            return true;
+        }
+
+        if (!$inscription->id_groupe) {
+            return false;
+        }
+
+        $isMemberOfGroup = DB::table('GroupeParticipant')
+            ->where('id_groupe', $inscription->id_groupe)
+            ->where('id_participant', $idParticipantConnecte)
+            ->exists();
+
+        if (!$isMemberOfGroup) {
+            return false;
+        }
+
+        // En groupe, seul le fondateur peut gérer les documents d'un autre membre.
+        return DB::table('GroupeParticipant')
+            ->where('id_groupe', $inscription->id_groupe)
+            ->where('id_participant', $idParticipantConnecte)
+            ->whereRaw('LOWER(statut) = ?', [strtolower(StatutParticipant::FONDATEUR->value)])
+            ->exists();
+    }
+
     private function isAdmin($user): bool
     {
         return $user->roles()->where('type', 'Administrateur')->exists();
@@ -49,10 +89,9 @@ class DocumentController extends Controller
     public function indexByInscription($id_inscription): JsonResponse
     {
         $user = Auth::user();
-        $inscription = Inscription::findOrFail($id_inscription);
+        $inscription = Inscription::with('participant')->findOrFail($id_inscription);
 
-        // Vérifier que le participant propriétaire peut accéder
-        if ($inscription->id_participant !== $user->participant->id) {
+        if (!$this->canManageInscriptionDocuments($user, $inscription)) {
             return response()->json(['message' => 'Accès non autorisé.'], 403);
         }
 
@@ -65,7 +104,7 @@ class DocumentController extends Controller
     public function storeForInscription(Request $request, $id_inscription): JsonResponse
     {
         $user = Auth::user();
-        $inscription = Inscription::findOrFail($id_inscription);
+        $inscription = Inscription::with('participant')->findOrFail($id_inscription);
 
         // Vérifier que l'inscription est toujours ouverte
         if (!$inscription->course->isRegistrationOpen()) {
@@ -74,8 +113,7 @@ class DocumentController extends Controller
             ], 403);
         }
 
-        // Vérifier que le participant propriétaire peut accéder
-        if ($inscription->id_participant !== $user->participant->id) {
+        if (!$this->canManageInscriptionDocuments($user, $inscription)) {
             return response()->json(['message' => 'Accès non autorisé.'], 403);
         }
 
@@ -113,8 +151,9 @@ class DocumentController extends Controller
 
         $user = Auth::user();
         $isAdmin = $this->isAdmin($user);
+        $inscription = $document->inscription()->with('participant')->first();
 
-        if (!$isAdmin && $document->id_participant !== $user->participant->id) {
+        if (!$isAdmin && (!$inscription || !$this->canManageInscriptionDocuments($user, $inscription))) {
             return response()->json(['message' => 'Accès non autorisé.'], 403);
         }
 
@@ -122,7 +161,12 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Fichier introuvable.'], 404);
         }
 
-        return Storage::disk('documents')->download($document->url);
+        $fileContent = Storage::disk('documents')->get($document->url);
+
+        return response($fileContent, 200, [
+            'Content-Type' => 'application/octet-stream',
+            'Content-Disposition' => 'attachment; filename="' . basename($document->url) . '"',
+        ]);
     }
 
     // DELETE (PARTICIPANT) - Supprimer un document
@@ -130,8 +174,9 @@ class DocumentController extends Controller
     {
         $user = Auth::user();
         $document = Document::findOrFail($id);
+        $inscription = $document->inscription()->with('participant')->first();
 
-        if ($document->id_participant !== $user->participant->id) {
+        if (!$inscription || !$this->canManageInscriptionDocuments($user, $inscription)) {
             return response()->json(['message' => 'Accès non autorisé.'], 403);
         }
 
