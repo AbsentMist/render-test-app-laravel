@@ -58,25 +58,46 @@ describe('Panier - logique prix evolutif', () => {
   })
 
   // getTarifActuel est appele pour les courses a prix evolutif
-  test('getTarifActuel est appele pour une course a prix evolutif', async () => {
+  // et le total conserve le supplement des options.
+  test('getTarifActuel conserve les options pour une course a prix evolutif', async () => {
     prixEvolutifService.getTarifActuel.mockResolvedValue({ data: { tarif: 40 } })
 
     const store = useCartStore()
     const courseDetails = { id: 5, nom: 'Course Prix Evolutif', is_prix_evolutif: true }
-    store.ajouterInscription({ nom: 'Alice', tarif: '30' }, courseDetails)
+    store.ajouterInscription(
+      {
+        nom: 'Alice',
+        tarif: '30',
+        options: {
+          1: { option: { tarif: 5, type: 'Cochable' }, quantite: 1 },
+          2: { option: { tarif: 2.5, type: 'Quantifiable' }, quantite: 2 },
+        },
+      },
+      courseDetails,
+    )
 
     // Simuler la mise a jour du tarif comme dans le watch de Panier.vue
     for (const article of store.inscriptions) {
       if (article.courseDetails?.is_prix_evolutif) {
         const prixResp = await prixEvolutifService.getTarifActuel(article.courseDetails.id)
         if (prixResp.data?.tarif !== undefined) {
-          article.tarif = prixResp.data.tarif
+          const options = Object.values(article.options || {})
+          const supplementOptions = options.reduce((total, optionSelectionnee) => {
+            const option = optionSelectionnee?.option || {}
+            const tarifOption = parseFloat(option.tarif || 0)
+            const quantite = option.type === 'Quantifiable'
+              ? parseFloat(optionSelectionnee?.quantite || 0)
+              : 1
+            return total + tarifOption * quantite
+          }, 0)
+
+          article.tarif = prixResp.data.tarif + supplementOptions
         }
       }
     }
 
     expect(prixEvolutifService.getTarifActuel).toHaveBeenCalledWith(5)
-    expect(store.inscriptions[0].tarif).toBe(40)
+    expect(store.inscriptions[0].tarif).toBe(50)
   })
 
   // getTarifActuel n'est PAS appele pour une course sans prix evolutif
