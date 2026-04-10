@@ -59,11 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function register(formData) {
-        // 👈 CHANGEMENT 4 : On utilise 'api'
-        const response = await api.post('/register', formData)
-        token.value = response.data.token
-        user.value = response.data.user
-        localStorage.setItem('token', token.value)
+        await api.post('/register', formData)
     }
 
     async function logout() {

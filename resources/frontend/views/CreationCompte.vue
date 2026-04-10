@@ -600,7 +600,7 @@ async function handleRegister() {
     }
 
     await authStore.register(payload)
-    router.push('/accueil')
+    router.push('/login')
 
   } catch (e) {
     if (e.response?.data?.errors) {

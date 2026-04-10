@@ -57,6 +57,7 @@ class CourseController extends Controller
                     'type'              => $course->type,
                     'is_challenge'      => $course->is_challenge,
                     'is_prix_evolutif'  => $course->is_prix_evolutif,
+                    'document_description' => $course->document_description,
                     'categorie'         => $course->categorie->nom ?? null,
                     'sous_categorie'    => $course->sousCategorie->nom ?? null,
                     'avertissement'     => $course->avertissement,
@@ -183,7 +184,8 @@ class CourseController extends Controller
             'is_avertissement'  => 'boolean',
             'is_document'       => 'boolean',
             'is_questionnaire'  => 'boolean',
-            'is_prix_evolutif'  => 'boolean', 
+            'is_prix_evolutif'  => 'boolean',
+            'document_description' => 'nullable|string',
         ]);
 
         $course = Course::create($validatedData);
@@ -230,7 +232,7 @@ class CourseController extends Controller
             'is_avertissement'  => 'boolean',
             'is_document'       => 'boolean',
             'is_questionnaire'  => 'boolean',
-
+            'document_description' => 'nullable|string',
         ]);
 
         $course->update($validatedData);

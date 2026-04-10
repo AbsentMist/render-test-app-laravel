@@ -375,9 +375,7 @@ export default {
             this.dataInserted = true; 
             setTimeout(() => {
                 this.dataInserted = false; 
-                if (this.isEditMode) {
-                    this.$router.push('/organisateur/evenements');
-                }
+                this.$router.push('/organisateur/evenements');
             }, 2000); 
         }
     },

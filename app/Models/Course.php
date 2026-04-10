@@ -17,7 +17,7 @@ class Course extends Model
         'debut_inscription', 'fin_inscription', 'tarif', 'status', 'type', 
         'is_challenge', 'is_actif', 'is_dossard', 'is_avertissement', 'is_document', 'is_questionnaire', 'max_inscription', 'max_nb_personne', 'premier_dossard', 
         'dernier_dossard', 'distance', 'heure_depart', 'heure_fin', 
-        'age_minimum', 'age_maximum','is_prix_evolutif', 
+        'age_minimum', 'age_maximum','is_prix_evolutif', 'document_description',
     ];
 
     protected $casts = [

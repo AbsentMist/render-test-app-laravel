@@ -1088,14 +1088,14 @@ export default {
             ],
             documentModels: [
                 {
-                    name: "Etudiant",
+                    name: "Justificatif Étudiant",
                     description:
-                        "Si vous êtes étudiant, veuillez fournir l'attestation de scolarité.",
+                        "Pour valider votre tarif préférentiel, veuillez joindre une copie de votre carte d'étudiant ou un certificat de scolarité valide pour la saison actuelle.",
                 },
                 {
-                    name: "Etudiant + santé",
+                    name: "Étudiant + Certificat Médical",
                     description:
-                        "Étudiant inscrit à un cours avec attestation de santé.",
+                        "En complément de votre justificatif étudiant, vous devez fournir un certificat médical de non-contre-indication à la course à pied en compétition, datant de moins d'un an.",
                 },
             ],
             optionElements: ["Existant", "Nouveau"],
@@ -1318,7 +1318,7 @@ export default {
         },
 
         /**
-         * Charge une course existante puis hydrate les sections liées du formulaire.
+         * Charge une course existante puis remplit les sections liées du formulaire.
          * @returns {Promise<void>}
          */
         async chargerDonneesCourse() {
@@ -1403,9 +1403,29 @@ export default {
                             : { quantiteMin: 0, quantiteMax: 0 },
                     }));
                 }
-                if (course.is_document === 1 && course.document_description)
+
+                // Charger la description des documents si présente
+                if (
+                    this.courseData.parameters.document &&
+                    course.document_description
+                ) {
                     this.courseData.document.description =
                         course.document_description;
+                }
+
+                // Charger les questions liées à la course
+                if (
+                    this.courseData.parameters.questionnaire &&
+                    course.questions &&
+                    Array.isArray(course.questions)
+                ) {
+                    this.courseData.questions = course.questions.map((q) => ({
+                        id: q.id,
+                        enonce: q.enonce,
+                        choix: q.choix || [],
+                    }));
+                }
+
                 console.log("Course chargée avec succès :", course);
             } catch (e) {
                 console.error("Erreur globale chargement course:", e);
@@ -1786,6 +1806,9 @@ export default {
                     is_questionnaire: Boolean(
                         this.courseData.parameters.questionnaire,
                     ),
+                    document_description: this.courseData.parameters.document
+                        ? this.courseData.document.description
+                        : null,
                     id_avertissement: id_avertissement,
                     id_categorie: this.courseData.category.id,
                     id_sous_categorie: this.courseData.subCategory.id,
@@ -1945,13 +1968,12 @@ export default {
             this.dataInserted = true;
             setTimeout(() => {
                 this.dataInserted = false;
-                if (this.isEditMode) {
-                    if (this.courseData.event.id)
-                        this.$router.push(
-                            `/organisateur/evenements/${this.courseData.event.id}/courses`,
-                        );
-                    else this.$router.push(`/organisateur/evenements`);
-                }
+                if (this.courseData.event.id)
+                    this.$router.push(
+                        `/organisateur/evenements/${this.courseData.event.id}/courses`,
+                    );
+                else this.$router.push(`/organisateur/evenements`);
+                
             }, 2000);
         },
 

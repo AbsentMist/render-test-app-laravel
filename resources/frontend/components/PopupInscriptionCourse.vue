@@ -64,6 +64,7 @@
 
                         <EtapeDocument
                             v-show="etape === formulaireEtape.DOCUMENT"
+                            :description_document="course.document_description"
                             v-model="inscription.documents"
                         />
 

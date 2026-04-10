@@ -53,6 +53,18 @@ const totalMiniPanier = computed(() => {
 });
 
 /**
+ * Normalise la source du logo évènement pour l'affichage.
+ * Supporte `logo_base64` ou `logo`, avec ou sans préfixe data URI.
+ * @param {object} evenement
+ * @returns {string|null}
+ */
+const getLogoSource = (evenement) => {
+  const logo = evenement?.logo_base64 || evenement?.logo;
+  if (!logo) return null;
+  return logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;
+};
+
+/**
  * Bascule entre l'affichage participant et administrateur.
  * @returns {Promise<void>}
  */
@@ -245,7 +257,7 @@ const refuserInvitation = async (idGroupe) => {
                       class="w-[72px] h-[72px] rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-sm relative"
                       :style="{ backgroundColor: item.courseDetails?.evenement?.couleur_primaire || '#5C8E9A' }"
                     >
-                      <img v-if="item.courseDetails?.evenement?.logo_base64" :src="'data:image/png;base64,' + item.courseDetails.evenement.logo_base64" class="absolute inset-0 w-full h-full object-contain p-1.5" />
+                      <img v-if="getLogoSource(item.courseDetails?.evenement)" :src="getLogoSource(item.courseDetails?.evenement)" class="absolute inset-0 w-full h-full object-contain p-1.5" />
                       <span v-else class="text-[10px] text-white font-bold text-center px-1 leading-tight relative z-10">{{ item.courseDetails?.evenement?.nom || 'Course' }}</span>
                     </div>
                     

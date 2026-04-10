@@ -109,6 +109,7 @@ return new class extends Migration
             $table->float('distance')->nullable();
             $table->integer('age_minimum');
             $table->integer('age_maximum')->nullable();
+            $table->text('document_description')->nullable();
         });
 
         //Table d'association
