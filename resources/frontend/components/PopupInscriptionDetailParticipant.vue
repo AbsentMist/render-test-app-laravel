@@ -247,6 +247,9 @@
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:file-document-outline" class="w-4 h-4" /> Documents
             </h3>
+            <div v-if="inscription.course.document_description" class="my-2">
+              <span class="text-sm text-gray-600">{{ inscription.course.document_description }}</span>
+            </div>
             <div class="bg-gray-50 rounded-xl p-4">
               <div v-if="inscription.documents_fournis && inscription.documents_fournis.length > 0" class="space-y-3">
                 <div v-for="doc in inscription.documents_fournis" :key="doc.id"
@@ -463,7 +466,7 @@
         v-if="showChangementCourse"
         :inscription="inscription"
         :participants="participants"
-        @close="showChangementCourse = false"
+        @close="fermerAvecPopup"
         @confirmer="onChangementConfirme"
       />
 
@@ -488,7 +491,7 @@
 import { Icon } from '@iconify/vue';
 import PopupChangementCourseParticipant from './PopupChangementCourseParticipant.vue';
 import PopupConfirmation from './PopupConfirmation.vue';
-import courseOrganisateurService from '../services/courseOrganisateurService';
+import courseParticipantService from '../services/courseParticipantService';
 import documentService from '../services/documentService';
 import inscriptionService from '../services/inscriptionService';
 
@@ -549,10 +552,25 @@ export default {
      */
     async chargerCourseComplete() {
       try {
-        const response = await courseOrganisateurService.getCourse(this.inscription.id_course);
+        const response = await courseParticipantService.getCourse(this.inscription.id_course);
         this.coursComplet = response.data;
       } catch (e) {
         console.error('Erreur lors du chargement de la course :', e);
+      }
+    },
+
+    /**
+     * Charge explicitement les documents liés à l'inscription.
+     * Ce fallback évite les cas où la relation n'est pas incluse dans le payload initial.
+     * @returns {Promise<void>}
+     */
+    async chargerDocumentsFournis() {
+      if (!this.inscription?.id) return;
+      try {
+        const response = await documentService.getDocumentsByInscription(this.inscription.id);
+        this.inscription.documents_fournis = Array.isArray(response.data) ? response.data : [];
+      } catch (e) {
+        console.error('Erreur lors du chargement des documents :', e);
       }
     },
 
@@ -790,6 +808,15 @@ export default {
     },
 
     /**
+     * Ferme la modale de changement ET la modale parent d'inscription.
+     * @returns {void}
+     */
+    fermerAvecPopup() {
+      this.showChangementCourse = false;
+      this.$emit('close');
+    },
+
+    /**
      * Vérifie si une réponse donnée correspond à l'affichage d'une question.
      * @param {number} idQuestion
      * @param {number} idAnswer
@@ -802,6 +829,7 @@ export default {
   },
   mounted() {
     this.chargerCourseComplete();
+    this.chargerDocumentsFournis();
   },
 };
 </script>

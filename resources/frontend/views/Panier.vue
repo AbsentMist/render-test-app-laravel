@@ -18,10 +18,6 @@
                             >Article</span
                         >
                         <div class="flex gap-16 md:gap-32">
-                            <span
-                                class="font-bold text-gray-800 text-sm hidden sm:block"
-                                >Quantité</span
-                            >
                             <span class="font-bold text-gray-800 text-sm"
                                 >Prix</span
                             >
@@ -72,15 +68,8 @@
                                     }"
                                 >
                                     <img
-                                        v-if="
-                                            article.courseDetails?.evenement
-                                                ?.logo_base64
-                                        "
-                                        :src="
-                                            'data:image/png;base64,' +
-                                            article.courseDetails.evenement
-                                                .logo_base64
-                                        "
+                                        v-if="getLogoSource(article.courseDetails?.evenement)"
+                                        :src="getLogoSource(article.courseDetails?.evenement)"
                                         class="absolute inset-0 w-full h-full object-contain p-2"
                                     />
                                     <span
@@ -93,11 +82,8 @@
                                     >
                                 </div>
 
-                                <div
-                                    class="flex-1 flex flex-col sm:flex-row justify-between"
-                                >
                                     <div
-                                        class="flex flex-col gap-1 text-sm text-gray-900"
+                                        class=" w-full flex flex-col gap-1 text-sm text-gray-900"
                                     >
                                         <h3 class="text-lg font-normal">
                                             {{
@@ -105,72 +91,34 @@
                                                     ?.nom
                                             }}
                                         </h3>
-                                        <p class="font-semibold text-xs">
-                                            -
-                                            {{
-                                                article.courseDetails
-                                                    ?.nom_course
-                                            }}
-                                            <template
-                                                v-if="
-                                                    article.courseDetails
-                                                        ?.sous_categorie
-                                                "
-                                                >•
-                                                {{
-                                                    article.courseDetails
-                                                        ?.sous_categorie
-                                                }}</template
-                                            >
-                                        </p>
-
-                                        <p class="font-bold mt-1 text-gray-700">
-                                            {{
-                                                (article.participant?.length
-                                                    ? article.participant
-                                                    : article.groupeEphemere
-                                                          ?.participants || []
-                                                )
-                                                    .map(
-                                                        (p) =>
-                                                            p.prenom +
-                                                            " " +
-                                                            p.nom,
-                                                    )
-                                                    .join(", ")
-                                            }}
-                                        </p>
-
-                                        <div
-                                            v-if="
-                                                article.options &&
-                                                Object.keys(article.options)
-                                                    .length > 0
-                                            "
-                                            class="mt-1"
-                                        >
-                                            <p
-                                                v-for="(
-                                                    opt, key
-                                                ) in article.options"
-                                                :key="key"
-                                                class="font-medium text-xs text-gray-600"
-                                            >
-                                                {{
-                                                    opt.quantite
-                                                        ? opt.quantite + "x "
-                                                        : ""
-                                                }}{{ opt.option?.nom }}
+                                        <div class="flex flex-row justify-between">
+                                            <p class="font-semibold text-xs">-
+                                                {{article.courseDetails?.nom_course}}
+                                            </p>
+                                            <p>
+                                                {{ parseFloat(article.courseDetails?.tarif,).toFixed(2)}}.-
                                             </p>
                                         </div>
 
-                                        <p
-                                            v-if="
-                                                article.documents &&
-                                                article.documents.length > 0
-                                            "
-                                            class="font-medium text-xs text-blue-600 mt-1 flex items-center gap-1"
-                                        >
+                                        <p class="font-bold mt-1 text-gray-700">
+                                            {{(article.participant?.length? article.participant: article.groupeEphemere?.participants || [])
+                                                .map((p) =>p.prenom + " " + p.nom,).join(", ")
+                                            }}
+                                        </p>
+
+                                        <div v-if="article.options && Object.keys(article.options).length > 0" class="mt-1">
+                                            <div v-for="(opt, key) in article.options" :key="key" class="font-medium text-xs text-gray-600 flex flex-row justify-between">
+                                                <span>
+                                                    {{opt.quantite? opt.quantite + "x " : ""}}{{ opt.option?.nom }}
+                                                </span>
+                                                <span>
+                                                    + {{ parseFloat(opt.option?.tarif,).toFixed(2)}}.-
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <p v-if="article.documents && article.documents.length > 0"
+                                            class="font-medium text-xs text-blue-600 mt-1 flex items-center gap-1">
                                             <svg
                                                 class="w-3 h-3"
                                                 fill="none"
@@ -187,55 +135,30 @@
                                             Document(s) joint(s)
                                         </p>
                                     </div>
+                                </div>
 
-                                    <div
-                                        class="flex items-start gap-16 md:gap-32 mt-4 sm:mt-0"
-                                    >
-                                        <div class="w-16 hidden sm:block">
-                                            <div
-                                                class="w-full border border-gray-200 bg-gray-50 rounded-md p-1.5 text-center text-sm font-medium text-gray-500"
-                                            >
-                                                1
+                                <div
+                                    class="flex justify-end mt-4 sm:mt-0"
+                                >
+                                    <div class="max-w-sm mt-3 pt-3 border-t border-gray-100 w-full flex flex-col items-end gap-1">
+                                        <div v-if="getDeductionArticle(index) > 0" class="flex flex-col justify-between gap-1 w-full">
+                                            <div class="flex justify-end ">
+                                                <span> {{ parseFloat(article.tarif).toFixed(2) }}.-</span>
+                                            </div>
+                                            <div 
+                                                class="w-full flex justify-between items-center text-sm font-bold text-green-600"
+                                                >
+                                                <span>Déduction changement</span>
+                                                <span>- {{ getDeductionArticle(index).toFixed(2) }}.-</span>
                                             </div>
                                         </div>
-
+                                        
                                         <div
-                                            class="flex flex-col items-end gap-1 font-bold text-sm min-w-[4rem]"
+                                            class="w-full flex justify-end items-center text-lg text-[#0e0f54]"
                                         >
-                                            <p class="text-gray-600">
-                                                {{
-                                                    parseFloat(
-                                                        article.tarif,
-                                                    ).toFixed(2)
-                                                }}.-
-                                                <!-- ← affiche le tarif corrigé par le watch -->
-                                            </p>
-
-                                            <p
-                                                v-for="(
-                                                    opt, key
-                                                ) in article.options"
-                                                :key="'opt' + key"
-                                                class="text-xs text-gray-400"
-                                            >
-                                                +
-                                                {{
-                                                    (
-                                                        opt.option?.tarif *
-                                                        (opt.quantite || 1)
-                                                    ).toFixed(2)
-                                                }}.-
-                                            </p>
-
-                                            <p
-                                                class="mt-4 pt-4 border-t border-gray-100 w-full text-right text-lg text-[#0e0f54]"
-                                            >
-                                                {{
-                                                    parseFloat(
-                                                        article.tarif,
-                                                    ).toFixed(2)
-                                                }}.-
-                                            </p>
+                                            <span class="font-bold">
+                                                {{ getTotalLigneArticle(article, index).toFixed(2) }}.-
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -251,7 +174,6 @@
                                     Retirer du panier
                                 </button>
                             </div>
-                        </div>
                     </div>
                 </div>
 
@@ -272,14 +194,6 @@
                     </div>
 
                     <hr class="border-gray-200 mb-6" />
-
-                    <div
-                        v-if="deductionChangement > 0"
-                        class="flex justify-between items-center mb-6 text-sm font-bold text-green-600"
-                    >
-                        <span>Déduction (Changement de course)</span>
-                        <span>- {{ deductionChangement.toFixed(2) }}.-</span>
-                    </div>
 
                     <div class="flex justify-between items-center mb-8">
                         <span class="text-xl font-black text-gray-900"
@@ -428,8 +342,41 @@ const accepteConditions = ref(false);
 const isProcessing = ref(false);
 const fraisServiceFixe = 2.5;
 
+/**
+ * Normalise la source du logo évènement pour l'affichage.
+ * Supporte `logo_base64` ou `logo`, avec ou sans préfixe data URI.
+ * @param {Object} evenement
+ * @returns {string|null}
+ */
+function getLogoSource(evenement) {
+    const logo = evenement?.logo_base64 || evenement?.logo;
+    if (!logo) return null;
+    return logo.startsWith("data:") ? logo : `data:image/png;base64,${logo}`;
+}
+
 // Déduction du prix pour le Changement de course
-const deductionChangement = ref(0);
+const deductionsParArticle = ref({});
+
+/**
+ * Retourne la déduction applicable à une ligne panier.
+ * @param {number} index
+ * @returns {number}
+ */
+const getDeductionArticle = (index) => {
+    return deductionsParArticle.value[index] ?? 0;
+};
+
+/**
+ * Retourne le tarif final d'une ligne après déduction de changement.
+ * @param {Object} article
+ * @param {number} index
+ * @returns {number}
+ */
+const getTotalLigneArticle = (article, index) => {
+    const tarif = parseFloat(article?.tarif || 0);
+    const deduction = getDeductionArticle(index);
+    return Math.max(tarif - deduction, 0);
+};
 
 /**
  * Surveille le panier pour recalculer la déduction liée aux anciennes inscriptions.
@@ -437,15 +384,17 @@ const deductionChangement = ref(0);
 watch(
     panier,
     async (nouveauPanier) => {
-        let deduction = 0;
-        for (const article of nouveauPanier) {
+        const mapDeductions = {};
+
+        for (const [index, article] of nouveauPanier.entries()) {
+            let deduction = 0;
             if (article.ancienneInscriptionId) {
                 try {
                     const res = await api.get(
                         `/participant/inscriptions/${article.ancienneInscriptionId}`,
                     );
                     if (res.data && res.data.tarif) {
-                        deduction += parseFloat(res.data.tarif);
+                        deduction = parseFloat(res.data.tarif);
                     }
                 } catch (e) {
                     console.error(
@@ -454,11 +403,25 @@ watch(
                     );
                 }
             }
+
+            mapDeductions[index] = deduction;
         }
-        deductionChangement.value = deduction;
+
+        deductionsParArticle.value = mapDeductions;
     },
     { immediate: true },
 );
+
+/**
+ * Somme de toutes les déductions de changement dans le panier.
+ * @type {import('vue').ComputedRef<number>}
+ */
+const deductionTotale = computed(() => {
+    return Object.values(deductionsParArticle.value).reduce(
+        (sum, value) => sum + parseFloat(value || 0),
+        0,
+    );
+});
 
 /**
  * Surveille le panier pour rafraîchir les tarifs évolutifs.
@@ -489,7 +452,7 @@ watch(
  * @type {import('vue').ComputedRef<number>}
  */
 const sousTotal = computed(() => {
-    let st = cartStore.cartTotal - deductionChangement.value;
+    let st = cartStore.cartTotal - deductionTotale.value;
     return st > 0 ? st : 0;
 });
 

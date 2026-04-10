@@ -3,7 +3,7 @@
         <div>
             <h2 class="text-base font-semibold text-heading">Ajoutez vos documents</h2>
             <p class="text-sm text-gray-500 mt-1">
-                Veuillez soumettre vos documents uniquement si un des éléments suivant s'applique à vous.
+                {{ description_document }}
             </p>
         </div>
 
@@ -78,6 +78,10 @@ export default {
             type: Array,
             default: () => [],
         },
+        description_document:{
+            type: String,
+            required: true
+        }
     },
     emits: ['update:modelValue'],
     /**

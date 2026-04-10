@@ -303,7 +303,7 @@
     class="btn-tertiary px-8 py-3 rounded-xl"
     :class="{ 'opacity-50 cursor-not-allowed': chargement }"
   >
-    {{ chargement ? 'Création en cours...' : 'Terminé' }}
+    {{ chargement ? 'Création en cours...' : 'Créer mon compte' }}
   </button>
 </div>
 
@@ -600,16 +600,58 @@ async function handleRegister() {
     }
 
     await authStore.register(payload)
-    router.push('/accueil')
+    router.push('/login')
 
   } catch (e) {
     if (e.response?.data?.errors) {
       const apiErrors = e.response.data.errors
-      if (apiErrors.email) errors.email = apiErrors.email[0]
-      if (apiErrors.telephone) errors.telephone = apiErrors.telephone[0]
-      if (apiErrors.password) errors.password = apiErrors.password[0]
-      // Retourne à l'étape concernée
-      if (apiErrors.email || apiErrors.password) currentStep.value = 1
+
+      // Nettoyage des erreurs visibles
+      Object.keys(errors).forEach((k) => delete errors[k])
+
+      // Mapping backend -> frontend
+      const fieldMap = {
+        email: 'email',
+        password: 'password',
+        password_confirmation: 'passwordConfirm',
+        nom: 'nom',
+        prenom: 'prenom',
+        date_naissance: 'dateNaissance',
+        telephone: 'telephone',
+        nationalite: 'nationalite',
+        adresse: 'adresse',
+        code_postal: 'npa',
+        ville: 'commune',
+        sexe: 'genre',
+        taille_tshirt: 'tailleTshirt',
+      }
+
+      Object.entries(apiErrors).forEach(([apiField, messages]) => {
+        const frontField = fieldMap[apiField]
+        if (frontField && Array.isArray(messages) && messages.length > 0) {
+          errors[frontField] = messages[0]
+        }
+      })
+
+      // Revenir sur l'étape pertinente
+      const step1Fields = ['prenom', 'nom', 'email', 'password', 'passwordConfirm']
+      const step2Fields = ['genre', 'dateNaissance', 'telephone', 'nationalite']
+
+      if (step1Fields.some((f) => errors[f])) {
+        currentStep.value = 1
+      } else if (step2Fields.some((f) => errors[f])) {
+        currentStep.value = 2
+      } else {
+        currentStep.value = 3
+      }
+
+      // Message global de fallback si un champ backend ne correspond à aucun champ UI
+      if (Object.keys(errors).length === 0) {
+        const premierMessage = Object.values(apiErrors)?.[0]?.[0]
+        erreurGlobale.value = premierMessage || 'Certaines informations sont invalides.'
+      }
+    } else if (e.response?.data?.message) {
+      erreurGlobale.value = e.response.data.message
     } else {
       erreurGlobale.value = 'Une erreur est survenue, veuillez réessayer.'
     }

@@ -25,7 +25,7 @@ class AdminSeeder extends Seeder
                 'email'     => 'pb@runningeneva.ch',
                 'password'  => 'AdminRGVA2026!',
                 'prenom'    => 'Patricia',
-                'nom'       => 'Bullani',
+                'nom'       => 'Bongini',
                 'sexe'      => 'F',
                 'telephone' => '0000000001',
             ],

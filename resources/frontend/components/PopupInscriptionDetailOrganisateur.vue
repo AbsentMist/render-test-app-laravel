@@ -334,6 +334,9 @@
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Icon icon="mdi:file-document-outline" class="w-4 h-4" /> Documents
             </h3>
+            <div v-if="inscription.course.document_description" class="my-2">
+              <span class="text-sm text-gray-600">{{ inscription.course.document_description }}</span>
+            </div>
             <div class="bg-gray-50 rounded-xl p-4">
               <div v-if="inscription.documents_fournis && inscription.documents_fournis.length > 0" class="space-y-3">
                 <div v-for="doc in inscription.documents_fournis" :key="doc.id"
@@ -559,7 +562,7 @@
         v-if="showChangementCourse"
         :inscription="inscription"
         :participants="participants"
-        @close="showChangementCourse = false"
+        @close="fermerAvecPopup"
         @confirmer="onChangementConfirme"
       />
     </Transition>
@@ -970,6 +973,15 @@ export default {
     onChangementConfirme(data) {
       this.showChangementCourse = false;
       this.$emit('ajouter-panier', data);
+    },
+
+    /**
+     * Ferme la modale de changement ET la modale parent d'inscription.
+     * @returns {void}
+     */
+    fermerAvecPopup() {
+      this.showChangementCourse = false;
+      this.$emit('close');
     },
   },
   mounted() {

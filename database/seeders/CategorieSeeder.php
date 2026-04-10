@@ -6,13 +6,13 @@ class CategorieSeeder extends Seeder
 {
     public function run(): void
     {
-        $categories = [
+        $sousCategories = [
             [
-                'nom' => 'Challenge étudiant',
+                'nom' => 'Etudiant',
                 'modele' => true
             ],
             [
-                'nom' => 'Open',
+                'nom' => 'Employé',
                 'modele' => true
             ],
             [
@@ -25,14 +25,14 @@ class CategorieSeeder extends Seeder
             ],
         ];
 
-        foreach ($categories as $categorie) {
-            DB::table('Categorie')->updateOrInsert(
-                ['nom' => $categorie['nom']],
-                $categorie
+        foreach ($sousCategories as $sousCategorie) {
+            DB::table('SousCategorie')->updateOrInsert(
+                ['nom' => $sousCategorie['nom']],
+                $sousCategorie
             );
         }
 
-        $sousCategories = [
+        $categories = [
             [
                 'nom' => 'Mixte',
                 'modele' => true
@@ -47,10 +47,10 @@ class CategorieSeeder extends Seeder
             ],
         ];
 
-        foreach ($sousCategories as $sousCategorie) {
-            DB::table('SousCategorie')->updateOrInsert(
-                ['nom' => $sousCategorie['nom']],
-                $sousCategorie
+        foreach ($categories as $categorie) {
+            DB::table('Categorie')->updateOrInsert(
+                ['nom' => $categorie['nom']],
+                $categorie
             );
         }
     }
