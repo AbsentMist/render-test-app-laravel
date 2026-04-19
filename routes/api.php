@@ -20,6 +20,7 @@ use App\Http\Controllers\ChoixOptionController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ChallengeOrganisationController;
 use App\Http\Controllers\PrixEvolutifController;
+use App\Http\Controllers\TemplateController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -144,6 +145,12 @@ use App\Http\Controllers\PrixEvolutifController;
             Route::post('/avertissements', [AvertissementController::class, 'store']);
             Route::put('/avertissements/{id}', [AvertissementController::class, 'update']);
             Route::delete('/avertissements/{id}', [AvertissementController::class, 'destroy']);
+
+            Route::get('/templates', [TemplateController::class, 'indexAdmin']);
+            Route::get('/templates/{id}', [TemplateController::class, 'show']);
+            Route::post('/templates', [TemplateController::class, 'store']);
+            Route::put('/templates/{id}', [TemplateController::class, 'update']);
+            Route::delete('/templates/{id}', [TemplateController::class, 'destroy']);
 
             Route::get('/categories', [CategorieController::class, 'indexAdmin']);
             Route::get('/categories/{id}', [CategorieController::class, 'show']);

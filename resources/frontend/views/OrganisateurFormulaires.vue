@@ -4,6 +4,7 @@
     <FormulaireOnglet :formulaires="Object.values(formulaires)" v-model="activeTab" />
     <FormulaireCourse v-if="activeTab === formulaires.COURSE" />
     <FormulaireOption v-if="activeTab === formulaires.OPTIONS" />
+    <FormulaireTemplate v-if="activeTab === formulaires.TEMPLATE" />
     <FormulaireEvenement v-if="activeTab === formulaires.EVENEMENT" />
     <FormulaireCategorie v-if="activeTab === formulaires.CATEGORIE" />
     <FormulaireAvertissement v-if="activeTab === formulaires.AVERTISSEMENT" />
@@ -23,6 +24,7 @@ import FormulaireCourse from '../components/FormulaireCourse.vue';
 import FormulaireEvenement from '../components/FormulaireEvenement.vue';
 import FormulaireOnglet from '../components/FormulaireOnglet.vue';
 import FormulaireOption from '../components/FormulaireOption.vue';
+import FormulaireTemplate from '../components/FormulaireTemplate.vue';
 import Title from '../components/Title.vue';
 
 const formulaires = {
@@ -44,6 +46,7 @@ export default {
     FormulaireOption,
     FormulaireCategorie,
     FormulaireAvertissement,
+    FormulaireTemplate
   },
   /**
    * Initialise la navigation par onglets des formulaires organisateur.

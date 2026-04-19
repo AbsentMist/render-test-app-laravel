@@ -51,6 +51,7 @@ return new class extends Migration
         Schema::create('Template', function (Blueprint $table) {
             $table->id();
             $table->string('nom', 255);
+            $table->text('contenu');
         });
 
         Schema::create('Champ', function (Blueprint $table) {
