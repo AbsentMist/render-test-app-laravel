@@ -12,7 +12,7 @@ return new class extends Migration
             [
                 'email'     => 'pb@runningeneva.ch',
                 'prenom'    => 'Patricia',
-                'nom'       => 'Bullani',
+                'nom'       => 'Bongini',
                 'sexe'      => 'F',
                 'telephone' => '0000000001',
             ],
