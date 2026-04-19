@@ -27,9 +27,17 @@
 
                 <div class="flex flex-row justify-end mt-4">
                     <div class="flex justify-between gap-4">
-                        <button type="button" @click="copyTemplateContent" class="btn-accent-300">
-                            <Icon icon="lucide:copy" width="20" height="20" class="text-body hover:text-heading" />
-                        </button>
+                        <div class="relative">
+                            <span
+                                v-if="copieConfirmee"
+                                class="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs text-primary bg-tertiary p-2 rounded-xl"
+                            >
+                                Copié
+                            </span>
+                            <button type="button" @click="copyTemplateContent" class="btn-accent-300">
+                                <Icon icon="lucide:copy" width="20" height="20" class="text-body hover:text-heading" />
+                            </button>
+                        </div>
                         <button
                             v-if="canShowCancelButton"
                             type="button"
@@ -112,6 +120,8 @@ export default {
             templateModels: [],
             dataInserted: false,
             templateASupprimer: null,
+            copieConfirmee: false,
+            copieConfirmationTimeout: null,
         }
     },
     computed: {
@@ -154,25 +164,47 @@ export default {
             if (!contenu) return;
 
             try {
+                let copied = false;
+
                 if (navigator?.clipboard?.writeText) {
                     await navigator.clipboard.writeText(contenu);
-                    return;
+                    copied = true;
+                } else {
+                    // Fallback pour les contextes où l'API Clipboard n'est pas disponible.
+                    const tempTextarea = document.createElement('textarea');
+                    tempTextarea.value = contenu;
+                    tempTextarea.setAttribute('readonly', '');
+                    tempTextarea.style.position = 'absolute';
+                    tempTextarea.style.left = '-9999px';
+
+                    document.body.appendChild(tempTextarea);
+                    tempTextarea.select();
+                    copied = document.execCommand('copy');
+                    document.body.removeChild(tempTextarea);
                 }
 
-                // Fallback pour les contextes où l'API Clipboard n'est pas disponible.
-                const tempTextarea = document.createElement('textarea');
-                tempTextarea.value = contenu;
-                tempTextarea.setAttribute('readonly', '');
-                tempTextarea.style.position = 'absolute';
-                tempTextarea.style.left = '-9999px';
-
-                document.body.appendChild(tempTextarea);
-                tempTextarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempTextarea);
+                if (copied) {
+                    this.showCopyConfirmation();
+                }
             } catch (error) {
                 console.error("Erreur lors de la copie :", error);
             }
+        },
+        /**
+         * Affiche temporairement la confirmation visuelle de copie.
+         * @returns {void}
+         */
+        showCopyConfirmation() {
+            this.copieConfirmee = true;
+
+            if (this.copieConfirmationTimeout) {
+                clearTimeout(this.copieConfirmationTimeout);
+            }
+
+            this.copieConfirmationTimeout = setTimeout(() => {
+                this.copieConfirmee = false;
+                this.copieConfirmationTimeout = null;
+            }, 1500);
         },
         /**
          * Copie un modèle existant dans le formulaire courant.
@@ -262,6 +294,12 @@ export default {
             this.templateModels = response.data;
         } catch (error) {
             console.error("Erreur au chargement :", error);
+        }
+    },
+    beforeUnmount() {
+        if (this.copieConfirmationTimeout) {
+            clearTimeout(this.copieConfirmationTimeout);
+            this.copieConfirmationTimeout = null;
         }
     }
 }
