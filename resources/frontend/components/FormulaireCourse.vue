@@ -1076,16 +1076,7 @@ export default {
             ],
             categories: [],
             subCategories: [],
-            questionModels: [
-                {
-                    enonce: "Comment avez-vous connu l'évènement ?",
-                    choix: [
-                        { texte_option: "Réseaux sociaux" },
-                        { texte_option: "Bouche à oreille" },
-                        { texte_option: "Autre" },
-                    ],
-                },
-            ],
+            questionModels: [],
             documentModels: [
                 {
                     name: "Justificatif Étudiant",
@@ -1606,10 +1597,21 @@ export default {
                         (o) => o.nom === option,
                     );
                     this.courseData.options.push(optionSansId);
-                } else if (this.etape === formulaireEtape.QUESTIONNAIRE)
-                    this.courseData.questions.push(
-                        this.questionModels.find((q) => q.enonce === option),
+                } else if (this.etape === formulaireEtape.QUESTIONNAIRE) {
+                    const questionModele = this.questionModels.find(
+                        (q) => q.enonce === option,
                     );
+                    if (questionModele) {
+                        this.courseData.questions.push({
+                            enonce: questionModele.enonce,
+                            choix: (questionModele.choix || []).map(
+                                (choix) => ({
+                                    texte_option: choix.texte_option,
+                                }),
+                            ),
+                        });
+                    }
+                }
                 this.modal = optionModal.FERMEE;
             }
         },
@@ -2024,6 +2026,16 @@ export default {
             this.optionModels = response.data;
         } catch (e) {
             console.error("Erreur lors de la récupération des options: ", e);
+        }
+        try {
+            const response =
+                await questionOrganisateurService.getAllQuestions();
+            this.questionModels = response.data;
+        } catch (e) {
+            console.error(
+                "Erreur lors de la récupération des questions: ",
+                e,
+            );
         }
         try {
             const response =

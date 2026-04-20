@@ -4,17 +4,31 @@
         <div class="flex flex-col-2 gap-4">
             <div class="basis-2/3">
                 <OptionTemplate :optionModel="optionData" :border="false" :removeButton="true" />
-                <div class="flex flex-row justify-end mt-4">
-                    <button type="button" @click="handleSubmit()" class="btn-tertiary">
-                        Ajouter une option
+                <div class="flex flex-row justify-end mt-4 gap-4">
+                    <button v-if="isEditing" type="button" @click="resetForm" class="btn-accent-300">
+                        Annuler
+                    </button>
+                    <button v-if="isEditing" type="button" @click="modifyOption" class="btn-tertiary-300 text-secondary">
+                        Modifier l'option
+                    </button>
+                    <button type="button" @click="createOption" class="btn-tertiary">
+                        Ajouter l'option
                     </button>
                 </div>
             </div>
             <div class="basis-1/3 border-l border-default-medium pl-4">
                 <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
-                <button v-for="(option, index) in optionModels" :key="index" @click="copyDatas(option)" class="btn-model flex flex-row items-center justify-between">
+                <button
+                    v-for="(option, index) in optionModels"
+                    :key="option.id ?? index"
+                    @click="copyDatas(option)"
+                    :class="[
+                        'btn-model flex flex-row items-center justify-between',
+                        isModelHighlighted(option) ? 'bg-accent-300 text-heading ring-1 ring-accent' : ''
+                    ]"
+                >
                     {{ option.nom }}
-                    <Icon icon="lucide:trash-2" width="20" height="20" class="text-accent hover:bg-accent-300 rounded-lg flex-shrink-0" @click.stop="removeOption(index)"/>
+                    <Icon icon="lucide:trash-2" width="20" height="20" class="text-accent hover:bg-accent-300 rounded-lg shrink-0" @click.stop="removeOption(index)"/>
                 </button>
             </div>
         </div>
@@ -43,6 +57,19 @@ import OptionTemplate from './OptionTemplate.vue';
 import PopupConfirmation from './PopupConfirmation.vue';
 import optionOrganisateurService from '../services/optionOrganisateurService';
 
+const createEmptyOption = () => ({
+    id: null,
+    nom: "",
+    description: "",
+    tarif: "",
+    type: "Quantifiable",
+    modele: true,
+    quantifiable: {
+        quantiteMin: 0,
+        quantiteMax: 1,
+    }
+});
+
 export default {
     components: {
         Icon,
@@ -55,36 +82,134 @@ export default {
      */
     data() {
         return {
-            optionData:
-            {
-                nom: "",
-                description: "",
-                tarif: "",
-                type: "Quantifiable",
-                modele: true,
-                quantifiable: {
-                    quantiteMin: 0,
-                    quantiteMax: 1,
-                }
-            },
+            optionData: createEmptyOption(),
             optionModels: [],
             optionASupprimer: null,
+            selectedOptionModelId: null,
             dataInserted: false,
         };
     },
+    computed: {
+        /**
+         * Indique si le formulaire est en mode édition.
+         * @returns {boolean}
+         */
+        isEditing() {
+            return this.optionData.id !== null;
+        },
+    },
     methods: {
+        /**
+         * Normalise une option API vers le format du formulaire.
+         * @param {Object} option Donnée option brute.
+         * @returns {Object} Option normalisée.
+         */
+        normalizeOption(option) {
+            const type = option?.type === 'Cochable' ? 'Cochable' : 'Quantifiable';
+            return {
+                id: option?.id ?? null,
+                nom: option?.nom ?? '',
+                description: option?.description ?? '',
+                tarif: option?.tarif ?? '',
+                type,
+                modele: true,
+                quantifiable: {
+                    quantiteMin: option?.quantifiable?.quantiteMin ?? 0,
+                    quantiteMax: option?.quantifiable?.quantiteMax ?? 1,
+                },
+            };
+        },
         /**
          * Copie un modèle existant dans le formulaire courant.
          * @param {Object} option Option source sélectionnée dans la liste des modèles.
          * @returns {void}
          */
         copyDatas(option) {
-            this.optionData.nom = option.nom;
-            this.optionData.description = option.description;
-            this.optionData.tarif = option.tarif;
-            this.optionData.type = option.type;
-            this.optionData.quantifiable.quantiteMin = option.quantifiable.quantiteMin;
-            this.optionData.quantifiable.quantiteMax = option.quantifiable.quantiteMax;
+            this.optionData = this.normalizeOption(option);
+            this.selectedOptionModelId = option?.id ?? null;
+        },
+        /**
+         * Réinitialise le formulaire et quitte le mode édition.
+         * @returns {void}
+         */
+        resetForm() {
+            this.optionData = createEmptyOption();
+            this.selectedOptionModelId = null;
+        },
+        /**
+         * Prépare une option pour comparaison de contenu.
+         * @param {Object} option Donnée option à comparer.
+         * @returns {Object} Version simplifiée de l'option.
+         */
+        buildComparableOption(option) {
+            const normalizedOption = this.normalizeOption(option);
+            return {
+                nom: (normalizedOption.nom || '').trim(),
+                description: (normalizedOption.description || '').trim(),
+                tarif: normalizedOption.tarif === null || normalizedOption.tarif === undefined ? '' : String(normalizedOption.tarif),
+                type: normalizedOption.type,
+                quantiteMin: String(normalizedOption.quantifiable?.quantiteMin ?? 0),
+                quantiteMax: String(normalizedOption.quantifiable?.quantiteMax ?? 1),
+            };
+        },
+        /**
+         * Indique si un modèle doit être affiché en surbrillance.
+         * @param {Object} option Modèle de la liste.
+         * @returns {boolean}
+         */
+        isModelHighlighted(option) {
+            if (!option?.id || option.id !== this.selectedOptionModelId) {
+                return false;
+            }
+
+            const modelOption = this.buildComparableOption(option);
+            const formOption = this.buildComparableOption(this.optionData);
+
+            if (
+                modelOption.nom !== formOption.nom
+                || modelOption.description !== formOption.description
+                || modelOption.tarif !== formOption.tarif
+                || modelOption.type !== formOption.type
+            ) {
+                return false;
+            }
+
+            if (modelOption.type !== 'Quantifiable') {
+                return true;
+            }
+
+            return (
+                modelOption.quantiteMin === formOption.quantiteMin
+                && modelOption.quantiteMax === formOption.quantiteMax
+            );
+        },
+        /**
+         * Prépare le payload d'option pour l'API.
+         * @returns {FormData}
+         */
+        buildOptionFormData() {
+            const formData = new FormData();
+            formData.append('nom', this.optionData.nom);
+            formData.append('description', this.optionData.description);
+            formData.append('tarif', this.optionData.tarif);
+            formData.append('type', this.optionData.type);
+            formData.append('modele', this.optionData.modele ? 1 : 0);
+
+            if (this.optionData.type === 'Quantifiable') {
+                formData.append('quantiteMin', this.optionData.quantifiable.quantiteMin);
+                formData.append('quantiteMax', this.optionData.quantifiable.quantiteMax);
+            }
+
+            formData.append('courses[]', 1);
+            return formData;
+        },
+        /**
+         * Recharge la liste des options modèles.
+         * @returns {Promise<void>}
+         */
+        async chargerModeles() {
+            const updatedList = await optionOrganisateurService.getAllOptions();
+            this.optionModels = updatedList.data;
         },
         /**
          * Prépare la suppression d'un modèle en ouvrant la confirmation.
@@ -105,42 +230,57 @@ export default {
             try {
                 await optionOrganisateurService.deleteOption(this.optionASupprimer.id);
                 this.optionModels.splice(this.optionASupprimer.index, 1);
+                if (this.optionData.id === this.optionASupprimer.id) {
+                    this.resetForm();
+                }
+                if (this.selectedOptionModelId === this.optionASupprimer.id) {
+                    this.selectedOptionModelId = null;
+                }
                 this.optionASupprimer = null;
             } catch (error) {
                 console.error("Erreur lors de la suppression :", error.response?.data || error);
             }
         },
         /**
-         * Envoie une nouvelle option modèle à l'API puis recharge la liste des modèles.
+         * Applique les actions communes après création/modification réussie.
          * @returns {Promise<void>}
          */
-        async handleSubmit() {
+        async handleSuccessSubmit() {
+            this.dataInserted = true;
+            await this.chargerModeles();
+
+            setTimeout(() => { this.dataInserted = false; }, 2000);
+        },
+        /**
+         * Crée une nouvelle option modèle à partir du formulaire courant.
+         * @returns {Promise<void>}
+         */
+        async createOption() {
             try {
-                const formData = new FormData();
-                formData.append('nom', this.optionData.nom);
-                formData.append('description', this.optionData.description);
-                formData.append('tarif', this.optionData.tarif);
-                formData.append('type', this.optionData.type);
-                formData.append('modele', this.optionData.modele? 1 : 0);
-
-                if (this.optionData.type === 'Quantifiable') {
-                    formData.append('quantiteMin', this.optionData.quantifiable.quantiteMin);
-                    formData.append('quantiteMax', this.optionData.quantifiable.quantiteMax);
-                }
-
-                formData.append('courses[]', 1); 
-
-                const response = await optionOrganisateurService.createOption(formData);
+                const response = await optionOrganisateurService.createOption(this.buildOptionFormData());
                 
                 if (response.status === 201) {
-                    this.dataInserted = true;
-                    const updatedList = await optionOrganisateurService.getAllOptions();
-                    this.optionModels = updatedList.data;
-                    
-                    setTimeout(() => { this.dataInserted = false; }, 2000);
+                    await this.handleSuccessSubmit();
                 }
             } catch (error) {
                 console.error("Erreur détaillée :", error.response?.data || error.message || error);
+            }
+        },
+        /**
+         * Modifie l'option modèle actuellement sélectionnée.
+         * @returns {Promise<void>}
+         */
+        async modifyOption() {
+            if (!this.isEditing) return;
+
+            try {
+                const response = await optionOrganisateurService.modifyOption(this.optionData.id, this.buildOptionFormData());
+
+                if (response.status === 201 || response.status === 200) {
+                    await this.handleSuccessSubmit();
+                }
+            } catch (error) {
+                console.error("Erreur lors de la modification :", error.response?.data || error.message || error);
             }
         },
     },
@@ -150,8 +290,7 @@ export default {
      */
     async mounted(){
         try{
-            const response = await optionOrganisateurService.getAllOptions();
-            this.optionModels = response.data;
+            await this.chargerModeles();
         } catch (error) {
             console.error("Erreur lors de la récupération des options :", error);
         }

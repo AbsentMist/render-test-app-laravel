@@ -4,6 +4,7 @@
     <FormulaireOnglet :formulaires="Object.values(formulaires)" v-model="activeTab" />
     <FormulaireCourse v-if="activeTab === formulaires.COURSE" />
     <FormulaireOption v-if="activeTab === formulaires.OPTIONS" />
+    <FormulaireQuestion v-if="activeTab === formulaires.QUESTIONNAIRE" />
     <FormulaireTemplate v-if="activeTab === formulaires.TEMPLATE" />
     <FormulaireEvenement v-if="activeTab === formulaires.EVENEMENT" />
     <FormulaireCategorie v-if="activeTab === formulaires.CATEGORIE" />
@@ -24,6 +25,7 @@ import FormulaireCourse from '../components/FormulaireCourse.vue';
 import FormulaireEvenement from '../components/FormulaireEvenement.vue';
 import FormulaireOnglet from '../components/FormulaireOnglet.vue';
 import FormulaireOption from '../components/FormulaireOption.vue';
+import FormulaireQuestion from '../components/FormulaireQuestion.vue';
 import FormulaireTemplate from '../components/FormulaireTemplate.vue';
 import Title from '../components/Title.vue';
 
@@ -44,6 +46,7 @@ export default {
     FormulaireOnglet,
     FormulaireCourse,
     FormulaireOption,
+    FormulaireQuestion,
     FormulaireCategorie,
     FormulaireAvertissement,
     FormulaireTemplate

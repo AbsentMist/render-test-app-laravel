@@ -9,8 +9,8 @@
         </p>
 
         <div class="flex flex-row gap-4">
-            <div class="basis-2/3 flex flex-col justify-between h-[450px]">
-                <div class="space-y-4 flex-grow">
+            <div class="basis-2/3 flex flex-col justify-between h-112.5">
+                <div class="space-y-4 grow">
                     <div>
                         <label for="nom" class="block mb-2 text-sm font-medium text-heading">Nom du modèle</label>
                         <input type="text" id="nom" v-model="templateData.nom" 
@@ -20,7 +20,7 @@
                     <div class="flex flex-col">
                         <label for="template" class="block mb-2 text-sm font-medium text-heading">Contenu du template</label>
                         <textarea id="template" v-model="templateData.contenu" 
-                            class="resize-none h-[280px] bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" 
+                            class="resize-none h-70 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" 
                             placeholder="Saisissez le contenu du template..." required />
                     </div>
                 </div>
@@ -39,15 +39,18 @@
                             </button>
                         </div>
                         <button
-                            v-if="canShowCancelButton"
+                            v-if="isEditing"
                             type="button"
                             @click="resetForm"
                             class="btn-accent-300"
                         >
                             Annuler
                         </button>
-                        <button type="button" @click="handleSubmit" class="btn-tertiary">
-                            {{ submitButtonLabel }}
+                        <button v-if="isEditing" type="button" @click="modifyTemplate" class="btn-tertiary-300 text-secondary">
+                            Modifier le template
+                        </button>
+                        <button type="button" @click="createTemplate" class="btn-tertiary">
+                            Ajouter le template
                         </button>
                     </div>
                 </div>
@@ -55,15 +58,18 @@
 
             <div class="basis-1/3 min-w-0 border-l border-default-medium pl-4">
                 <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
-                <div class="flex flex-col gap-2 h-[415px] overflow-y-auto overflow-x-hidden pr-2 scrollbar-thin">
+                <div class="flex flex-col gap-2 h-103.75 overflow-y-auto overflow-x-hidden pr-2 scrollbar-thin">
                     <button v-for="(template, index) in templateModels" 
-                        :key="index" 
+                        :key="template.id ?? index" 
                         type="button" 
                         @click="copyDatas(template)" 
-                        class="btn-model flex flex-row items-center justify-between w-full min-w-0 text-left min-h-[42px]">
+                        :class="[
+                            'btn-model flex flex-row items-center justify-between w-full min-w-0 text-left min-h-10.5',
+                            isModelHighlighted(template) ? 'bg-accent-300 text-heading ring-1 ring-accent' : ''
+                        ]">
                         <span class="block flex-1 min-w-0 truncate pr-2">{{ template.nom }}</span>
                         <Icon icon="lucide:trash-2" width="20" height="20" 
-                            class="text-accent hover:bg-accent-300 rounded-lg flex-shrink-0" 
+                            class="text-accent hover:bg-accent-300 rounded-lg shrink-0" 
                             @click.stop="removeTemplate(index)"/>
                     </button>
 
@@ -113,13 +119,10 @@ export default {
                 nom: "",
                 contenu: "",
             },
-            originalTemplateData: {
-                nom: "",
-                contenu: "",
-            },
             templateModels: [],
             dataInserted: false,
             templateASupprimer: null,
+            selectedTemplateModelId: null,
             copieConfirmee: false,
             copieConfirmationTimeout: null,
         }
@@ -132,29 +135,20 @@ export default {
         isEditing() {
             return this.templateData.id !== null;
         },
-        /**
-         * Libellé dynamique du bouton principal selon le mode du formulaire.
-         * @returns {string}
-         */
-        submitButtonLabel() {
-            return this.isEditing ? 'Modifier le template' : 'Ajouter le template';
-        },
-        /**
-         * Contrôle l'affichage du bouton Annuler uniquement si des changements existent.
-         * @returns {boolean}
-         */
-        canShowCancelButton() {
-            if (!this.isEditing) {
-                return false;
-            }
-
-            return (
-                this.templateData.nom !== this.originalTemplateData.nom
-                || this.templateData.contenu !== this.originalTemplateData.contenu
-            );
-        },
     },
     methods: {
+        /**
+         * Normalise un template API vers le format local du formulaire.
+         * @param {Object} template Donnée template brute.
+         * @returns {Object} Template normalisé.
+         */
+        normalizeTemplate(template) {
+            return {
+                id: template?.id ?? null,
+                nom: template?.nom ?? '',
+                contenu: template?.contenu ?? '',
+            };
+        },
         /**
          * Copie le contenu actuel du template dans le presse-papiers.
          * @returns {Promise<void>}
@@ -212,22 +206,46 @@ export default {
          * @returns {void}
          */
         copyDatas(template) {
-            this.templateData.id = template.id;
-            this.templateData.nom = template.nom;
-            this.templateData.contenu = template.contenu;
-            this.originalTemplateData.nom = template.nom || "";
-            this.originalTemplateData.contenu = template.contenu || "";
+            this.templateData = this.normalizeTemplate(template);
+            this.selectedTemplateModelId = template?.id ?? null;
         },
         /**
          * Réinitialise le formulaire et quitte le mode édition.
          * @returns {void}
          */
         resetForm() {
-            this.templateData.id = null;
-            this.templateData.nom = "";
-            this.templateData.contenu = "";
-            this.originalTemplateData.nom = "";
-            this.originalTemplateData.contenu = "";
+            this.templateData = this.normalizeTemplate(null);
+            this.selectedTemplateModelId = null;
+        },
+        /**
+         * Prépare un template pour comparaison de contenu.
+         * @param {Object} template Donnée template à comparer.
+         * @returns {Object} Version simplifiée du template.
+         */
+        buildComparableTemplate(template) {
+            const normalizedTemplate = this.normalizeTemplate(template);
+            return {
+                nom: (normalizedTemplate.nom || '').trim(),
+                contenu: (normalizedTemplate.contenu || '').trim(),
+            };
+        },
+        /**
+         * Indique si un modèle doit être affiché en surbrillance.
+         * @param {Object} template Modèle de la liste.
+         * @returns {boolean}
+         */
+        isModelHighlighted(template) {
+            if (!template?.id || template.id !== this.selectedTemplateModelId) {
+                return false;
+            }
+
+            const modelTemplate = this.buildComparableTemplate(template);
+            const formTemplate = this.buildComparableTemplate(this.templateData);
+
+            return (
+                modelTemplate.nom === formTemplate.nom
+                && modelTemplate.contenu === formTemplate.contenu
+            );
         },
         /**
          * Prépare la suppression d'un modèle de template.
@@ -251,36 +269,71 @@ export default {
                 if (this.templateData.id === this.templateASupprimer.id) {
                     this.resetForm();
                 }
+                if (this.selectedTemplateModelId === this.templateASupprimer.id) {
+                    this.selectedTemplateModelId = null;
+                }
                 this.templateASupprimer = null;
             } catch (error) {
                  console.error("Erreur lors de la suppression :", error.response?.data || error);
             }
         },
         /**
-         * Enregistre un nouvel avertissement modèle puis recharge la liste disponible.
+         * Recharge la liste des templates depuis l'API.
          * @returns {Promise<void>}
          */
-        async handleSubmit() {
+        async chargerModeles() {
+            const response = await templateOrganisateurService.getAllTemplates();
+            this.templateModels = response.data;
+        },
+        /**
+         * Applique les actions communes après création/modification réussie.
+         * @returns {Promise<void>}
+         */
+        async handleSuccessSubmit() {
+            this.dataInserted = true;
+            await this.chargerModeles();
+            this.resetForm();
+
+            setTimeout(() => { this.dataInserted = false; }, 2000);
+        },
+        /**
+         * Crée un nouveau template modèle à partir du formulaire courant.
+         * @returns {Promise<void>}
+         */
+        async createTemplate() {
             try {
                 const formData = new FormData();
                 formData.append('nom', this.templateData.nom);
                 formData.append('contenu', this.templateData.contenu);
 
-                const response = this.isEditing
-                    ? await templateOrganisateurService.modifyTemplate(this.templateData.id, formData)
-                    : await templateOrganisateurService.createTemplate(formData);
-                
+                const response = await templateOrganisateurService.createTemplate(formData);
+
                 if (response.status === 201 || response.status === 200) {
-                    this.dataInserted = true;
-                    const updatedList = await templateOrganisateurService.getAllTemplates();
-                    this.templateModels = updatedList.data;
-
-                    this.resetForm();
-
-                    setTimeout(() => { this.dataInserted = false; }, 2000);
+                    await this.handleSuccessSubmit();
                 }
             } catch (error) {
                 console.error("Erreur lors de l'envoi :", error.response?.data || error.message);
+            }
+        },
+        /**
+         * Modifie le template modèle actuellement sélectionné.
+         * @returns {Promise<void>}
+         */
+        async modifyTemplate() {
+            if (!this.isEditing) return;
+
+            try {
+                const formData = new FormData();
+                formData.append('nom', this.templateData.nom);
+                formData.append('contenu', this.templateData.contenu);
+
+                const response = await templateOrganisateurService.modifyTemplate(this.templateData.id, formData);
+                
+                if (response.status === 201 || response.status === 200) {
+                    await this.handleSuccessSubmit();
+                }
+            } catch (error) {
+                console.error("Erreur lors de la modification :", error.response?.data || error.message);
             }
         },
     },
@@ -290,8 +343,7 @@ export default {
      */
     async mounted() {
         try {
-            const response = await templateOrganisateurService.getAllTemplates();
-            this.templateModels = response.data;
+            await this.chargerModeles();
         } catch (error) {
             console.error("Erreur au chargement :", error);
         }
