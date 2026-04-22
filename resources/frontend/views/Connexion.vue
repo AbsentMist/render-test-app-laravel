@@ -133,7 +133,7 @@ async function handleLogin() {
   chargement.value = true
   try {
     await authStore.login(email.value, password.value)
-    router.push('/accueil')
+    router.push(authStore.isAdmin ? '/organisateur/evenements' : '/accueil')
   } catch (e) {
     if (e.response?.data?.errors?.email) {
       erreur.value = e.response.data.errors.email[0]
