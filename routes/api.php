@@ -21,6 +21,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ChallengeOrganisationController;
 use App\Http\Controllers\PrixEvolutifController;
 use App\Http\Controllers\TemplateController;
+use App\Http\Controllers\EchangeDossardController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -108,6 +109,14 @@ use App\Http\Controllers\TemplateController;
             //récupérer tarif actuel 
             Route::get('/courses/{id_course}/prix-evolutif', [PrixEvolutifController::class, 'index']);
             Route::get('/courses/{id_course}/tarif-actuel', [PrixEvolutifController::class, 'tarifActuel']);
+
+            //échange de dossard
+            Route::get('/echange-dossard/mes-demandes-recues', [EchangeDossardController::class, 'mesDemandesRecues']);
+            Route::get('/echange-dossard/mes-demandes-envoyees', [EchangeDossardController::class, 'mesDemandesEnvoyees']);
+            Route::post('/echange-dossard/initier', [EchangeDossardController::class, 'initier']);
+            Route::post('/echange-dossard/{id}/accepter', [EchangeDossardController::class, 'accepter']);
+            Route::post('/echange-dossard/{id}/refuser', [EchangeDossardController::class, 'refuser']);
+            Route::delete('/echange-dossard/{id}/annuler', [EchangeDossardController::class, 'annuler']);
         });
 
         // Gestion du rôle Administrateur par Middleware

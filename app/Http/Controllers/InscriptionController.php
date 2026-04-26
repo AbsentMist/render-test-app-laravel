@@ -60,8 +60,7 @@ class InscriptionController extends Controller
             'code_participant' => 'nullable|string|unique:Inscription,code_participant',
             'avertissement_valide' => 'sometimes|boolean',
             //Ajout du champ "en attente" pour les inscriptions relais / entreprises
-            'status_paiement'     => 'sometimes|in:Validé,Annulé,En attente',
-            'participe_challenge' => 'sometimes|boolean',
+            'status_paiement' => 'sometimes|in:Validé,Annulé,En attente,Échangé',            'participe_challenge' => 'sometimes|boolean',
             'type_challenge'      => 'nullable|string|max:50',
             'equipe_challenge'    => 'nullable|string|max:100',
             'date_paiement'       => now(),
