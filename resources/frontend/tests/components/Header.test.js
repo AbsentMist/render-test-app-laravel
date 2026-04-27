@@ -252,4 +252,40 @@ describe('Header', () => {
     expect(groupeService.refuserInvitation).toHaveBeenCalledWith(8)
     expect(alertMock).toHaveBeenCalled()
   })
+
+  // Affiche la photo profil si disponible
+  test('affiche la photo profil quand participant.photo est present', async () => {
+    authStoreMock.user = {
+      participant: {
+        prenom: 'Alice',
+        nom: 'Dupont',
+        photo: 'QUJD',
+      },
+    }
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    const avatarImage = wrapper.find('button.w-11.h-11.rounded-full img[alt="Photo de profil"]')
+    expect(avatarImage.exists()).toBe(true)
+    expect(avatarImage.attributes('src')).toBe('data:image/jpeg;base64,QUJD')
+  })
+
+  // Affiche l icone par defaut si aucune photo
+  test('affiche l icone profil par defaut quand il n y a pas de photo', async () => {
+    authStoreMock.user = {
+      participant: {
+        prenom: 'Alice',
+        nom: 'Dupont',
+        photo: null,
+      },
+    }
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    const avatarImage = wrapper.find('button.w-11.h-11.rounded-full img[alt="Photo de profil"]')
+    expect(avatarImage.exists()).toBe(false)
+    expect(wrapper.find('button.w-11.h-11.rounded-full [data-test="icon"]').exists()).toBe(true)
+  })
 })
