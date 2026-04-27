@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Participant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -116,5 +117,78 @@ class AuthControllerTest extends TestCase
                 'nom' => 'Martin',
                 'email' => $targetUser->email,
             ]);
+    }
+
+    public function test_authenticated_user_can_update_password_with_valid_current_password()
+    {
+        $user = User::create([
+            'email' => 'pwd_ok_' . uniqid() . '@test.ch',
+            'password' => Hash::make('StrongPwd!123'),
+        ]);
+
+        Participant::factory()->create(['id_user' => $user->id]);
+
+        $response = $this->actingAs($user)->postJson('/api/password', [
+            'currentPassword' => 'StrongPwd!123',
+            'newPassword' => 'NewStrongPwd!456',
+            'newPassword_confirmation' => 'NewStrongPwd!456',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['message' => 'Mot de passe modifié avec succès.']);
+
+        $this->assertTrue(Hash::check('NewStrongPwd!456', $user->fresh()->password));
+    }
+
+    public function test_update_password_fails_with_invalid_current_password()
+    {
+        $user = User::create([
+            'email' => 'pwd_fail_' . uniqid() . '@test.ch',
+            'password' => Hash::make('StrongPwd!123'),
+        ]);
+
+        Participant::factory()->create(['id_user' => $user->id]);
+
+        $response = $this->actingAs($user)->postJson('/api/password', [
+            'currentPassword' => 'wrong-password',
+            'newPassword' => 'NewStrongPwd!456',
+            'newPassword_confirmation' => 'NewStrongPwd!456',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['currentPassword']);
+    }
+
+    public function test_me_returns_participant_photo_as_data_url_when_photo_exists()
+    {
+        $user = User::factory()->create();
+        $photoFile = UploadedFile::fake()->image('avatar.jpg');
+        $participant = Participant::factory()->create([
+            'id_user' => $user->id,
+            'photo' => file_get_contents($photoFile->getRealPath()),
+        ]);
+
+        $response = $this->actingAs($user)->getJson('/api/me');
+
+        $response->assertStatus(200);
+        $this->assertStringStartsWith('data:image/jpeg;base64,', $response->json('participant.photo'));
+        $this->assertEquals($participant->id, $response->json('participant.id'));
+    }
+
+    public function test_mes_participants_returns_200_even_if_photo_binary_exists()
+    {
+        $user = User::factory()->create();
+        $photoFile = UploadedFile::fake()->image('avatar.jpg');
+
+        Participant::factory()->create([
+            'id_user' => $user->id,
+            'photo' => file_get_contents($photoFile->getRealPath()),
+        ]);
+
+        $response = $this->actingAs($user)->getJson('/api/participant/participants');
+
+        $response->assertStatus(200);
+        $this->assertIsArray($response->json());
+        $this->assertArrayNotHasKey('photo', $response->json()[0]);
     }
 }

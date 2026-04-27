@@ -22,6 +22,7 @@ use App\Http\Controllers\ChallengeOrganisationController;
 use App\Http\Controllers\PrixEvolutifController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\EchangeDossardController;
+use App\Http\Controllers\ProfileController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -31,6 +32,7 @@ use App\Http\Controllers\EchangeDossardController;
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me',      [AuthController::class, 'me']);
+        Route::post('/password', [AuthController::class, 'updatePassword']);
         Route::post('/paiement/gateway', [PayrexxController::class, 'creerGateway']);
 
         // Route accessible à tous les utilisateurs (Participants + Admins)
@@ -76,6 +78,10 @@ use App\Http\Controllers\EchangeDossardController;
             
             //Gestion du code participant
             Route::post('/groupes/verifier-code', [GroupeController::class, 'verifierCodeEntreprise']);
+
+            // Profil utilisateur connecté
+            Route::get('/profil', [ProfileController::class, 'show']);
+            Route::put('/profil', [ProfileController::class, 'update']);
 
             //CRUD Inscription
             Route::get('/inscriptions', [InscriptionController::class, 'indexParticipant']);

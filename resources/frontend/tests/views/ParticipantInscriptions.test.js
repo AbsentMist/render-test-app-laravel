@@ -13,6 +13,11 @@ vi.mock('../../services/inscriptionService.js', () => ({
     getMesInscriptions: vi.fn(),
   },
 }))
+vi.mock('../../services/echangeDossardService.js', () => ({
+  default: {
+    mesDemandesEnvoyees: vi.fn(),
+  },
+}))
 vi.mock('../../components/Title.vue', () => ({
   default: {
     name: 'Title',
@@ -44,6 +49,7 @@ vi.mock('../../components/PopupInscriptionDetailParticipant.vue', () => ({
 
 import ParticipantInscriptions from '../../views/ParticipantInscriptions.vue'
 import inscriptionService from '../../services/inscriptionService.js'
+import echangeDossardService from '../../services/echangeDossardService.js'
 
 const mockInscriptions = [
   {
@@ -84,6 +90,9 @@ describe('ParticipantInscriptions', () => {
     vi.clearAllMocks()
     inscriptionService.getMesInscriptions.mockResolvedValue({
       data: mockInscriptions,
+    })
+    echangeDossardService.mesDemandesEnvoyees.mockResolvedValue({
+      data: [],
     })
   })
 
