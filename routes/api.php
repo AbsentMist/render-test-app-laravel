@@ -22,6 +22,7 @@ use App\Http\Controllers\ChallengeOrganisationController;
 use App\Http\Controllers\PrixEvolutifController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\EchangeDossardController;
+use App\Http\Controllers\ProfileController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -76,6 +77,11 @@ use App\Http\Controllers\EchangeDossardController;
             
             //Gestion du code participant
             Route::post('/groupes/verifier-code', [GroupeController::class, 'verifierCodeEntreprise']);
+
+            // Profil utilisateur connecté
+            Route::get('/profil', [ProfileController::class, 'show']);
+            Route::put('/profil', [ProfileController::class, 'update']);
+            Route::post('/profil/password', [ProfileController::class, 'updatePassword']);
 
             //CRUD Inscription
             Route::get('/inscriptions', [InscriptionController::class, 'indexParticipant']);
