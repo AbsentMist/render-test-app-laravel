@@ -70,7 +70,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user'  => $user->load('participant', 'roles'),
+            'user'  => $this->buildUserResponse($user),
         ], 201);
     }
 
@@ -93,7 +93,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user'  => $user->load('participant', 'roles'),
+            'user'  => $this->buildUserResponse($user),
         ]);
     }
 
@@ -110,7 +110,44 @@ class AuthController extends Controller
     // ===== UTILISATEUR CONNECTÉ =====
     public function me(Request $request)
     {
-        return response()->json($request->user()->load('participant', 'roles'));
+        return response()->json($this->buildUserResponse($request->user()));
+    }
+
+    // ===== MODIFICATION MOT DE PASSE =====
+    public function updatePassword(Request $request)
+    {
+        $validated = $request->validate([
+            'currentPassword' => 'required|string',
+            'newPassword' => 'required|string|min:8|confirmed',
+        ], [
+            'newPassword.confirmed' => 'La confirmation du nouveau mot de passe ne correspond pas.',
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($validated['currentPassword'], $user->password)) {
+            return response()->json([
+                'message' => 'Le mot de passe actuel est incorrect.',
+                'errors' => ['currentPassword' => ['Le mot de passe actuel est incorrect.']],
+            ], 422);
+        }
+
+        $user->update([
+            'password' => Hash::make($validated['newPassword']),
+        ]);
+
+        return response()->json(['message' => 'Mot de passe modifié avec succès.']);
+    }
+
+    private function buildUserResponse(User $user): User
+    {
+        $loadedUser = $user->load('participant', 'roles');
+
+        if ($loadedUser->participant && $loadedUser->participant->photo) {
+            $loadedUser->participant->photo = 'data:image/jpeg;base64,' . base64_encode($loadedUser->participant->photo);
+        }
+
+        return $loadedUser;
     }
 
     // ===== RECHERCHE PARTICIPANT PAR EMAIL =====
@@ -211,7 +248,27 @@ class AuthController extends Controller
 public function mesParticipants(Request $request)
 {
     $user = $request->user();
-    $participants = Participant::where('id_user', $user->id)->get();
+    $participants = Participant::where('id_user', $user->id)
+        ->select([
+            'id',
+            'id_user',
+            'nom',
+            'prenom',
+            'date_naissance',
+            'equipe_nom',
+            'adresse',
+            'code_postal',
+            'ville',
+            'pays',
+            'telephone',
+            'nationalite',
+            'instagram',
+            'facebook',
+            'taille_tshirt',
+            'sexe',
+        ])
+        ->get();
+
     return response()->json($participants);
 }
 
