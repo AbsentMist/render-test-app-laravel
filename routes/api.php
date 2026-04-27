@@ -32,6 +32,7 @@ use App\Http\Controllers\ProfileController;
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me',      [AuthController::class, 'me']);
+        Route::post('/password', [AuthController::class, 'updatePassword']);
         Route::post('/paiement/gateway', [PayrexxController::class, 'creerGateway']);
 
         // Route accessible à tous les utilisateurs (Participants + Admins)
@@ -81,7 +82,6 @@ use App\Http\Controllers\ProfileController;
             // Profil utilisateur connecté
             Route::get('/profil', [ProfileController::class, 'show']);
             Route::put('/profil', [ProfileController::class, 'update']);
-            Route::post('/profil/password', [ProfileController::class, 'updatePassword']);
 
             //CRUD Inscription
             Route::get('/inscriptions', [InscriptionController::class, 'indexParticipant']);
