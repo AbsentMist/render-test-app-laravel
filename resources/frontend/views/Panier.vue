@@ -68,8 +68,18 @@
                                     }"
                                 >
                                     <img
-                                        v-if="getLogoSource(article.courseDetails?.evenement)"
-                                        :src="getLogoSource(article.courseDetails?.evenement)"
+                                        v-if="
+                                            getLogoSource(
+                                                article.courseDetails
+                                                    ?.evenement,
+                                            )
+                                        "
+                                        :src="
+                                            getLogoSource(
+                                                article.courseDetails
+                                                    ?.evenement,
+                                            )
+                                        "
                                         class="absolute inset-0 w-full h-full object-contain p-2"
                                     />
                                     <span
@@ -82,98 +92,200 @@
                                     >
                                 </div>
 
-                                    <div
-                                        class=" w-full flex flex-col gap-1 text-sm text-gray-900"
-                                    >
-                                        <h3 class="text-lg font-normal">
+                                <div
+                                    class="w-full flex flex-col gap-1 text-sm text-gray-900"
+                                >
+                                    <h3 class="text-lg font-normal">
+                                        {{
+                                            article.courseDetails?.evenement
+                                                ?.nom
+                                        }}
+                                    </h3>
+                                    <div class="flex flex-row justify-between">
+                                        <p class="font-semibold text-xs">
+                                            -
                                             {{
-                                                article.courseDetails?.evenement
-                                                    ?.nom
-                                            }}
-                                        </h3>
-                                        <div class="flex flex-row justify-between">
-                                            <p class="font-semibold text-xs">-
-                                                {{article.courseDetails?.nom_course}}
-                                            </p>
-                                            <p>
-                                                {{ parseFloat(article.courseDetails?.tarif,).toFixed(2)}}.-
-                                            </p>
-                                        </div>
-
-                                        <p class="font-bold mt-1 text-gray-700">
-                                            {{(article.participant?.length? article.participant: article.groupeEphemere?.participants || [])
-                                                .map((p) =>p.prenom + " " + p.nom,).join(", ")
+                                                article.courseDetails
+                                                    ?.nom_course
                                             }}
                                         </p>
-
-                                        <div v-if="article.options && Object.keys(article.options).length > 0" class="mt-1">
-                                            <div v-for="(opt, key) in article.options" :key="key" class="font-medium text-xs text-gray-600 flex flex-row justify-between">
-                                                <span>
-                                                    {{opt.quantite? opt.quantite + "x " : ""}}{{ opt.option?.nom }}
-                                                </span>
-                                                <span>
-                                                    + {{ parseFloat(opt.option?.tarif,).toFixed(2)}}.-
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <p v-if="article.documents && article.documents.length > 0"
-                                            class="font-medium text-xs text-blue-600 mt-1 flex items-center gap-1">
-                                            <svg
-                                                class="w-3 h-3"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                                                ></path>
-                                            </svg>
-                                            Document(s) joint(s)
+                                        <p>
+                                            {{
+                                                parseFloat(
+                                                    article.courseDetails
+                                                        ?.tarif,
+                                                ).toFixed(2)
+                                            }}.-
                                         </p>
                                     </div>
-                                </div>
 
-                                <div
-                                    class="flex justify-end mt-4 sm:mt-0"
-                                >
-                                    <div class="max-w-sm mt-3 pt-3 border-t border-gray-100 w-full flex flex-col items-end gap-1">
-                                        <div v-if="getDeductionArticle(index) > 0" class="flex flex-col justify-between gap-1 w-full">
-                                            <div class="flex justify-end ">
-                                                <span> {{ parseFloat(article.tarif).toFixed(2) }}.-</span>
-                                            </div>
-                                            <div 
-                                                class="w-full flex justify-between items-center text-sm font-bold text-green-600"
-                                                >
-                                                <span>Déduction changement</span>
-                                                <span>- {{ getDeductionArticle(index).toFixed(2) }}.-</span>
-                                            </div>
-                                        </div>
-                                        
+                                    <p class="font-bold mt-1 text-gray-700">
+                                        {{
+                                            (article.participant?.length
+                                                ? article.participant
+                                                : article.groupeEphemere
+                                                      ?.participants || []
+                                            )
+                                                .map(
+                                                    (p) =>
+                                                        p.prenom + " " + p.nom,
+                                                )
+                                                .join(", ")
+                                        }}
+                                    </p>
+
+                                    <div
+                                        v-if="
+                                            article.options &&
+                                            Object.keys(article.options)
+                                                .length > 0
+                                        "
+                                        class="mt-1"
+                                    >
                                         <div
-                                            class="w-full flex justify-end items-center text-lg text-[#0e0f54]"
+                                            v-for="(
+                                                opt, key
+                                            ) in article.options"
+                                            :key="key"
+                                            class="font-medium text-xs text-gray-600 flex flex-row justify-between"
                                         >
-                                            <span class="font-bold">
-                                                {{ getTotalLigneArticle(article, index).toFixed(2) }}.-
+                                            <span>
+                                                {{
+                                                    opt.quantite
+                                                        ? opt.quantite + "x "
+                                                        : ""
+                                                }}{{ opt.option?.nom }}
+                                            </span>
+                                            <span>
+                                                +
+                                                {{
+                                                    parseFloat(
+                                                        opt.option?.tarif,
+                                                    ).toFixed(2)
+                                                }}.-
                                             </span>
                                         </div>
                                     </div>
+
+                                    <p
+                                        v-if="
+                                            article.documents &&
+                                            article.documents.length > 0
+                                        "
+                                        class="font-medium text-xs text-blue-600 mt-1 flex items-center gap-1"
+                                    >
+                                        <svg
+                                            class="w-3 h-3"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                                            ></path>
+                                        </svg>
+                                        Document(s) joint(s)
+                                    </p>
                                 </div>
                             </div>
 
-                            <div class="flex justify-end mt-2">
-                                <button
-                                    @click="
-                                        cartStore.supprimerInscription(index)
-                                    "
-                                    class="text-xs text-red-400 hover:text-red-600 font-medium transition-colors"
+                            <div class="flex justify-end mt-4 sm:mt-0">
+                                <div
+                                    class="max-w-sm mt-3 pt-3 border-t border-gray-100 w-full flex flex-col items-end gap-1"
                                 >
-                                    Retirer du panier
-                                </button>
+                                    <div
+                                        v-if="
+                                            getDeductionArticle(index) > 0 ||
+                                            article.montant_rabais > 0
+                                        "
+                                        class="flex flex-col justify-between gap-1 w-full"
+                                    >
+                                        <div class="flex justify-end">
+                                            <span>
+                                                {{
+                                                    parseFloat(
+                                                        article.tarif_base ||
+                                                            article.tarif,
+                                                    ).toFixed(2)
+                                                }}.-</span
+                                            >
+                                        </div>
+                                        <div
+                                            v-if="
+                                                getDeductionArticle(index) > 0
+                                            "
+                                            class="w-full flex justify-between items-center text-sm font-bold text-green-600"
+                                        >
+                                            <span>Déduction changement</span>
+                                            <span
+                                                >-
+                                                {{
+                                                    getDeductionArticle(
+                                                        index,
+                                                    ).toFixed(2)
+                                                }}.-</span
+                                            >
+                                        </div>
+                                        <div
+                                            v-if="article.montant_rabais > 0"
+                                            class="w-full flex justify-between items-center text-sm font-bold text-green-600"
+                                        >
+                                            <span
+                                                class="flex items-center gap-1"
+                                            >
+                                                <svg
+                                                    class="w-3.5 h-3.5"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                                                    />
+                                                </svg>
+                                                Code rabais
+                                            </span>
+                                            <span
+                                                >-
+                                                {{
+                                                    parseFloat(
+                                                        article.montant_rabais,
+                                                    ).toFixed(2)
+                                                }}.-</span
+                                            >
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="w-full flex justify-end items-center text-lg text-[#0e0f54]"
+                                    >
+                                        <span class="font-bold">
+                                            {{
+                                                getTotalLigneArticle(
+                                                    article,
+                                                    index,
+                                                ).toFixed(2)
+                                            }}.-
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+
+                        <div class="flex justify-end mt-2">
+                            <button
+                                @click="cartStore.supprimerInscription(index)"
+                                class="text-xs text-red-400 hover:text-red-600 font-medium transition-colors"
+                            >
+                                Retirer du panier
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -608,209 +720,225 @@ const procederPaiement = async () => {
         // On boucle sur chaque article du panier
         const promessesInscriptions = panier.value.map(
             async (article, articleIndex) => {
-            // On vérifie si un groupe a déjà été créé
-            let idGroupeFinal = article.id_groupe || null;
+                // On vérifie si un groupe a déjà été créé
+                let idGroupeFinal = article.id_groupe || null;
 
-            const listeMembres =
-                article.groupeEphemere?.participants &&
-                article.groupeEphemere.participants.length > 0
-                    ? article.groupeEphemere.participants
-                    : article.participants || article.participant || [];
+                const listeMembres =
+                    article.groupeEphemere?.participants &&
+                    article.groupeEphemere.participants.length > 0
+                        ? article.groupeEphemere.participants
+                        : article.participants || article.participant || [];
 
-            const typeEstRelais =
-                article.type?.id === "relais" ||
-                article.type?.nom?.toLowerCase() === "relais";
+                const typeEstRelais =
+                    article.type?.id === "relais" ||
+                    article.type?.nom?.toLowerCase() === "relais";
 
-            // LOGIQUE DE CRÉATION DU GROUPE
-            if (!idGroupeFinal && typeEstRelais && listeMembres.length > 1) {
-                console.log("🛠️ Création du groupe au moment du paiement...");
-                const groupeReponse = await groupeService.createGroupe({
-                    nom:
-                        article.nom_equipe ||
-                        article.groupeEphemere?.nom ||
-                        `Équipe de ${listeMembres[0].prenom}`,
-                    type: "Relais",
-                    id_course: article.courseDetails.id,
-                });
-
-                idGroupeFinal =
-                    groupeReponse.data?.groupe?.id ||
-                    groupeReponse.data?.id ||
-                    groupeReponse.data?.data?.id;
-
-                // On ajoute les autres membres au groupe
-                if (idGroupeFinal) {
-                    for (let i = 1; i < listeMembres.length; i++) {
-                        await groupeService.addParticipant(
-                            idGroupeFinal,
-                            listeMembres[i].id,
-                        );
-                    }
-                }
-            }
-
-            // ENREGISTREMENT DES INSCRIPTIONS POUR TOUS LES MEMBRES
-            const finaliserInscription = async (id_inscription, article) => {
-                const choixValides = (article.choix_options ?? []).filter(
-                    (c) => c.quantite > 0,
-                );
-                const reponses = article.reponses_questions ?? [];
-                await Promise.all([
-                    choixValides.length
-                        ? choixOptionParticipantService.saveChoix({
-                              choix: choixValides.map((c) => ({
-                                  id_inscription,
-                                  id_option: c.id_option,
-                                  quantite: c.quantite,
-                              })),
-                          })
-                        : Promise.resolve(),
-                    reponses.length
-                        ? reponseQuestionParticipantService.saveReponses({
-                              reponses: reponses.map((r) => ({
-                                  id_inscription,
-                                  id_question: r.id_question,
-                                  id_option_choisie: r.id_option_choisie,
-                              })),
-                          })
-                        : Promise.resolve(),
-                ]);
-
-                // Upload des documents s'il y en a
-                if (article.documents && article.documents.length > 0) {
-                    for (const docFile of article.documents) {
-                        const fichier = extraireFichierDocument(docFile);
-                        if (!fichier) {
-                            console.warn(
-                                "Document ignoré: valeur non supportée pour l'upload.",
-                                docFile,
-                            );
-                            continue;
-                        }
-
-                        const formData = new FormData();
-                        const nomFichier =
-                            typeof fichier.name === "string" && fichier.name
-                                ? fichier.name
-                                : "document";
-                        formData.append("file", fichier, nomFichier);
-                        try {
-                            await documentService.uploadDocument(
-                                id_inscription,
-                                formData,
-                            );
-                        } catch (e) {
-                            console.error(
-                                "Erreur lors de l'upload du document:",
-                                e,
-                            );
-                        }
-                    }
-                }
-            };
-
-            let deductionArticle = parseFloat(
-                deductionsParArticle.value[articleIndex] ?? 0,
-            );
-
-            if (
-                article.ancienneInscriptionId &&
-                !Object.prototype.hasOwnProperty.call(
-                    deductionsParArticle.value,
-                    articleIndex,
-                )
-            ) {
-                try {
-                    const res = await api.get(
-                        `/participant/inscriptions/${article.ancienneInscriptionId}`,
-                    );
-                    deductionArticle = parseFloat(res.data?.tarif || 0);
-                } catch (e) {
-                    console.error(
-                        "Erreur récupération déduction changement inscription:",
-                        e,
-                    );
-                }
-            }
-
-            const promessesParticipants = listeMembres.map(async (p) => {
-                console.log("courseDetails:", article.courseDetails);
-                console.log(
-                    "is_prix_evolutif:",
-                    article.courseDetails?.is_prix_evolutif,
-                );
-                // Récupérer le tarif évolutif si la course l'utilise
-                let tarifFinal = article.tarif;
+                // LOGIQUE DE CRÉATION DU GROUPE
                 if (
-                    article.courseDetails?.is_prix_evolutif &&
-                    !article.codeParticipation?.trim()
+                    !idGroupeFinal &&
+                    typeEstRelais &&
+                    listeMembres.length > 1
                 ) {
-                    try {
-                        const prixResp =
-                            await prixEvolutifService.getTarifActuel(
-                                article.courseDetails.id,
+                    console.log(
+                        "🛠️ Création du groupe au moment du paiement...",
+                    );
+                    const groupeReponse = await groupeService.createGroupe({
+                        nom:
+                            article.nom_equipe ||
+                            article.groupeEphemere?.nom ||
+                            `Équipe de ${listeMembres[0].prenom}`,
+                        type: "Relais",
+                        id_course: article.courseDetails.id,
+                    });
+
+                    idGroupeFinal =
+                        groupeReponse.data?.groupe?.id ||
+                        groupeReponse.data?.id ||
+                        groupeReponse.data?.data?.id;
+
+                    // On ajoute les autres membres au groupe
+                    if (idGroupeFinal) {
+                        for (let i = 1; i < listeMembres.length; i++) {
+                            await groupeService.addParticipant(
+                                idGroupeFinal,
+                                listeMembres[i].id,
                             );
-                        console.log("Réponse tarif actuel:", prixResp.data);
-                        if (prixResp.data?.tarif !== undefined) {
-                            const tarifBase = parseFloat(prixResp.data.tarif);
-                            if (Number.isFinite(tarifBase)) {
-                                tarifFinal =
-                                    tarifBase +
-                                    calculerSupplementOptions(article);
+                        }
+                    }
+                }
+
+                // ENREGISTREMENT DES INSCRIPTIONS POUR TOUS LES MEMBRES
+                const finaliserInscription = async (
+                    id_inscription,
+                    article,
+                ) => {
+                    const choixValides = (article.choix_options ?? []).filter(
+                        (c) => c.quantite > 0,
+                    );
+                    const reponses = article.reponses_questions ?? [];
+                    await Promise.all([
+                        choixValides.length
+                            ? choixOptionParticipantService.saveChoix({
+                                  choix: choixValides.map((c) => ({
+                                      id_inscription,
+                                      id_option: c.id_option,
+                                      quantite: c.quantite,
+                                  })),
+                              })
+                            : Promise.resolve(),
+                        reponses.length
+                            ? reponseQuestionParticipantService.saveReponses({
+                                  reponses: reponses.map((r) => ({
+                                      id_inscription,
+                                      id_question: r.id_question,
+                                      id_option_choisie: r.id_option_choisie,
+                                  })),
+                              })
+                            : Promise.resolve(),
+                    ]);
+
+                    // Upload des documents s'il y en a
+                    if (article.documents && article.documents.length > 0) {
+                        for (const docFile of article.documents) {
+                            const fichier = extraireFichierDocument(docFile);
+                            if (!fichier) {
+                                console.warn(
+                                    "Document ignoré: valeur non supportée pour l'upload.",
+                                    docFile,
+                                );
+                                continue;
+                            }
+
+                            const formData = new FormData();
+                            const nomFichier =
+                                typeof fichier.name === "string" && fichier.name
+                                    ? fichier.name
+                                    : "document";
+                            formData.append("file", fichier, nomFichier);
+                            try {
+                                await documentService.uploadDocument(
+                                    id_inscription,
+                                    formData,
+                                );
+                            } catch (e) {
+                                console.error(
+                                    "Erreur lors de l'upload du document:",
+                                    e,
+                                );
                             }
                         }
+                    }
+                };
+
+                let deductionArticle = parseFloat(
+                    deductionsParArticle.value[articleIndex] ?? 0,
+                );
+
+                if (
+                    article.ancienneInscriptionId &&
+                    !Object.prototype.hasOwnProperty.call(
+                        deductionsParArticle.value,
+                        articleIndex,
+                    )
+                ) {
+                    try {
+                        const res = await api.get(
+                            `/participant/inscriptions/${article.ancienneInscriptionId}`,
+                        );
+                        deductionArticle = parseFloat(res.data?.tarif || 0);
                     } catch (e) {
                         console.error(
-                            "Erreur récupération tarif évolutif, tarif de base utilisé:",
+                            "Erreur récupération déduction changement inscription:",
                             e,
                         );
                     }
                 }
-                console.log("tarifFinal:", tarifFinal);
 
-                const tarifApresChangement = article.ancienneInscriptionId
-                    ? Math.max(
-                          parseFloat(tarifFinal || 0) -
-                              (Number.isFinite(deductionArticle)
-                                  ? deductionArticle
-                                  : 0),
-                          0,
-                      )
-                    : parseFloat(tarifFinal || 0);
+                const promessesParticipants = listeMembres.map(async (p) => {
+                    console.log("courseDetails:", article.courseDetails);
+                    console.log(
+                        "is_prix_evolutif:",
+                        article.courseDetails?.is_prix_evolutif,
+                    );
+                    // Récupérer le tarif évolutif si la course l'utilise
+                    let tarifFinal = article.tarif;
+                    if (
+                        article.courseDetails?.is_prix_evolutif &&
+                        !article.codeParticipation?.trim()
+                    ) {
+                        try {
+                            const prixResp =
+                                await prixEvolutifService.getTarifActuel(
+                                    article.courseDetails.id,
+                                );
+                            console.log("Réponse tarif actuel:", prixResp.data);
+                            if (prixResp.data?.tarif !== undefined) {
+                                const tarifBase = parseFloat(
+                                    prixResp.data.tarif,
+                                );
+                                if (Number.isFinite(tarifBase)) {
+                                    tarifFinal =
+                                        tarifBase +
+                                        calculerSupplementOptions(article);
+                                }
+                            }
+                        } catch (e) {
+                            console.error(
+                                "Erreur récupération tarif évolutif, tarif de base utilisé:",
+                                e,
+                            );
+                        }
+                    }
+                    console.log("tarifFinal:", tarifFinal);
 
-                const response = await inscriptionService.createInscription({
-                    id_course: article.courseDetails.id,
-                    id_participant: p.id,
-                    tarif: tarifApresChangement,
-                    avertissement_valide: accepteConditions.value,
-                    id_groupe: idGroupeFinal,
-                    id_ancienne_inscription:
-                        article.ancienneInscriptionId || null,
-                    code_participant: article.codeParticipation || null,
-                    participe_challenge: article.type?.id === "challenge",
-                    type_challenge:
-                        article.type?.id === "challenge"
-                            ? article.groupeEphemere?.type_groupe
-                            : null,
-                    equipe_challenge:
-                        article.type?.id === "challenge"
-                            ? article.nom_equipe
-                            : null,
+                    const tarifApresChangement = article.ancienneInscriptionId
+                        ? Math.max(
+                              parseFloat(tarifFinal || 0) -
+                                  (Number.isFinite(deductionArticle)
+                                      ? deductionArticle
+                                      : 0),
+                              0,
+                          )
+                        : parseFloat(tarifFinal || 0);
+
+                    const response = await inscriptionService.createInscription(
+                        {
+                            id_course: article.courseDetails.id,
+                            id_participant: p.id,
+                            tarif: tarifApresChangement,
+                            avertissement_valide: accepteConditions.value,
+                            id_groupe: idGroupeFinal,
+                            id_ancienne_inscription:
+                                article.ancienneInscriptionId || null,
+                            code_participant: article.codeParticipation || null,
+                            montant_rabais: article.montant_rabais || 0,
+                            code_rabais: article.code_rabais || null,
+                            participe_challenge:
+                                article.type?.id === "challenge",
+                            type_challenge:
+                                article.type?.id === "challenge"
+                                    ? article.groupeEphemere?.type_groupe
+                                    : null,
+                            equipe_challenge:
+                                article.type?.id === "challenge"
+                                    ? article.nom_equipe
+                                    : null,
+                        },
+                    );
+                    const id_inscription =
+                        response.data.inscription?.id ?? response.data.id;
+                    await finaliserInscription(id_inscription, article);
                 });
-                const id_inscription =
-                    response.data.inscription?.id ?? response.data.id;
-                await finaliserInscription(id_inscription, article);
-            });
 
-            await Promise.all(promessesParticipants);
+                await Promise.all(promessesParticipants);
 
-            // Annulation de l'ancienne inscription en cas de changement de course
-            if (article.ancienneInscriptionId) {
-                await api.delete(
-                    `/participant/inscriptions/${article.ancienneInscriptionId}?is_change=1`,
-                );
-            }
-        },
+                // Annulation de l'ancienne inscription en cas de changement de course
+                if (article.ancienneInscriptionId) {
+                    await api.delete(
+                        `/participant/inscriptions/${article.ancienneInscriptionId}?is_change=1`,
+                    );
+                }
+            },
         );
 
         // On attend que tout soit en base de données
