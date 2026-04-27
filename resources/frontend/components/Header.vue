@@ -91,6 +91,17 @@ const userDisplayName = computed(() => {
 });
 
 /**
+ * Source de l'avatar utilisateur.
+ * Utilise la photo participant si disponible, sinon null pour afficher l'icone par defaut.
+ * @returns {string|null}
+ */
+const profileAvatarSource = computed(() => {
+  const photo = authStore.user?.participant?.photo;
+  if (!photo) return null;
+  return photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`;
+});
+
+/**
  * Ferme le mini-panier puis navigue vers la page panier.
  * @returns {void}
  */
@@ -342,7 +353,13 @@ const refuserInvitation = async (idGroupe) => {
               class="w-11 h-11 rounded-full flex items-center justify-center border shadow-inner transition-colors duration-300 relative"
               :class="themeStore.primaryColor ? 'text-white border-white bg-transparent hover:bg-white/10' : 'bg-[#EAE6F5] text-primary-900 border-primary-900 hover:bg-[#dcd6ee]'"
             >
-              <Icon icon="lucide:circle-user-round" class="w-7 h-7" />
+              <img
+                v-if="profileAvatarSource"
+                :src="profileAvatarSource"
+                alt="Photo de profil"
+                class="w-full h-full rounded-full object-cover"
+              />
+              <Icon v-else icon="lucide:circle-user-round" class="w-7 h-7" />
               
               <span
                 v-if="invitations.length > 0 && authStore.user?.participant"

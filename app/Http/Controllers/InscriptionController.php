@@ -26,7 +26,39 @@ class InscriptionController extends Controller
             return response()->json(['message' => 'Accès non autorisé. Réservé aux administrateurs.'], 403);
         }
 
-        $inscriptions = Inscription::with(['course.evenement', 'participant', 'dossard', 'groupe','choixOptions.option', 'reponsesQuestions.question', 'reponsesQuestions.option', 'documentsFournis', 'ancienneInscription.course', 'ancienneInscription.participant', 'ancienneInscription.groupe'])->orderBy('date_paiement', 'desc')->get();
+        //Sans photo pour alléger la réponse
+        $participantColumns = [
+            'id',
+            'id_user',
+            'nom',
+            'prenom',
+            'date_naissance',
+            'equipe_nom',
+            'adresse',
+            'code_postal',
+            'ville',
+            'pays',
+            'telephone',
+            'nationalite',
+            'instagram',
+            'facebook',
+            'taille_tshirt',
+            'sexe',
+        ];
+
+        $inscriptions = Inscription::with([
+            'course.evenement',
+            'participant' => fn ($query) => $query->select($participantColumns),
+            'dossard',
+            'groupe',
+            'choixOptions.option',
+            'reponsesQuestions.question',
+            'reponsesQuestions.option',
+            'documentsFournis',
+            'ancienneInscription.course',
+            'ancienneInscription.participant' => fn ($query) => $query->select($participantColumns),
+            'ancienneInscription.groupe',
+        ])->orderBy('date_paiement', 'desc')->get();
 
         return response()->json($inscriptions);
     }
@@ -40,7 +72,37 @@ class InscriptionController extends Controller
         $idParticipant = $user->participant->id;
 
         //Renvoie uniquement les inscriptions du participant
-        $inscriptions = Inscription::with(['course.evenement', 'dossard', 'groupe', 'participant','choixOptions.option', 'reponsesQuestions.question', 'documentsFournis', 'ancienneInscription.course', 'ancienneInscription.participant', 'ancienneInscription.groupe'])
+        $participantColumns = [
+            'id',
+            'id_user',
+            'nom',
+            'prenom',
+            'date_naissance',
+            'equipe_nom',
+            'adresse',
+            'code_postal',
+            'ville',
+            'pays',
+            'telephone',
+            'nationalite',
+            'instagram',
+            'facebook',
+            'taille_tshirt',
+            'sexe',
+        ];
+
+        $inscriptions = Inscription::with([
+            'course.evenement',
+            'dossard',
+            'groupe',
+            'participant' => fn ($query) => $query->select($participantColumns),
+            'choixOptions.option',
+            'reponsesQuestions.question',
+            'documentsFournis',
+            'ancienneInscription.course',
+            'ancienneInscription.participant' => fn ($query) => $query->select($participantColumns),
+            'ancienneInscription.groupe',
+        ])
             ->where('id_participant', $idParticipant)
             ->get();
 
@@ -60,8 +122,7 @@ class InscriptionController extends Controller
             'code_participant' => 'nullable|string|unique:Inscription,code_participant',
             'avertissement_valide' => 'sometimes|boolean',
             //Ajout du champ "en attente" pour les inscriptions relais / entreprises
-            'status_paiement'     => 'sometimes|in:Validé,Annulé,En attente',
-            'participe_challenge' => 'sometimes|boolean',
+            'status_paiement' => 'sometimes|in:Validé,Annulé,En attente,Échangé',            'participe_challenge' => 'sometimes|boolean',
             'type_challenge'      => 'nullable|string|max:50',
             'equipe_challenge'    => 'nullable|string|max:100',
             'date_paiement'       => now(),
