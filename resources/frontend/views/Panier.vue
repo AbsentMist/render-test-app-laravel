@@ -109,6 +109,7 @@
                                                     ?.nom_course
                                             }}
                                         </p>
+
                                         <p>
                                             {{
                                                 parseFloat(
@@ -118,6 +119,30 @@
                                             }}.-
                                         </p>
                                     </div>
+                                    <!-- Après la ligne du nom de la course -->
+                                    <p
+                                        v-if="article.code_dossard"
+                                        class="text-xs text-blue-600 font-semibold mt-0.5 flex items-center gap-1"
+                                    >
+                                        <svg
+                                            class="w-3 h-3"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+                                            />
+                                        </svg>
+                                        Dossard personnalisé{{
+                                            article.nom_personnalise_dossard
+                                                ? ` : ${article.nom_personnalise_dossard}`
+                                                : ""
+                                        }}
+                                    </p>
 
                                     <p class="font-bold mt-1 text-gray-700">
                                         {{
@@ -634,6 +659,11 @@ watch(
         deductionsParArticle.value = mapDeductions;
     },
     { immediate: true },
+    // Dans le watch du panier ou au mounted
+    console.log(
+        "article complet:",
+        JSON.stringify(cartStore.inscriptions[0]?.nom_personnalise_dossard),
+    ),
 );
 
 /**
@@ -915,6 +945,7 @@ const procederPaiement = async () => {
                             code_participant: article.codeParticipation || null,
                             montant_rabais: article.montant_rabais || 0,
                             code_rabais: article.code_rabais || null,
+                            code_dossard: article.code_dossard || null,
                             participe_challenge:
                                 article.type?.id === "challenge",
                             type_challenge:
@@ -934,18 +965,18 @@ const procederPaiement = async () => {
 
                 await Promise.all(promessesParticipants);
 
-            // Annulation de l'ancienne inscription en cas de changement de course
-            if (article.ancienneInscriptionId) {
-                const updateInscriptionMethod = authStore.isAdmin
-                    ? inscriptionService.updateInscriptionAdmin
-                    : inscriptionService.updateInscription;
+                // Annulation de l'ancienne inscription en cas de changement de course
+                if (article.ancienneInscriptionId) {
+                    const updateInscriptionMethod = authStore.isAdmin
+                        ? inscriptionService.updateInscriptionAdmin
+                        : inscriptionService.updateInscription;
 
-                await updateInscriptionMethod(
-                    article.ancienneInscriptionId,
-                    { status_paiement: 'Transféré' },
-                );
-            }
-        },
+                    await updateInscriptionMethod(
+                        article.ancienneInscriptionId,
+                        { status_paiement: "Transféré" },
+                    );
+                }
+            },
         );
 
         // On attend que tout soit en base de données
