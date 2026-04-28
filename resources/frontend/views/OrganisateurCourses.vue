@@ -10,52 +10,101 @@
 
         <!-- Chargement -->
         <div v-if="chargement" class="text-body text-center py-8">
-        Chargement des courses...
+            Chargement des courses...
         </div>
 
         <!-- Tableau -->
-        <div v-else class="overflow-x-auto rounded-xl border border-default-medium">
-        <table class="w-full text-sm text-left text-body">
-            <thead class="bg-neutral-secondary-medium text-heading text-xs uppercase">
-            <tr>
-                <th class="px-4 py-3">Nom</th>
-                <th class="px-4 py-3">Date début</th>
-                <th class="px-4 py-3">Date fin</th>
-                <th class="px-4 py-3 text-center">Actif</th>
-                <th class="px-4 py-3 text-center">Interne</th>
-                <th class="px-4 py-3">Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-if="courses.length === 0">
-                <td colspan="6" class="text-center px-4 py-6 text-body">
-                Aucune course trouvée.
-                </td>
-            </tr>
-            <tr
-                v-for="course in courses"
-                :key="course.id"
-                class="border-t border-default-medium hover:bg-neutral-secondary-medium transition-colors"
-            >
-                <td class="px-4 py-3 font-medium text-heading">{{ course.nom }}</td>
+        <div
+            v-else
+            class="overflow-x-auto rounded-xl border border-default-medium"
+        >
+            <table class="w-full text-sm text-left text-body">
+                <thead
+                    class="bg-neutral-secondary-medium text-heading text-xs uppercase"
+                >
+                    <tr>
+                        <th class="px-4 py-3">Nom</th>
+                        <th class="px-4 py-3">Date début</th>
+                        <th class="px-4 py-3">Date fin</th>
+                        <th class="px-4 py-3 text-center">Actif</th>
+                        <th class="px-4 py-3 text-center">Interne</th>
+                        <th class="px-4 py-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-if="courses.length === 0">
+                        <td colspan="6" class="text-center px-4 py-6 text-body">
+                            Aucune course trouvée.
+                        </td>
+                    </tr>
+                    <tr
+                        v-for="course in courses"
+                        :key="course.id"
+                        class="border-t border-default-medium hover:bg-neutral-secondary-medium transition-colors"
+                    >
+                        <td class="px-4 py-3 font-medium text-heading">
+                            {{ course.nom }}
+                        </td>
+                        <td class="px-4 py-3">
+                            {{ formaterDate(course.debut_inscription) }}
+                        </td>
+                        <td class="px-4 py-3">
+                            {{ formaterDate(course.fin_inscription) }}
+                        </td>
 
-                <!-- Date début (TODO 9.2) -->
-                <td class="px-4 py-3">{{ formaterDate(course.debut_inscription) }}</td>
+                        <!-- Actif -->
+                        <td class="px-4 py-3 text-center">
+                            <Icon
+                                v-if="course.is_actif"
+                                icon="mdi:check"
+                                class="w-5 h-5 text-green-500 mx-auto"
+                            />
+                            <Icon
+                                v-else
+                                icon="mdi:close"
+                                class="w-5 h-5 text-accent mx-auto"
+                            />
+                        </td>
 
-                <!-- Date fin (TODO 9.2) -->
-                <td class="px-4 py-3">{{ formaterDate(course.fin_inscription) }}</td>
+                        <!-- Interne -->
+                        <td class="px-4 py-3 text-center">
+                            <Icon
+                                v-if="course.is_interne"
+                                icon="mdi:check"
+                                class="w-5 h-5 text-green-500 mx-auto"
+                            />
+                            <Icon
+                                v-else
+                                icon="mdi:close"
+                                class="w-5 h-5 text-accent mx-auto"
+                            />
+                        </td>
 
-                <!-- Actif -->
-                <td class="px-4 py-3 text-center">
-                <Icon v-if="course.is_actif" icon="mdi:check" class="w-5 h-5 text-green-500 mx-auto" />
-                <Icon v-else icon="mdi:close" class="w-5 h-5 text-accent mx-auto" />
-                </td>
+                        <!-- Actions -->
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <button
+                                    @click="modifierCourse(course)"
+                                    class="p-1.5 rounded-lg text-primary hover:bg-tertiary transition-colors"
+                                    title="Modifier"
+                                >
+                                    <Icon
+                                        icon="lucide:square-pen"
+                                        class="w-4 h-4"
+                                    />
+                                </button>
 
-                <!-- Interne -->
-                <td class="px-4 py-3 text-center">
-                <Icon v-if="course.is_interne" icon="mdi:check" class="w-5 h-5 text-green-500 mx-auto" />
-                <Icon v-else icon="mdi:close" class="w-5 h-5 text-accent mx-auto" />
-                </td>
+                                <!-- Bouton codes de rabais -->
+                                <button
+                                    @click="ouvrirCodesRabais(course)"
+                                    class="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors"
+                                    title="Codes de rabais"
+                                >
+                                    <Icon
+                                        icon="mdi:tag-multiple-outline"
+                                        class="w-4 h-4"
+                                    />
+                                </button>
 
                 <!-- Actions -->
                 <td class="px-4 py-3">
@@ -119,13 +168,48 @@
             @close="fermerQuestionnaire"
         />
   </div>
+        <!-- Popup codes de rabais -->
+        <div
+            v-if="courseCodesRabais"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+        >
+            <div
+                class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 flex flex-col overflow-hidden max-h-[80vh]"
+            >
+                <!-- Header -->
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-neutral-secondary-medium"
+                >
+                    <div>
+                        <p class="text-sm font-semibold text-heading">
+                            Codes de rabais
+                        </p>
+                        <p class="text-xs text-body mt-0.5">
+                            {{ courseCodesRabais.nom }}
+                        </p>
+                    </div>
+                    <button
+                        @click="courseCodesRabais = null"
+                        class="text-body hover:text-heading transition-colors"
+                    >
+                        <Icon icon="mdi:close" class="w-5 h-5" />
+                    </button>
+                </div>
+
+                <!-- Contenu -->
+                <div class="flex-1 overflow-y-auto p-6">
+                    <GestionCodesRabais :idCourse="courseCodesRabais.id" />
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
 /**
  * @fileoverview Vue OrganisateurCourses.
- * @description Liste des courses d'un évènement avec actions d'édition et de suppression.
- * @remarks Cette vue sert de tableau de gestion rapide avant ouverture du formulaire course.
+ * @description Liste des courses d'un évènement avec actions d'édition, suppression
+ *              et gestion des codes de rabais.
  */
 import Title from '../components/Title.vue';
 import { Icon } from '@iconify/vue';
@@ -153,16 +237,13 @@ export default {
         Icon,
         PopupConfirmation,
         PopupQuestionnaireResultat,
-        OptionList
+        OptionList,
+        GestionCodesRabais,
     },
     computed: {
-        /**
-         * Identifiant de l'évènement parent de la liste affichée.
-         * @returns {string}
-         */
         idEvenement() {
-        return this.$route.params.idEvenement
-        }
+            return this.$route.params.idEvenement;
+        },
     },
     data() {
         return {
@@ -181,7 +262,7 @@ export default {
         }
     },
     methods: {
-        /**
+      /**
          * Fait apparaitre ou disparaître le menu d'options pour une course donnée.
          * @returns {void}
          */
@@ -230,46 +311,51 @@ export default {
          * @param {string} dateString
          * @returns {string}
          */
+            erreur: "",
+            courseASupprimer: null,
+            courseCodesRabais: null, // Course dont on gère les codes
+        },
         formaterDate(dateString) {
-            if (!dateString) return '—'; // Si pas de date
+            if (!dateString) return "—";
             const date = new Date(dateString);
-            return date.toLocaleDateString('fr-CH', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+            return date.toLocaleDateString("fr-CH", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
             });
         },
-        /**
-         * Charge toutes les courses de l'évènement sélectionné.
-         * @returns {Promise<void>}
-         */
+
         async chargerCourses() {
-            this.chargement = true
-            this.erreur = ''
+            this.chargement = true;
+            this.erreur = "";
             try {
-                const response = await courseOrganisateurService.getAllCourses(this.idEvenement)
-                this.courses = response.data?.courses ?? []
+                const response = await courseOrganisateurService.getAllCourses(
+                    this.idEvenement,
+                );
+                this.courses = response.data?.courses ?? [];
             } catch (e) {
-                this.erreur = 'Impossible de charger les courses.'
+                this.erreur = "Impossible de charger les courses.";
             } finally {
-                this.chargement = false
+                this.chargement = false;
             }
         },
-        /**
-         * Redirige vers le formulaire course en mode édition.
-         * @param {Object} course
-         * @returns {void}
-         */
+
         modifierCourse(course) {
-        this.$router.push(`/organisateur/formulaires?onglet=Course&id=${course.id}&idEvenement=${this.idEvenement}`);
+            this.$router.push(
+                `/organisateur/formulaires?onglet=Course&id=${course.id}&idEvenement=${this.idEvenement}`,
+            );
         },
+
         /**
-         * Ouvre la confirmation de suppression d'une course.
+         * Ouvre la popup de gestion des codes de rabais pour une course.
          * @param {Object} course
-         * @returns {void}
          */
+        ouvrirCodesRabais(course) {
+            this.courseCodesRabais = course;
+        },
+
         confirmerSuppression(course) {
-        this.courseASupprimer = course
+            this.courseASupprimer = course;
         },
         /**
          * Ouvre le popup de résultats du questionnaire pour une course.
@@ -507,19 +593,16 @@ export default {
             }
         }
     },
-    /**
-     * Charge les courses et le nom de l'évènement au montage.
-     * @returns {Promise<void>}
-     */
+
     async mounted() {
-        await this.chargerCourses()
-        
-        try{
-            const response = await evenementOrganisateurService.getEvenement(this.idEvenement);
+        await this.chargerCourses();
+        try {
+            const response = await evenementOrganisateurService.getEvenement(
+                this.idEvenement,
+            );
             this.nomEvenement = response.data.nom;
-            console.log(response.data);
-        } catch(e) {
-            console.log("L'évènement n' a pas pu être récupéré: ", e);
+        } catch (e) {
+            console.log("L'évènement n'a pas pu être récupéré: ", e);
         }
 
         // Créer des références boundées pour les listeners

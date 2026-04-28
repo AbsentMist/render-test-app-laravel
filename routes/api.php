@@ -23,6 +23,7 @@ use App\Http\Controllers\PrixEvolutifController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\EchangeDossardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CodeRabaisController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -123,6 +124,9 @@ use App\Http\Controllers\ProfileController;
             Route::post('/echange-dossard/{id}/accepter', [EchangeDossardController::class, 'accepter']);
             Route::post('/echange-dossard/{id}/refuser', [EchangeDossardController::class, 'refuser']);
             Route::delete('/echange-dossard/{id}/annuler', [EchangeDossardController::class, 'annuler']);
+
+            //rabais participant
+            Route::post('/codes-rabais/valider', [CodeRabaisController::class, 'valider']);
         });
 
         // Gestion du rôle Administrateur par Middleware
@@ -231,5 +235,11 @@ use App\Http\Controllers\ProfileController;
             Route::put('/prix-evolutif/{id}', [PrixEvolutifController::class, 'update']);
             Route::delete('/prix-evolutif/{id}', [PrixEvolutifController::class, 'destroy']);
             Route::delete('/courses/{id_course}/prix-evolutif', [PrixEvolutifController::class, 'destroyByCourse']);
+
+            //gestion des rabais
+            Route::get('/courses/{id_course}/codes-rabais', [CodeRabaisController::class, 'index']);
+            Route::post('/courses/{id_course}/codes-rabais', [CodeRabaisController::class, 'store']);
+            Route::put('/codes-rabais/{id}', [CodeRabaisController::class, 'update']);
+            Route::delete('/codes-rabais/{id}', [CodeRabaisController::class, 'destroy']);
         });
     });

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Participant;
 use App\Models\Groupe;
+use App\Models\CodeRabais;
 use App\Exports\InscriptionsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Mail\ConfirmationInscriptionMail;
@@ -128,6 +129,9 @@ class InscriptionController extends Controller
             'equipe_challenge'    => 'nullable|string|max:100',
             'date_paiement'       => now(),
             'tarif'               => 'sometimes|numeric', // Ajout du champ tarif
+            //Ajout montant rabais et code rabais
+            'montant_rabais' => 'sometimes|numeric|min:0',
+            'code_rabais'    => 'nullable|string|max:50',
         ]);
         
 
@@ -191,9 +195,19 @@ class InscriptionController extends Controller
                     'tarif' => $course->tarif,
                     'date_paiement' => now(),
                     'status_paiement' => $statutPaiementFinal, // Application du statut dynamique
-                    'montant_rabais' => 0,
+                    'montant_rabais' => $validatedData['montant_rabais'] ?? 0,
                     'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
                 ]);
+
+                // Incrémenter le compteur d'utilisations du code de rabais si fourni
+if (!empty($validatedData['code_rabais'])) {
+    $codeRabais = CodeRabais::where('code', strtoupper($validatedData['code_rabais']))
+        ->where('id_course', $course->id)
+        ->first();
+    if ($codeRabais) {
+        $codeRabais->increment('utilisations_actuelles');
+    }
+}
 
                 // GÉNÉRATION DOSSARD (Cas de la réinscription)
                 if ($course->is_dossard == 0 && !$inscriptionExistante->dossard) {
@@ -226,14 +240,23 @@ class InscriptionController extends Controller
             'id_ancienne_inscription' => $validatedData['id_ancienne_inscription'] ?? null,
             'code_participant' => $validatedData['code_participant'] ?? null,
             'tarif' => $validatedData['tarif'] ?? $course->tarif,
-            'date_paiement' => now(),
-            'status_paiement' => $statutPaiementFinal,
-            'montant_rabais' => 0,
+            'date_paiement'       => now(),
+            'status_paiement' => $statutPaiementFinal, // Application du statut dynamique
+            'montant_rabais' => $validatedData['montant_rabais'] ?? 0,
             'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
             'participe_challenge' => $validatedData['participe_challenge'] ?? false,
             'type_challenge' => $validatedData['type_challenge'] ?? null,
             'equipe_challenge' => $validatedData['equipe_challenge'] ?? null,
         ]);
+        // Incrémenter le compteur d'utilisations du code de rabais si fourni
+if (!empty($validatedData['code_rabais'])) {
+    $codeRabais = CodeRabais::where('code', strtoupper($validatedData['code_rabais']))
+        ->where('id_course', $course->id)
+        ->first();
+    if ($codeRabais) {
+        $codeRabais->increment('utilisations_actuelles');
+    }
+}
 
         // ANTICIPATION DOSSARD (À développer plus tard)
         // Si la course gère les dossards automatiquement, on pourrait le créer ici.
