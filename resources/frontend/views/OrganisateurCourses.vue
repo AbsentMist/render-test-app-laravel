@@ -78,68 +78,53 @@
                                 icon="mdi:close"
                                 class="w-5 h-5 text-accent mx-auto"
                             />
-                        </td>
+                        </td>                               
 
                         <!-- Actions -->
                         <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <button
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <button
+                                    v-if="aQuestionnaire(course)"
+                                    @click="afficherQuestion(course)"
+                                    class="p-1.5 rounded-lg text-primary hover:bg-tertiary transition-colors"
+                                    title="Voir les résultats du questionnaire"
+                                    >
+                                    <Icon icon="lucide:circle-question-mark" class="w-4 h-4" />
+                                    </button>
+                                    <button
                                     @click="modifierCourse(course)"
                                     class="p-1.5 rounded-lg text-primary hover:bg-tertiary transition-colors"
                                     title="Modifier"
-                                >
-                                    <Icon
-                                        icon="lucide:square-pen"
-                                        class="w-4 h-4"
-                                    />
-                                </button>
+                                    >
+                                    <Icon icon="lucide:square-pen" class="w-4 h-4" />
+                                    </button>
+                                    <!-- Bouton codes de rabais -->
+                                    <button
+                                        @click="ouvrirCodesRabais(course)"
+                                        class="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors"
+                                        title="Codes de rabais"
+                                    >
+                                        <Icon
+                                            icon="mdi:tag-multiple-outline"
+                                            class="w-4 h-4"
+                                        />
+                                    </button>
+                                </div>
+                                <div class="relative inline-block">
+                                    <button
+                                    :ref="(el) => { optionButtonRefs[course.id] = el }"
+                                    @click="toggleOptionMenu(course.id)"
+                                    class="p-1.5 ml-1 rounded-lg text-primary hover:bg-tertiary transition-colors"
+                                    title="Afficher les actions supplémentaires"
+                                    >
+                                    <Icon icon="lucide:ellipsis-vertical" class="w-4 h-4" />
+                                    </button>
+                                </div>
 
-                                <!-- Bouton codes de rabais -->
-                                <button
-                                    @click="ouvrirCodesRabais(course)"
-                                    class="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors"
-                                    title="Codes de rabais"
-                                >
-                                    <Icon
-                                        icon="mdi:tag-multiple-outline"
-                                        class="w-4 h-4"
-                                    />
-                                </button>
-
-                <!-- Actions -->
-                <td class="px-4 py-3">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <button
-                        v-if="aQuestionnaire(course)"
-                        @click="afficherQuestion(course)"
-                        class="p-1.5 rounded-lg text-primary hover:bg-tertiary transition-colors"
-                        title="Voir les résultats du questionnaire"
-                        >
-                        <Icon icon="lucide:circle-question-mark" class="w-4 h-4" />
-                        </button>
-                        <button
-                        @click="modifierCourse(course)"
-                        class="p-1.5 rounded-lg text-primary hover:bg-tertiary transition-colors"
-                        title="Modifier"
-                        >
-                        <Icon icon="lucide:square-pen" class="w-4 h-4" />
-                        </button>
-                    </div>
-                    <div class="relative inline-block">
-                        <button
-                        :ref="(el) => { optionButtonRefs[course.id] = el }"
-                        @click="toggleOptionMenu(course.id)"
-                        class="p-1.5 ml-1 rounded-lg text-primary hover:bg-tertiary transition-colors"
-                        title="Afficher les actions supplémentaires"
-                        >
-                        <Icon icon="lucide:ellipsis-vertical" class="w-4 h-4" />
-                        </button>
-                    </div>
-
-                </div>
-                </td>
-            </tr>
+                            </div>
+                        </td>
+                    </tr>
             </tbody>
         </table>
         </div>
@@ -167,7 +152,7 @@
             :course="courseQuestionnaireSelectionnee"
             @close="fermerQuestionnaire"
         />
-  </div>
+    
         <!-- Popup codes de rabais -->
         <div
             v-if="courseCodesRabais"
@@ -224,6 +209,7 @@ import questionOrganisateurService from '../services/questionOrganisateurService
 import optionQuestionOrganisateurService from '../services/optionQuestionOrganisateurService';
 import courseQuestionOrganisateurService from '../services/courseQuestionOrganisateurService';
 import avertissementOrganisateurService from '../services/avertissementOrganisateurService';
+import GestionCodesRabais from '../components/GestionCodesRabais.vue';
 
 const optionModal = {
     FERMEE: 1,
@@ -259,6 +245,9 @@ export default {
             optionListStyle: {},
             handleClickOutsideBound: null,
             handleEscapeKeyBound: null,
+            erreur: "",
+            courseASupprimer: null,
+            courseCodesRabais: null, // Course dont on gère les codes
         }
     },
     methods: {
@@ -311,10 +300,6 @@ export default {
          * @param {string} dateString
          * @returns {string}
          */
-            erreur: "",
-            courseASupprimer: null,
-            courseCodesRabais: null, // Course dont on gère les codes
-        },
         formaterDate(dateString) {
             if (!dateString) return "—";
             const date = new Date(dateString);
@@ -593,7 +578,6 @@ export default {
             }
         }
     },
-
     async mounted() {
         await this.chargerCourses();
         try {
