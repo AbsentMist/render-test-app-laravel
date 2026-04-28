@@ -188,7 +188,7 @@ return new class extends Migration
             $table->string('code_participant', 100)->nullable()->unique();
             $table->float('tarif')->default(0);
             $table->datetime('date_paiement')->useCurrent();
-            $table->enum('status_paiement', ['Validé', 'En attente', 'Annulé'])->default('En attente');
+            $table->enum('status_paiement', ['Validé', 'En attente', 'Annulé', 'Transféré', 'Echangé'])->default('En attente');
             $table->float('montant_rabais')->default(0)->nullable();
             $table->boolean('avertissement_valide')->default(0)->nullable();
         });

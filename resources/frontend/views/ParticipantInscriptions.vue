@@ -40,6 +40,9 @@
                             :class="
                                 inscription.status_paiement === 'Annulé'
                                     ? 'bg-accent-600'
+                                    : '',
+                                inscription.status_paiement === 'Transféré'
+                                    ? 'bg-yellow-200'
                                     : ''
                             "
                         >
@@ -59,7 +62,7 @@
 
                             <!-- Colonne statut avec badge échange en cours -->
                             <td class="px-4 py-3">
-                                <div class="flex flex-col gap-1 items-start">
+                                <div class="flex flex-col gap-1 items-center">
                                     <!-- Statut principal -->
                                     <span
                                         class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold"
@@ -67,13 +70,16 @@
                                             'bg-green-100 text-green-700':
                                                 inscription.status_paiement ===
                                                 'Validé',
-                                            'bg-yellow-100 text-yellow-700':
+                                            'bg-gray-100 text-body':
                                                 inscription.status_paiement ===
                                                 'En attente',
                                             'bg-red-100 text-red-600':
                                                 inscription.status_paiement ===
                                                 'Annulé',
-                                            'bg-gray-100 text-gray-500':
+                                            'bg-yellow-300 text-yellow-800':
+                                                inscription.status_paiement ===
+                                                'Transféré',
+                                            'bg-blue-300 text-blue-600':
                                                 inscription.status_paiement ===
                                                 'Échangé',
                                         }"

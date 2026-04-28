@@ -301,6 +301,45 @@ describe('PopupInscriptionDetailParticipant', () => {
     expect(event.target.value).toBe('')
   })
 
+  // Autorise aussi les SVG
+  test('selectionnerDocument accepte les fichiers svg', async () => {
+    const wrapper = mountComponent()
+    const fichier = new File(['<svg></svg>'], 'piece.svg', { type: 'image/svg+xml' })
+    const uploadSpy = vi.spyOn(wrapper.vm, 'uploadDocument').mockResolvedValue()
+    const event = {
+      target: {
+        files: [fichier],
+        value: 'temp',
+      },
+    }
+
+    await wrapper.vm.selectionnerDocument(event)
+
+    expect(uploadSpy).toHaveBeenCalledWith(fichier)
+    expect(event.target.value).toBe('')
+  })
+
+  // Refuse un format non autorise et ne lance pas l upload
+  test('selectionnerDocument refuse les fichiers non autorises', async () => {
+    const wrapper = mountComponent()
+    const fichier = new File(['abc'], 'piece.txt', { type: 'text/plain' })
+    const uploadSpy = vi.spyOn(wrapper.vm, 'uploadDocument').mockResolvedValue()
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const event = {
+      target: {
+        files: [fichier],
+        value: 'temp',
+      },
+    }
+
+    await wrapper.vm.selectionnerDocument(event)
+
+    expect(uploadSpy).not.toHaveBeenCalled()
+    expect(errorSpy).toHaveBeenCalledWith('Type de fichier non autorisé : seuls les PDF, SVG, PNG et JPG sont acceptés.')
+    expect(event.target.value).toBe('')
+    errorSpy.mockRestore()
+  })
+
   // Traite un depot drag and drop
   test('deposerDocument remet glisserDocument a false et lance upload', async () => {
     const wrapper = mountComponent()
@@ -314,6 +353,24 @@ describe('PopupInscriptionDetailParticipant', () => {
 
     expect(wrapper.vm.glisserDocument).toBe(false)
     expect(uploadSpy).toHaveBeenCalledWith(fichier)
+  })
+
+  // Refuse un depot de fichier non autorise
+  test('deposerDocument refuse les fichiers non autorises', async () => {
+    const wrapper = mountComponent()
+    const fichier = new File(['abc'], 'drag.txt', { type: 'text/plain' })
+    const uploadSpy = vi.spyOn(wrapper.vm, 'uploadDocument').mockResolvedValue()
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    wrapper.vm.glisserDocument = true
+    wrapper.vm.deposerDocument({
+      dataTransfer: { files: [fichier] },
+    })
+
+    expect(wrapper.vm.glisserDocument).toBe(false)
+    expect(uploadSpy).not.toHaveBeenCalled()
+    expect(errorSpy).toHaveBeenCalledWith('Type de fichier non autorisé : seuls les PDF, SVG, PNG et JPG sont acceptés.')
+    errorSpy.mockRestore()
   })
 
   // Upload un document et ajoute le resultat a la liste

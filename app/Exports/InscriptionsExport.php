@@ -8,18 +8,26 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
+use Illuminate\Support\Collection;
 
 class InscriptionsExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithCustomCsvSettings
 {
+    private Collection $inscriptions;
+
+    public function __construct(Collection $inscriptions)
+    {
+        $this->inscriptions = $inscriptions;
+    }
+
     public function collection()
     {
-        // On récupère toutes les inscriptions avec les relations nécessaires
-        return Inscription::with(['course.evenement', 'participant', 'dossard'])->orderBy('date_paiement', 'desc')->get();
+        return $this->inscriptions;
     }
 
     public function headings(): array
     {
         return [
+            'Id',
             'Dossard',
             'Nom',
             'Prénom',
@@ -35,6 +43,7 @@ class InscriptionsExport implements FromCollection, WithHeadings, WithMapping, S
     public function map($inscription): array
     {
         return [
+            $inscription->id,
             $inscription->dossard->numero ?? '—',
             $inscription->participant->nom ?? '',
             $inscription->participant->prenom ?? '',

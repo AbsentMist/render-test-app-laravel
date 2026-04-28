@@ -332,6 +332,7 @@
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../stores/cart";
+import { useAuthStore } from "../stores/auth";
 import inscriptionService from "../services/inscriptionService";
 import groupeService from "../services/groupeService";
 import choixOptionParticipantService from "../services/choixOptionParticipantService";
@@ -343,6 +344,7 @@ import PopupConfirmation from "../components/PopupConfirmation.vue";
 
 const router = useRouter();
 const cartStore = useCartStore();
+const authStore = useAuthStore();
 
 // Données du panier via le store Pinia
 const panier = computed(() => cartStore.inscriptions);
@@ -806,8 +808,13 @@ const procederPaiement = async () => {
 
             // Annulation de l'ancienne inscription en cas de changement de course
             if (article.ancienneInscriptionId) {
-                await api.delete(
-                    `/participant/inscriptions/${article.ancienneInscriptionId}?is_change=1`,
+                const updateInscriptionMethod = authStore.isAdmin
+                    ? inscriptionService.updateInscriptionAdmin
+                    : inscriptionService.updateInscription;
+
+                await updateInscriptionMethod(
+                    article.ancienneInscriptionId,
+                    { status_paiement: 'Transféré' },
                 );
             }
         },

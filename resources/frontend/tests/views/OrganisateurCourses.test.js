@@ -47,6 +47,15 @@ vi.mock('../../components/PopupConfirmation.vue', () => ({
   },
 }))
 
+vi.mock('../../components/PopupQuestionnaireResultat.vue', () => ({
+  default: {
+    name: 'PopupQuestionnaireResultat',
+    props: ['course'],
+    emits: ['close'],
+    template: '<div data-test="popup-questionnaire-resultat"><button data-test="close-questionnaire" @click="$emit(\'close\')">Fermer</button></div>',
+  },
+}))
+
 import OrganisateurCourses from '../../views/OrganisateurCourses.vue'
 import courseOrganisateurService from '../../services/courseOrganisateurService'
 import evenementOrganisateurService from '../../services/evenementOrganisateurService'
@@ -59,6 +68,7 @@ const mockCourses = [
     fin_inscription: '2026-05-20',
     is_actif: true,
     is_interne: false,
+    is_questionnaire: true,
   },
   {
     id: 2,
@@ -67,6 +77,7 @@ const mockCourses = [
     fin_inscription: null,
     is_actif: false,
     is_interne: true,
+    is_questionnaire: false,
   },
 ]
 
@@ -146,6 +157,35 @@ describe('OrganisateurCourses', () => {
 
     expect(wrapper.vm.courseASupprimer.id).toBe(1)
     expect(wrapper.find('[data-test="popup-confirmation"]').exists()).toBe(true)
+  })
+
+  // Ouvre le popup questionnaire depuis l'icone de la ligne
+  test('afficherQuestion ouvre le popup questionnaire', async () => {
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    const questionnaireButton = wrapper.findAll('button').find((button) => button.attributes('title') === 'Voir les résultats du questionnaire')
+    expect(questionnaireButton.exists()).toBe(true)
+
+    await questionnaireButton.trigger('click')
+
+    expect(wrapper.find('[data-test="popup-questionnaire-resultat"]').exists()).toBe(true)
+    expect(wrapper.vm.courseQuestionnaireSelectionnee.id).toBe(1)
+  })
+
+  // Ferme le popup questionnaire via son event close
+  test('fermerQuestionnaire ferme le popup questionnaire', async () => {
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    wrapper.vm.afficherQuestion(mockCourses[0])
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[data-test="popup-questionnaire-resultat"]').exists()).toBe(true)
+
+    await wrapper.find('[data-test="close-questionnaire"]').trigger('click')
+
+    expect(wrapper.vm.courseQuestionnaireSelectionnee).toBeNull()
   })
 
   // Supprime la course puis retire la ligne du tableau

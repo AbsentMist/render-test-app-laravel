@@ -346,6 +346,56 @@ describe('PopupInscriptionDetailOrganisateur', () => {
     expect(uploadSpy).toHaveBeenCalledWith(fichier)
   })
 
+  // Autorise aussi les SVG
+  test('selectionnerDocument et deposerDocument acceptent les fichiers svg', async () => {
+    const wrapper = mountComponent()
+    const fichier = new File(['<svg></svg>'], 'piece.svg', { type: 'image/svg+xml' })
+    const uploadSpy = vi.spyOn(wrapper.vm, 'uploadDocument').mockResolvedValue()
+
+    const event = {
+      target: {
+        files: [fichier],
+        value: 'tmp',
+      },
+    }
+
+    await wrapper.vm.selectionnerDocument(event)
+    expect(uploadSpy).toHaveBeenCalledWith(fichier)
+    expect(event.target.value).toBe('')
+
+    wrapper.vm.glisserDocument = true
+    wrapper.vm.deposerDocument({ dataTransfer: { files: [fichier] } })
+    expect(wrapper.vm.glisserDocument).toBe(false)
+    expect(uploadSpy).toHaveBeenCalledWith(fichier)
+  })
+
+  // Refuse un format non autorise avant l upload
+  test('selectionnerDocument et deposerDocument refusent les fichiers non autorises', async () => {
+    const wrapper = mountComponent()
+    const fichier = new File(['abc'], 'piece.txt', { type: 'text/plain' })
+    const uploadSpy = vi.spyOn(wrapper.vm, 'uploadDocument').mockResolvedValue()
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const event = {
+      target: {
+        files: [fichier],
+        value: 'tmp',
+      },
+    }
+
+    await wrapper.vm.selectionnerDocument(event)
+    expect(uploadSpy).not.toHaveBeenCalled()
+    expect(errorSpy).toHaveBeenCalledWith('Type de fichier non autorisé : seuls les PDF, SVG, PNG et JPG sont acceptés.')
+    expect(event.target.value).toBe('')
+
+    wrapper.vm.glisserDocument = true
+    wrapper.vm.deposerDocument({ dataTransfer: { files: [fichier] } })
+    expect(wrapper.vm.glisserDocument).toBe(false)
+    expect(uploadSpy).not.toHaveBeenCalled()
+
+    errorSpy.mockRestore()
+  })
+
   // Upload ajoute un document et libere l etat de chargement
   test('uploadDocument ajoute le document et termine le chargement', async () => {
     const wrapper = mountComponent()

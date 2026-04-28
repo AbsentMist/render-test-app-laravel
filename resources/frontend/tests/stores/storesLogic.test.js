@@ -26,6 +26,7 @@ describe('Logique applicative des stores', () => {
       data: {
         token: 'jwt',
         user: {
+          id: 1,
           roles: [{ type: 'Administrateur' }],
         },
       },
@@ -43,11 +44,37 @@ describe('Logique applicative des stores', () => {
   test('cart: ajoute et totalise correctement les inscriptions', () => {
     const store = useCartStore();
 
+    store.setOwner(1);
+
     store.ajouterInscription({ nom: 'A', tarif: '12.5' }, { id: 1, nom: 'Course 1' });
     store.ajouterInscription({ nom: 'B', tarif: '7.5' }, { id: 2, nom: 'Course 2' });
 
     expect(store.cartCount).toBe(2);
     expect(store.cartTotal).toBe(20);
+  });
+
+  test('cart: charge un panier distinct selon le compte connecté', () => {
+    localStorage.setItem(
+      'running_cart_user_2',
+      JSON.stringify([{ nom: 'Compte 2', tarif: '12' }]),
+    );
+
+    const store = useCartStore();
+
+    expect(store.inscriptions).toHaveLength(0);
+
+    store.setOwner(2);
+
+    expect(store.inscriptions).toHaveLength(1);
+    expect(store.inscriptions[0].nom).toBe('Compte 2');
+
+    store.ajouterInscription({ nom: 'C', tarif: '3' }, { id: 3, nom: 'Course 3' });
+
+    expect(JSON.parse(localStorage.getItem('running_cart_user_2'))).toHaveLength(2);
+
+    store.setOwner(null);
+
+    expect(store.inscriptions).toHaveLength(0);
   });
 
   test('theme: applique et réinitialise le thème', () => {

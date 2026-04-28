@@ -102,6 +102,9 @@
 import { Icon } from '@iconify/vue';
 import PopupConfirmation from './PopupConfirmation.vue';
 import templateOrganisateurService from '../services/templateOrganisateurService';
+import {useClipboard} from '@vueuse/core';
+
+const { copy } = useClipboard({legacy: true});
 
 export default {
     components: {
@@ -159,23 +162,8 @@ export default {
 
             try {
                 let copied = false;
-
-                if (navigator?.clipboard?.writeText) {
-                    await navigator.clipboard.writeText(contenu);
-                    copied = true;
-                } else {
-                    // Fallback pour les contextes où l'API Clipboard n'est pas disponible.
-                    const tempTextarea = document.createElement('textarea');
-                    tempTextarea.value = contenu;
-                    tempTextarea.setAttribute('readonly', '');
-                    tempTextarea.style.position = 'absolute';
-                    tempTextarea.style.left = '-9999px';
-
-                    document.body.appendChild(tempTextarea);
-                    tempTextarea.select();
-                    copied = document.execCommand('copy');
-                    document.body.removeChild(tempTextarea);
-                }
+                copy(contenu);
+                copied = true;
 
                 if (copied) {
                     this.showCopyConfirmation();

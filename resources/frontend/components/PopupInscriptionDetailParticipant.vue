@@ -305,7 +305,7 @@
                   <span class="text-accent font-medium">cliquez pour parcourir</span>
                 </p>
                 <p class="text-xs text-gray-400">PDF, JPG, PNG — max 10 Mo</p>
-                <input ref="inputDoc" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" @change="selectionnerDocument" />
+                <input ref="inputDoc" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.svg" @change="selectionnerDocument" />
               </div>
               <div v-if="chargementDocument" class="mt-3 text-center">
                 <p class="text-sm text-gray-600">Chargement du document...</p>
@@ -420,6 +420,7 @@
           </span>
 
           <button
+            v-if="inscription.status_paiement === 'Validé' && inscription.ancienne_inscription === null"
             class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors"
             :class="inscriptionsFermees ? 'bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'"
             @click="ouvrirChangementCourse"
@@ -430,7 +431,7 @@
           </button>
 
           <template v-if="!isEdit">
-            <button
+            <button v-if="inscription.status_paiement === 'Validé'"
               class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               :class="inscriptionsFermees ? 'bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed border border-gray-300' : 'btn-accent-300'"
               @click="activerEdition"
@@ -754,7 +755,9 @@ export default {
      */
     async selectionnerDocument(event) {
       const fichier = event.target.files[0];
-      if (fichier) await this.uploadDocument(fichier);
+      if (fichier && this.estDocumentAutorise(fichier)) {
+        await this.uploadDocument(fichier);
+      }
       event.target.value = '';
     },
 
@@ -766,7 +769,28 @@ export default {
     deposerDocument(event) {
       this.glisserDocument = false;
       const fichier = event.dataTransfer.files[0];
-      if (fichier) this.uploadDocument(fichier);
+      if (fichier && this.estDocumentAutorise(fichier)) this.uploadDocument(fichier);
+    },
+
+    /**
+     * Vérifie qu'un document appartient aux formats autorisés.
+     * @param {File} fichier
+     * @returns {boolean}
+     */
+    estDocumentAutorise(fichier) {
+      const extension = fichier.name.split('.').pop()?.toLowerCase();
+      const typesAutorises = ['application/pdf', 'image/png', 'image/jpeg', 'image/svg+xml'];
+      const extensionsAutorisees = ['pdf', 'png', 'jpg', 'jpeg', 'svg'];
+
+      const estMimeValide = typesAutorises.includes(fichier.type);
+      const estExtensionValide = extension ? extensionsAutorisees.includes(extension) : false;
+
+      if (!estMimeValide && !estExtensionValide) {
+        console.error('Type de fichier non autorisé : seuls les PDF, SVG, PNG et JPG sont acceptés.');
+        return false;
+      }
+
+      return true;
     },
 
     /**
@@ -794,6 +818,7 @@ export default {
      * @returns {void}
      */
     ouvrirChangementCourse() {
+      if(this.inscriptionsFermees || this.inscription.ancienne_inscription) return;
       this.showChangementCourse = true;
     },
 

@@ -102,12 +102,34 @@ const OptionListStub = {
   `,
 };
 
+const SelectionModalStub = {
+  props: ['items', 'selectedIds', 'titre', 'sousTitre'],
+  template: `
+    <div data-test="selection-modal">
+      <h2>{{ titre }}</h2>
+      <p>{{ sousTitre }}</p>
+      <button
+        v-for="item in items"
+        :key="item.id"
+        class="selection-choice"
+        @click="$emit('toggle-item', item)"
+      >
+        {{ item.label }}
+        <span v-if="selectedIds.includes(item.id)">{{ selectedIds.indexOf(item.id) + 1 }}</span>
+      </button>
+      <button data-test="confirm-selection" @click="$emit('confirm')">Valider</button>
+      <button data-test="cancel-selection" @click="$emit('cancel')">Annuler</button>
+    </div>
+  `,
+};
+
 function mountComponent(routeQuery = {}) {
   return mount(FormulaireCourse, {
     global: {
       stubs: {
         PopupConfirmation: PopupConfirmationStub,
         OptionList: OptionListStub,
+        SelectionModal: SelectionModalStub,
         OptionTemplate: true,
         QuestionTemplate: true,
         IndicateurEtapes: true,
@@ -167,5 +189,39 @@ describe('FormulaireCourse', () => {
     await newOptionChoice.trigger('click');
 
     expect(wrapper.findAllComponents({ name: 'OptionTemplate' }).length).toBe(1);
+  });
+
+  test('permet de sélectionner plusieurs éléments existants dans l ordre des clics', async () => {
+    optionOrganisateurService.getAllOptions.mockResolvedValue({
+      data: [
+        { id: 1, nom: 'Pack VIP' },
+        { id: 2, nom: 'Pack Chrono' },
+      ],
+    });
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    const nextButton = wrapper.findAll('button').find((b) => b.text().includes('Etape suivante'));
+    await nextButton.trigger('click');
+
+    const plusButtons = wrapper.findAll('button').filter((b) => b.classes().includes('rounded-full'));
+    await plusButtons[0].trigger('click');
+
+    const existingChoice = wrapper.findAll('[data-test="option-list"] button').find((button) => button.text().includes('Existant'));
+    await existingChoice.trigger('click');
+
+    expect(wrapper.find('[data-test="selection-modal"]').exists()).toBe(true);
+
+    const selectionButtons = wrapper.findAll('[data-test="selection-modal"] .selection-choice');
+    await selectionButtons[1].trigger('click');
+    await selectionButtons[0].trigger('click');
+
+    expect(selectionButtons[0].text()).toContain('2');
+    expect(selectionButtons[1].text()).toContain('1');
+
+    await wrapper.find('[data-test="confirm-selection"]').trigger('click');
+
+    expect(wrapper.vm.courseData.options.map((option) => option.id)).toEqual([2, 1]);
   });
 });

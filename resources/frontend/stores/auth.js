@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '../services/api'
+import { useCartStore } from './cart'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref(null)
     const token = ref(localStorage.getItem('token') || null)
+    const cartStore = useCartStore()
     
     // Mémorise la vue de l'admin (true = vue admin, false = vue participant)
     const activeAdminMode = ref(localStorage.getItem('adminMode') === 'true')
@@ -15,6 +17,10 @@ export const useAuthStore = defineStore('auth', () => {
     })
 
     const showAdminLayout = computed(() => isAdmin.value && activeAdminMode.value)
+
+    function getCartOwnerId(currentUser) {
+        return currentUser?.id ?? currentUser?.participant?.id ?? null
+    }
 
     function toggleAdminMode() {
         if (isAdmin.value) {
@@ -30,6 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             const response = await api.get('/me') 
             user.value = response.data
+            cartStore.setOwner(getCartOwnerId(user.value))
             
             if (isAdmin.value && localStorage.getItem('adminMode') === null) {
                 activeAdminMode.value = true;
@@ -49,6 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
         const response = await api.post('/login', { email, password })
         token.value = response.data.token
         user.value = response.data.user
+        cartStore.setOwner(getCartOwnerId(user.value))
         
         localStorage.setItem('token', token.value)
         
@@ -71,6 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
         
         token.value = null
         user.value = null
+        cartStore.setOwner(null)
         localStorage.removeItem('token')
         localStorage.removeItem('adminMode') 
         activeAdminMode.value = false

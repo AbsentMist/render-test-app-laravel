@@ -806,7 +806,7 @@
             </div>
             <div class="flex pt-4 items-center">
                 <div class="flex-grow border-t border-gray-700"></div>
-                <span class="mx-4">
+                <span class="mx-4 relative inline-flex items-center">
                     <button
                         type="button"
                         @click="handleModalState"
@@ -814,27 +814,23 @@
                     >
                         <Icon icon="mdi:plus" class="w-4 h-4" />
                     </button>
+                    <OptionList
+                        v-if="modal == optionModal.SELECTION"
+                        placement="right"
+                        :elements="optionElements"
+                        @select-item="handleOptionSelection"
+                    />
                 </span>
                 <div class="flex-grow border-t border-gray-700"></div>
             </div>
-            <div
-                v-if="modal == optionModal.SELECTION"
-                class="flex items-center justify-center z-50"
-            >
-                <OptionList
-                    :elements="optionElements"
-                    @select-item="handleOptionSelection"
-                />
-            </div>
-            <div
+            <SelectionModal
                 v-if="modal == optionModal.EXISTANT"
-                class="flex items-center justify-center z-50"
-            >
-                <OptionList
-                    :elements="optionModels.map((o) => o.nom)"
-                    @select-item="handleOptionSelection"
-                />
-            </div>
+                :titre="'Sélectionner des options existantes'"
+                sous-titre="Cliquez sur plusieurs éléments, l'ordre affiché correspondra à l'ordre de clic."
+                :elements="optionModels.map((option) => option.nom)"
+                @select-item="handleOptionSelection"
+                @cancel="modal = optionModal.FERMEE"
+            />
         </div>
 
         <!-- ETAPE AVERTISSEMENT -->
@@ -920,7 +916,7 @@
             </div>
             <div class="flex pt-4 items-center">
                 <div class="flex-grow border-t border-gray-700"></div>
-                <span class="mx-4">
+                <span class="mx-4 relative inline-flex items-center">
                     <button
                         type="button"
                         @click="handleModalState"
@@ -928,27 +924,23 @@
                     >
                         <Icon icon="mdi:plus" class="w-4 h-4" />
                     </button>
+                    <OptionList
+                        v-if="modal == optionModal.SELECTION"
+                        placement="right"
+                        :elements="optionElements"
+                        @select-item="handleOptionSelection"
+                    />
                 </span>
                 <div class="flex-grow border-t border-gray-700"></div>
             </div>
-            <div
-                v-if="modal == optionModal.SELECTION"
-                class="flex items-center justify-center z-50"
-            >
-                <OptionList
-                    :elements="this.optionElements"
-                    @select-item="handleOptionSelection"
-                />
-            </div>
-            <div
+            <SelectionModal
                 v-if="modal == optionModal.EXISTANT"
-                class="flex items-center justify-center z-50"
-            >
-                <OptionList
-                    :elements="questionModels.map((q) => q.enonce)"
-                    @select-item="handleOptionSelection"
-                />
-            </div>
+                :titre="'Sélectionner des questions existantes'"
+                sous-titre="Cliquez sur plusieurs éléments, l'ordre affiché correspondra à l'ordre de clic."
+                :elements="questionModels.map((question) => question.enonce)"
+                @select-item="handleOptionSelection"
+                @cancel="modal = optionModal.FERMEE"
+            />
         </div>
 
         <!-- NAVIGATION ETAPES -->
@@ -1017,6 +1009,7 @@ import { Icon } from "@iconify/vue";
 import { initDropdowns } from "flowbite";
 import PopupConfirmation from "./PopupConfirmation.vue";
 import OptionList from "./OptionList.vue";
+import SelectionModal from "./SelectionModal.vue";
 import OptionTemplate from "./OptionTemplate.vue";
 import QuestionTemplate from "./QuestionTemplate.vue";
 import evenementOrganisateurService from "../services/evenementOrganisateurService";
@@ -1052,6 +1045,7 @@ export default {
         Icon,
         PopupConfirmation,
         OptionList,
+        SelectionModal,
         OptionTemplate,
         QuestionTemplate,
         IndicateurEtapes,
@@ -1667,10 +1661,6 @@ export default {
         async removeOption(index) {
             const option = this.courseData.options[index];
             if (option.id) {
-                await optionCourseService.deleteOptionCourse({
-                    id_course: this.courseId,
-                    id_option: option.id,
-                });
                 await optionOrganisateurService.deleteOption(option.id);
             }
             this.courseData.options.splice(index, 1);
