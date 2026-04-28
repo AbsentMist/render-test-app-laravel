@@ -7,6 +7,7 @@ const routerMock = {
 
 const authStoreMock = {
   login: vi.fn(),
+  isAdmin: false,
 }
 
 vi.mock('vue-router', () => ({
@@ -38,6 +39,7 @@ describe('Connexion', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    authStoreMock.isAdmin = false
   })
 
   afterEach(() => {
@@ -58,8 +60,8 @@ describe('Connexion', () => {
     expect(wrapper.find('input[type="password"]').exists()).toBe(false)
   })
 
-  // Connecte l utilisateur et redirige vers le tableau de bord
-  test('connecte l utilisateur et redirige vers le tableau de bord', async () => {
+  // Connecte le participant et redirige vers le tableau de bord
+  test('connecte le participant et redirige vers le tableau de bord', async () => {
     authStoreMock.login.mockResolvedValue({})
     wrapper = mountComponent()
 
@@ -72,6 +74,22 @@ describe('Connexion', () => {
     expect(authStoreMock.login).toHaveBeenCalledWith('alice@example.com', 'Aa1!aaaa')
     expect(routerMock.push).toHaveBeenCalledWith('/accueil')
     expect(wrapper.text()).not.toContain('Identifiants incorrects')
+  })
+
+  // Connecte un organisateur et redirige vers la gestion des evenements
+  test('connecte l organisateur et redirige vers organisateur evenements', async () => {
+    authStoreMock.login.mockResolvedValue({})
+    authStoreMock.isAdmin = true
+    wrapper = mountComponent()
+
+    await wrapper.get('input[type="email"]').setValue('admin@example.com')
+    await wrapper.get('input[type="password"]').setValue('Aa1!aaaa')
+
+    await wrapper.get('button:not([type="button"])').trigger('click')
+    await flushPromises()
+
+    expect(authStoreMock.login).toHaveBeenCalledWith('admin@example.com', 'Aa1!aaaa')
+    expect(routerMock.push).toHaveBeenCalledWith('/organisateur/evenements')
   })
 
   // Affiche l etat de chargement pendant la connexion

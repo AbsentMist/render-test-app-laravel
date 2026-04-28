@@ -47,6 +47,13 @@ vi.mock('../../components/FormulaireOption.vue', () => ({
   },
 }))
 
+vi.mock('../../components/FormulaireQuestion.vue', () => ({
+  default: {
+    name: 'FormulaireQuestion',
+    template: '<div data-test="formulaire-question"></div>',
+  },
+}))
+
 vi.mock('../../components/FormulaireEvenement.vue', () => ({
   default: {
     name: 'FormulaireEvenement',
@@ -115,6 +122,10 @@ describe('OrganisateurFormulaires', () => {
     await wrapper.findAll('[data-test="formulaire-onglet"] button').find((button) => button.text() === 'Catégorie').trigger('click')
 
     expect(wrapper.find('[data-test="formulaire-categorie"]').exists()).toBe(true)
+
+    await wrapper.findAll('[data-test="formulaire-onglet"] button').find((button) => button.text() === 'Questionnaire').trigger('click')
+
+    expect(wrapper.find('[data-test="formulaire-question"]').exists()).toBe(true)
   })
 
   // Maintient les autres sous-formulaires inactifs tant que leur onglet n est pas selectionne
@@ -123,6 +134,7 @@ describe('OrganisateurFormulaires', () => {
 
     expect(wrapper.find('[data-test="formulaire-course"]').exists()).toBe(true)
     expect(wrapper.find('[data-test="formulaire-option"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="formulaire-question"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="formulaire-evenement"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="formulaire-categorie"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="formulaire-avertissement"]').exists()).toBe(false)

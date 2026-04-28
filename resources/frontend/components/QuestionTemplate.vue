@@ -3,7 +3,7 @@
         <div>
             <div class="flex flex-row justify-between items-center">
                 <label class="block mb-2.5 text-sm font-medium text-heading">Question</label>
-                <button type="button" @click="removeQuestion" class="mb-2.5 text-primary-900 hover:text-accent">
+                <button v-if="!removeButton" type="button" @click="removeQuestion" class="mb-2.5 text-primary-900 hover:text-accent">
                     <Icon icon="mdi:close-circle" width="20" height="20" />
                 </button>
             </div>
@@ -18,7 +18,7 @@
 
         <label class="block my-2.5 text-sm font-medium text-heading">Réponses</label>
         <div v-for="(choix, index) in questionModel.choix" :key="index" class="my-2 flex flex-row gap-4 items-center">
-            <input type="radio" disabled class="w-4 h-4 text-neutral-primary border-default-medium bg-neutral-secondary-medium rounded-full border border-default appearance-none">
+            <input type="radio" disabled class="w-4 h-4 text-neutral-primary bg-neutral-secondary-medium rounded-full border border-default-medium appearance-none">
             <input
                 type="text"
                 v-model="questionModel.choix[index].texte_option"
@@ -53,6 +53,11 @@ export default {
             type: Object,
             required: false,
             default: () => ({ enonce: '', choix: [] }),
+        },
+        removeButton: {
+            type: Boolean,
+            required: false,
+            default: false,
         },
     },
     methods: {

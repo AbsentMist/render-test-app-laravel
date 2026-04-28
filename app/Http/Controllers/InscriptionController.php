@@ -6,6 +6,7 @@ use App\Models\Inscription;
 use App\Models\Course;
 use App\Models\Dossard;
 use App\Models\ChoixOption;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Participant;
@@ -50,6 +51,7 @@ class InscriptionController extends Controller
         $inscriptions = Inscription::with([
             'course.evenement',
             'participant' => fn ($query) => $query->select($participantColumns),
+            'participant.user' => fn ($query) => $query->select('id', 'email'),
             'dossard',
             'groupe',
             'choixOptions.option',
@@ -72,7 +74,6 @@ class InscriptionController extends Controller
         //Récupération de l'ID du participant
         $idParticipant = $user->participant->id;
 
-        //Renvoie uniquement les inscriptions du participant
         $participantColumns = [
             'id',
             'id_user',
@@ -231,23 +232,21 @@ if (!empty($validatedData['code_rabais'])) {
         }
 
         // Création de l'inscription (s'il n'y avait aucun historique)
-        // Création de l'inscription (s'il n'y avait aucun historique)
         $inscription = Inscription::create([
+            'id_course' => $validatedData['id_course'],
             'id_participant' => $idParticipant,
-            'id_course' => $course->id,
             'id_groupe' => $validatedData['id_groupe'] ?? null,
             'id_document' => $validatedData['id_document'] ?? null,
             'id_ancienne_inscription' => $validatedData['id_ancienne_inscription'] ?? null,
             'code_participant' => $validatedData['code_participant'] ?? null,
-            // On prend le prix de l'inscription avec les options choisies, sinon prix de base de la course
             'tarif' => $validatedData['tarif'] ?? $course->tarif,
             'date_paiement'       => now(),
             'status_paiement' => $statutPaiementFinal, // Application du statut dynamique
             'montant_rabais' => $validatedData['montant_rabais'] ?? 0,
             'avertissement_valide' => $validatedData['avertissement_valide'] ?? false,
-            'participe_challenge'  => $validatedData['participe_challenge'] ?? false,
-            'type_challenge'       => $validatedData['type_challenge'] ?? null,
-            'equipe_challenge'     => $validatedData['equipe_challenge'] ?? null,
+            'participe_challenge' => $validatedData['participe_challenge'] ?? false,
+            'type_challenge' => $validatedData['type_challenge'] ?? null,
+            'equipe_challenge' => $validatedData['equipe_challenge'] ?? null,
         ]);
         // Incrémenter le compteur d'utilisations du code de rabais si fourni
 if (!empty($validatedData['code_rabais'])) {
@@ -375,7 +374,7 @@ if (!empty($validatedData['code_rabais'])) {
         $validatedData = $request->validate([
             'participant_prenom' => 'sometimes|string|max:100',
             'participant_nom' => 'sometimes|string|max:100',
-            'status_paiement' => 'sometimes|in:Validé,En attente,Annulé,Échangé',
+            'status_paiement' => 'sometimes|in:Validé,En attente,Annulé,Transféré,Échangé',
             'tarif' => 'sometimes|numeric',
             'montant_rabais' => 'sometimes|numeric',
             'avertissement_valide' => 'sometimes|boolean',
@@ -443,6 +442,7 @@ if (!empty($validatedData['code_rabais'])) {
             'choix_options' => 'sometimes|array',
             'choix_options.*.id_option' => 'required_with:choix_options|exists:Options,id',
             'choix_options.*.quantite' => 'sometimes|integer|min:0',
+            'status_paiement' => 'sometimes|in:Validé,En attente,Annulé,Transféré,Échangé', // Permet au participant de voir le statut de son inscription mais pas de le modifier (sauf en cas de changement de course)
         ]);
 
         // Mise à jour des champs simples
@@ -511,10 +511,92 @@ if (!empty($validatedData['code_rabais'])) {
 
         // On récupère le format depuis l'URL (csv ou xlsx), par défaut xlsx
         $format = $request->query('format', 'xlsx');
+        $filters = $request->only(['recherche', 'status', 'type']);
+        $inscriptions = $this->adminInscriptionsQuery($filters)->get();
         
         $extension = $format === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX;
         $fileName = 'export_inscriptions_' . date('Y-m-d_H-i') . '.' . $format;
 
-        return Excel::download(new InscriptionsExport(), $fileName, $extension);
+        return Excel::download(new InscriptionsExport($inscriptions), $fileName, $extension);
+    }
+
+    /**
+     * Construit la requête admin pour les inscriptions avec les relations et filtres actifs.
+     *
+     * @param array<string, mixed> $filters
+     */
+    private function adminInscriptionsQuery(array $filters = [])
+    {
+        $participantColumns = [
+            'id',
+            'id_user',
+            'nom',
+            'prenom',
+            'date_naissance',
+            'equipe_nom',
+            'adresse',
+            'code_postal',
+            'ville',
+            'pays',
+            'telephone',
+            'nationalite',
+            'instagram',
+            'facebook',
+            'taille_tshirt',
+            'sexe',
+        ];
+
+        $query = Inscription::with([
+            'course.evenement',
+            'participant' => fn ($query) => $query->select($participantColumns),
+            'participant.user' => fn ($query) => $query->select('id', 'email'),
+            'dossard',
+            'groupe',
+            'choixOptions.option',
+            'reponsesQuestions.question',
+            'reponsesQuestions.option',
+            'documentsFournis',
+            'ancienneInscription.course',
+            'ancienneInscription.participant' => fn ($query) => $query->select($participantColumns),
+            'ancienneInscription.participant.user' => fn ($query) => $query->select('id', 'email'),
+            'ancienneInscription.groupe',
+        ])->orderBy('date_paiement', 'desc');
+
+        $recherche = trim((string) ($filters['recherche'] ?? ''));
+        if ($recherche !== '') {
+            $motCle = '%' . $recherche . '%';
+
+            $query->where(function (Builder $subQuery) use ($motCle) {
+                $subQuery->whereHas('participant', function (Builder $participantQuery) use ($motCle) {
+                    $participantQuery->where('nom', 'like', $motCle)
+                        ->orWhere('prenom', 'like', $motCle);
+                })
+                ->orWhereHas('dossard', function (Builder $dossardQuery) use ($motCle) {
+                    $dossardQuery->where('numero', 'like', $motCle);
+                })
+                ->orWhereHas('groupe', function (Builder $groupeQuery) use ($motCle) {
+                    $groupeQuery->where('nom', 'like', $motCle);
+                })
+                ->orWhere('equipe_challenge', 'like', $motCle)
+                ->orWhereHas('course', function (Builder $courseQuery) use ($motCle) {
+                    $courseQuery->where('nom', 'like', $motCle)
+                        ->orWhereHas('evenement', function (Builder $evenementQuery) use ($motCle) {
+                            $evenementQuery->where('nom', 'like', $motCle);
+                        });
+                });
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status_paiement', $filters['status']);
+        }
+
+        if (!empty($filters['type'])) {
+            $query->whereHas('course', function (Builder $courseQuery) use ($filters) {
+                $courseQuery->where('type', $filters['type']);
+            });
+        }
+
+        return $query;
     }
 }

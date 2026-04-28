@@ -1,9 +1,31 @@
 import { defineStore } from 'pinia';
 
+function getCartStorageKey(ownerId) {
+  return ownerId ? `running_cart_user_${ownerId}` : null;
+}
+
+function loadCartFromStorage(storageKey) {
+  if (!storageKey) {
+    return [];
+  }
+
+  try {
+    const raw = localStorage.getItem(storageKey);
+    const parsed = raw ? JSON.parse(raw) : [];
+
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('Erreur lors du chargement du panier', error);
+    return [];
+  }
+}
+
 export const useCartStore = defineStore('cart', {
   state: () => ({
-    inscriptions: JSON.parse(localStorage.getItem('running_cart')) || [],
-    isDropdownOpen: false, 
+    inscriptions: [],
+    isDropdownOpen: false,
+    currentOwnerId: null,
+    storageKey: null,
   }),
 
   getters: {
@@ -12,6 +34,21 @@ export const useCartStore = defineStore('cart', {
   },
 
   actions: {
+    setOwner(ownerId = null) {
+      const nextStorageKey = getCartStorageKey(ownerId);
+
+      if (this.storageKey && this.storageKey !== nextStorageKey) {
+        localStorage.setItem(
+          this.storageKey,
+          JSON.stringify(this.inscriptions),
+        );
+      }
+
+      this.currentOwnerId = ownerId;
+      this.storageKey = nextStorageKey;
+      this.inscriptions = loadCartFromStorage(nextStorageKey);
+    },
+
     //Récupération des informations de la course pour les afficher dans le panier
     ajouterInscription(donneesInscription, courseDetails) {
       this.inscriptions.push({ 
@@ -48,7 +85,11 @@ export const useCartStore = defineStore('cart', {
     },
 
     sauvegarderPanier() {
-      localStorage.setItem('running_cart', JSON.stringify(this.inscriptions));
+      if (!this.storageKey) {
+        return;
+      }
+
+      localStorage.setItem(this.storageKey, JSON.stringify(this.inscriptions));
     }
   }
 });

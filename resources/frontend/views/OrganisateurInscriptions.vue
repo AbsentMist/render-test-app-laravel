@@ -5,6 +5,7 @@
 
     <FiltreInscriptions
       :nb-resultats="inscriptionsFiltrees.length"
+      :copie-confirmee="copieConfirmeeEmail"
       @update:filtres="onFiltresChange"
       @exporter="exporter"
     />
@@ -61,7 +62,17 @@
           <template v-for="inscription in inscriptionsFiltrees" :key="inscription.id">
             <tr
               class="border-t border-default-medium hover:bg-neutral-secondary-medium transition-colors"
-              :class="inscription.status_paiement=='Annulé' ? 'bg-accent-600' : ''"
+              :class="
+                inscription.status_paiement === 'Annulé'
+                    ? 'bg-accent-600'
+                    : '',
+                inscription.status_paiement === 'Transféré'
+                    ? 'bg-yellow-200'
+                    : '',
+                inscription.status_paiement === 'Échangé'
+                    ? 'bg-blue-200'
+                    : ''
+                "
             >
               <td class="px-4 py-3">{{ inscription.dossard?.numero ?? '—' }}</td>
               <td class="px-4 py-3">{{ inscription.participant.nom }}</td>
@@ -72,7 +83,33 @@
               </td>
               <td class="px-4 py-3">{{ inscription.date_paiement?.slice(0, 10) || '—' }}</td>
               <td class="px-4 py-3 text-center">CHF {{ inscription.tarif }}</td>
-              <td class="px-4 py-3">{{ inscription.status_paiement ?? '—' }}</td>
+              <td class="px-4 py-3">
+                  <div class="flex flex-col gap-1 items-center">
+                      <!-- Statut principal -->
+                      <span
+                          class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold"
+                          :class="{
+                              'bg-green-100 text-green-700':
+                                  inscription.status_paiement ===
+                                  'Validé',
+                              'bg-gray-100 text-body':
+                                  inscription.status_paiement ===
+                                  'En attente',
+                              'bg-red-100 text-red-600':
+                                  inscription.status_paiement ===
+                                  'Annulé',
+                              'bg-yellow-300 text-yellow-800':
+                                  inscription.status_paiement ===
+                                  'Transféré',
+                              'bg-blue-300 text-blue-600':
+                                  inscription.status_paiement ===
+                                  'Échangé',
+                          }"
+                      >
+                          {{ inscription.status_paiement ?? "—" }}
+                      </span>
+                  </div>
+              </td>
               <td class="px-4 py-3">{{ inscription.course.type ?? '—' }}</td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
@@ -145,6 +182,9 @@ import PopupAvertissementCourse from '../components/PopupAvertissementCourse.vue
 import PopupChangementCourseOrganisateur from '../components/PopupChangementCourseOrganisateur.vue';
 import PopupInscriptionDetailOrganisateur from '../components/PopupInscriptionDetailOrganisateur.vue';
 import PopupConfirmation from '../components/PopupConfirmation.vue';
+import {useClipboard} from '@vueuse/core';
+
+const { copy } = useClipboard({legacy: true});
 
 export default {
   components: {
@@ -171,6 +211,8 @@ export default {
       popupAvertissement: false,
       popupChangement: false,
       popupDetail: false,
+      copieConfirmeeEmail: false,
+      copieConfirmationTimeoutEmail: null,
       inscriptionASupprimer: null,
       inscription: { actuel: null },
       texteInfo: "En cas de sélection de course où le montant est supérieur à la course actuel, la différence devra être réglée.",
@@ -374,7 +416,19 @@ export default {
      */
     async exporter(format) {
       try {
-        const response = await inscriptionService.exportInscriptionsAdmin(format);
+        if(format === 'email') {
+          const emails = this.inscriptionsFiltrees
+            .map(i => i.participant?.user?.email)
+            .filter(Boolean)
+            .join(', ');
+
+          if (!emails) return;
+
+          copy(emails);
+          this.showCopyConfirmationEmail();
+          return;
+        }
+        const response = await inscriptionService.exportInscriptionsAdmin(format, this.filtres);
         const url  = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href  = url;
@@ -389,6 +443,22 @@ export default {
         this.erreur = "Impossible d'exporter les inscriptions.";
       }
     },
+    /**
+     * Affiche temporairement la confirmation visuelle de copie.
+     * @returns {void}
+     */
+    showCopyConfirmationEmail() {
+      this.copieConfirmeeEmail = true;
+
+      if (this.copieConfirmationTimeoutEmail) {
+        clearTimeout(this.copieConfirmationTimeoutEmail);
+      }
+
+      this.copieConfirmationTimeoutEmail = setTimeout(() => {
+        this.copieConfirmeeEmail = false;
+        this.copieConfirmationTimeoutEmail = null;
+      }, 1500);
+    },
   },
   /**
    * Charge les inscriptions dès l'ouverture de la vue.
@@ -396,6 +466,12 @@ export default {
    */
   async mounted() {
     await this.chargerInscriptions();
+  },
+  beforeUnmount() {
+    if (this.copieConfirmationTimeoutEmail) {
+      clearTimeout(this.copieConfirmationTimeoutEmail);
+      this.copieConfirmationTimeoutEmail = null;
+    }
   },
 };
 </script>

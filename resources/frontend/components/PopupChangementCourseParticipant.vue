@@ -222,7 +222,19 @@ export default {
           this.dataInserted = false;
           }, 2000);  
         return;
-      }      
+      }
+
+      // Vérifier si l'inscription est déjà un changement
+      if (this.inscription.ancienne_inscription_id) {
+        this.confirmation = false;
+        this.messageConfirmation = "Vous ne pouvez changer de course qu'une seule fois ! Contactez l'organisateur pour une autre modification."
+        this.dataInserted = true;
+        setTimeout(() => {
+          this.dataInserted = false;
+          }, 3000);  
+        return;
+      }
+
       try {
         const inscriptionAvecHistorique = {
           ...this.nouvelleInscriptionData, 

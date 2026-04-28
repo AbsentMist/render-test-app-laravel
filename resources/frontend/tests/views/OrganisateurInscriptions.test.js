@@ -20,11 +20,17 @@ const routerMock = {
   push: vi.fn(),
 }
 
+const copySpy = vi.fn()
+
 vi.mock('@iconify/vue', () => ({
   Icon: {
     name: 'Icon',
     template: '<span data-test="icon"></span>',
   },
+}))
+
+vi.mock('@vueuse/core', () => ({
+  useClipboard: () => ({ copy: copySpy }),
 }))
 
 vi.mock('../../services/inscriptionService.js', () => ({
@@ -46,11 +52,13 @@ vi.mock('../../components/Title.vue', () => ({
 vi.mock('../../components/FiltreInscriptions.vue', () => ({
   default: {
     name: 'FiltreInscriptions',
-    props: ['nbResultats'],
+    props: ['nbResultats', 'copieConfirmee'],
     emits: ['update:filtres', 'exporter'],
     template: `
       <div data-test="filtre-inscriptions">
         <span>{{ nbResultats }}</span>
+        <span v-if="copieConfirmee" data-test="copie-email">Copié</span>
+        <button data-test="emit-email" @click="$emit('exporter', 'email')">Email</button>
         <button data-test="emit-filters" @click="$emit('update:filtres', { recherche: 'Alice', status: '', type: '' })">Filter</button>
         <button data-test="emit-csv" @click="$emit('exporter', 'csv')">CSV</button>
         <button data-test="emit-xlsx" @click="$emit('exporter', 'xlsx')">XLSX</button>
@@ -99,7 +107,7 @@ const mockInscriptions = [
   {
     id: 1,
     dossard: { numero: 101 },
-    participant: { id: 10, nom: 'Dupont', prenom: 'Alice' },
+    participant: { id: 10, nom: 'Dupont', prenom: 'Alice', user: { email: 'alice@example.com' } },
     course: { nom: '5 km', type: 'Trail', evenement: { nom: 'Run A' } },
     date_paiement: '2026-04-10T10:00:00Z',
     tarif: 35,
@@ -108,7 +116,7 @@ const mockInscriptions = [
   {
     id: 2,
     dossard: { numero: 55 },
-    participant: { id: 11, nom: 'Martin', prenom: 'Bob' },
+    participant: { id: 11, nom: 'Martin', prenom: 'Bob', user: { email: 'bob@example.com' } },
     course: { nom: '10 km', type: 'Route', evenement: { nom: 'Run B' } },
     date_paiement: '2026-04-11T10:00:00Z',
     tarif: 45,
@@ -276,10 +284,23 @@ describe('OrganisateurInscriptions', () => {
 
     await wrapper.vm.exporter('csv')
 
-    expect(inscriptionService.exportInscriptionsAdmin).toHaveBeenCalledWith('csv')
+    expect(inscriptionService.exportInscriptionsAdmin).toHaveBeenCalledWith('csv', { recherche: '', status: '', type: '' })
     expect(createObjectURL).toHaveBeenCalledTimes(1)
     expect(clickSpy).toHaveBeenCalledTimes(1)
     expect(wrapper.vm.erreur).toBe('')
+  })
+
+  // Copie les emails filtrés et affiche une confirmation temporaire
+  test('exporter email copie les adresses et affiche un retour visuel', async () => {
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    await wrapper.find('[data-test="emit-email"]').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(copySpy).toHaveBeenCalledWith('alice@example.com, bob@example.com')
+    expect(wrapper.vm.copieConfirmeeEmail).toBe(true)
+    expect(wrapper.find('[data-test="copie-email"]').exists()).toBe(true)
   })
 
   // Garde un message lisible si l export echoue
