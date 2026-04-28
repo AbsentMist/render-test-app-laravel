@@ -120,6 +120,7 @@
                             :tarif="parseFloat(course.tarif) || 0"
                             @rabais-applique="onRabaisApplique"
                             @rabais-retire="onRabaisRetire"
+                            @dossard-valide="onDossardValide"
                         />
 
                         <div
@@ -283,6 +284,23 @@
                                 }}.-</span
                             >
                         </div>
+                        <!-- Dossard personnalisé -->
+                        <div
+                            v-if="inscription.code_dossard"
+                            class="mt-2 flex justify-between text-xs text-blue-600 font-semibold"
+                        >
+                            <span class="flex items-center gap-1">
+                                <Icon
+                                    icon="mdi:badge-account-outline"
+                                    class="w-3.5 h-3.5"
+                                />
+                                {{
+                                    inscription.code_dossard.nom_personnalise
+                                        ? `Dossard : ${inscription.code_dossard.nom_personnalise}`
+                                        : "Dossard personnalisé confirmé"
+                                }}
+                            </span>
+                        </div>
                     </div>
 
                     <div class="border-t border-gray-200 pt-3 mt-4">
@@ -433,6 +451,7 @@ export default {
                 codeParticipation: "",
                 nom_equipe: "",
                 rabais: null, // { code, montant_rabais, tarif_final, message }
+                code_dossard: null, // { code, nom_personnalise, message }
             },
             erreurGroupe: null,
             entrepriseValidee: null,
@@ -561,6 +580,7 @@ export default {
             const code = this.inscription.codeParticipation?.trim();
             if (!code) return false;
             if (this.entrepriseValidee) return false;
+            if (this.inscription.code_dossard) return false;
             return true;
         },
     },
@@ -679,6 +699,9 @@ export default {
                     montant_rabais:
                         this.inscription.rabais?.montant_rabais ?? 0,
                     code_rabais: this.inscription.rabais?.code ?? null,
+                    code_dossard: this.inscription.code_dossard?.code ?? null,
+                    nom_personnalise_dossard:
+                        this.inscription.code_dossard?.nom_personnalise ?? null,
                     choix_options: this.choixOptionsPourPanier,
                     reponses_questions: this.reponsesPourPanier,
                 });
@@ -727,6 +750,9 @@ export default {
          */
         onRabaisRetire() {
             this.inscription.rabais = null;
+        },
+        onDossardValide(dossardData) {
+            this.inscription.code_dossard = dossardData;
         },
     },
     mounted() {
