@@ -18,6 +18,35 @@ protected $fillable = [
     'nationalite', 'instagram', 'facebook', 'taille_tshirt', 'sexe', 'photo',
 ];
 
+    public function getPhotoAttribute($value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+
+        if (is_string($value) && str_starts_with($value, 'data:')) {
+            return $value;
+        }
+
+        if (is_string($value) && base64_decode($value, true) !== false) {
+            return 'data:image/jpeg;base64,' . $value;
+        }
+
+        return 'data:image/jpeg;base64,' . base64_encode($value);
+    }
+
+    public function setPhotoAttribute($value): void
+    {
+        if (is_string($value) && str_starts_with($value, 'data:')) {
+            $commaPosition = strpos($value, ',');
+            $decoded = $commaPosition === false ? null : base64_decode(substr($value, $commaPosition + 1), true);
+            $this->attributes['photo'] = $decoded !== false && $decoded !== null ? $decoded : $value;
+            return;
+        }
+
+        $this->attributes['photo'] = $value;
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'id_user', 'id');
