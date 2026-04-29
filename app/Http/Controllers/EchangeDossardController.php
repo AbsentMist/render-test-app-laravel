@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Inscription;
 use App\Models\Dossard;
+use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class EchangeDossardController extends Controller
 {
@@ -120,8 +123,13 @@ class EchangeDossardController extends Controller
             'ancienneInscription.dossard',
         ]);
 
-        // TODO (Steven - tâche 2,2) : envoyer le mail de demande d'échange à B
-        // Mail::to($userB->email)->send(new DemandeEchangeDossardMail($inscriptionB));
+        $this->prepareInscriptionForJson($inscriptionB);
+
+        try {
+            Mail::to($userB->email)->send(new \App\Mail\DemandeEchangeDossardMail($inscriptionB));
+        } catch (\Exception $e) {
+            Log::error("Erreur d'envoi d'email d'échange de dossard : " . $e->getMessage());
+        }
 
         return response()->json([
             'message'      => 'Demande d\'échange envoyée avec succès.',
@@ -144,6 +152,8 @@ class EchangeDossardController extends Controller
         $inscriptionB = Inscription::with([
             'ancienneInscription.dossard',
             'ancienneInscription.participant',
+            'participant.user',
+            'course.evenement',
         ])->findOrFail($id);
 
         // Seul B peut accepter
@@ -169,7 +179,7 @@ class EchangeDossardController extends Controller
 
         // Mise à jour des statuts
         $inscriptionB->update(['status_paiement' => 'Validé']);
-        $inscriptionA->update(['status_paiement' => 'Échangé']);
+        $inscriptionA->update(['status_paiement' => 'Validé']);
 
         // TODO (Steven - tâche 2,3) : envoyer mail de confirmation à A et B
 
@@ -200,6 +210,32 @@ class EchangeDossardController extends Controller
             return response()->json(['message' => 'Cette demande d\'échange n\'est plus en attente.'], 422);
         }
 
+        $inscriptionA = $inscriptionB->ancienneInscription;
+
+        if (!$inscriptionA) {
+            return response()->json(['message' => 'Inscription source introuvable.'], 404);
+        }
+
+        try {
+            Mail::to($inscriptionA->participant->user->email)->send(
+                new \App\Mail\RefusEchangeDossardMail($inscriptionA, $inscriptionB)
+            );
+        } catch (\Exception $e) {
+            Log::error("Erreur d'envoi d'email de refus d'échange de dossard : " . $e->getMessage());
+        }
+
+        if ($inscriptionA->participant?->user) {
+            Message::create([
+                'content' => json_encode([
+                    'recipient_user_id' => $inscriptionA->participant->user->id,
+                    'sender_user_id' => $user->id,
+                    'type' => 'exchange_refused',
+                    'inscription_a_id' => $inscriptionA->id,
+                    'inscription_b_id' => $inscriptionB->id,
+                ], JSON_UNESCAPED_UNICODE),
+            ]);
+        }
+
         // TODO (Steven - tâche 2,3) : envoyer mail de refus à A
 
         $inscriptionB->delete();
@@ -228,6 +264,11 @@ class EchangeDossardController extends Controller
             ->whereNotNull('id_ancienne_inscription')
             ->get();
 
+        $demandes->each(function (Inscription $inscription) {
+            $this->prepareInscriptionForJson($inscription);
+            $inscription->setAttribute('tag', 'Demande échange dossard');
+        });
+
         return response()->json($demandes);
     }
 
@@ -252,6 +293,11 @@ class EchangeDossardController extends Controller
                 $query->where('id_participant', $idParticipant);
             })
             ->get();
+
+        $demandes->each(function (Inscription $inscription) {
+            $this->prepareInscriptionForJson($inscription);
+            $inscription->setAttribute('tag', 'Demande échange dossard');
+        });
 
         return response()->json($demandes);
     }
@@ -284,5 +330,12 @@ class EchangeDossardController extends Controller
         return response()->json([
             'message' => 'Demande d\'échange annulée. Votre inscription est toujours active.',
         ], 200);
+    }
+
+    private function prepareInscriptionForJson(Inscription $inscription): void
+    {
+        // La sérialisation de la photo est maintenant gérée au niveau du modèle Participant.
+        $inscription->participant?->photo;
+        $inscription->ancienneInscription?->participant?->photo;
     }
 }

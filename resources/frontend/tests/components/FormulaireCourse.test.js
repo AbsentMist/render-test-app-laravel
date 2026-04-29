@@ -7,6 +7,7 @@ import optionOrganisateurService from '../../services/optionOrganisateurService'
 import categorieOrganisateurService from '../../services/categorieOrganisateurService';
 import sousCategorieOrganisateurService from '../../services/sousCategorieOrganisateurService';
 import avertissementOrganisateurService from '../../services/avertissementOrganisateurService';
+import questionOrganisateurService from '../../services/questionOrganisateurService';
 
 vi.mock('flowbite', () => ({
   initDropdowns: vi.fn(),
@@ -51,6 +52,7 @@ vi.mock('../../services/optionCourseService', () => ({
 }));
 vi.mock('../../services/questionOrganisateurService', () => ({
   default: {
+    getAllQuestions: vi.fn(),
     createQuestion: vi.fn(),
     modifyQuestion: vi.fn(),
   },
@@ -103,19 +105,36 @@ const OptionListStub = {
 };
 
 const SelectionModalStub = {
-  props: ['items', 'selectedIds', 'titre', 'sousTitre'],
+  props: ['elements', 'titre', 'sousTitre'],
+  data() {
+    return {
+      selectedItems: [],
+    };
+  },
+  methods: {
+    itemLabel(item) {
+      return typeof item === 'object' ? (item.label || item.name || item.enonce || item.id) : item;
+    },
+    selectItem(item) {
+      const key = typeof item === 'object' ? item.id ?? item.label ?? item.name ?? item.enonce : item;
+      if (!this.selectedItems.includes(key)) {
+        this.selectedItems.push(key);
+      }
+      this.$emit('select-item', item);
+    },
+  },
   template: `
     <div data-test="selection-modal">
       <h2>{{ titre }}</h2>
       <p>{{ sousTitre }}</p>
       <button
-        v-for="item in items"
-        :key="item.id"
+        v-for="item in elements"
+        :key="typeof item === 'object' ? (item.id ?? item.label ?? item.name ?? item.enonce) : item"
         class="selection-choice"
-        @click="$emit('toggle-item', item)"
+        @click="selectItem(item)"
       >
-        {{ item.label }}
-        <span v-if="selectedIds.includes(item.id)">{{ selectedIds.indexOf(item.id) + 1 }}</span>
+        {{ itemLabel(item) }}
+        <span v-if="selectedItems.includes(typeof item === 'object' ? (item.id ?? item.label ?? item.name ?? item.enonce) : item)">{{ selectedItems.indexOf(typeof item === 'object' ? (item.id ?? item.label ?? item.name ?? item.enonce) : item) + 1 }}</span>
       </button>
       <button data-test="confirm-selection" @click="$emit('confirm')">Valider</button>
       <button data-test="cancel-selection" @click="$emit('cancel')">Annuler</button>
@@ -151,6 +170,7 @@ describe('FormulaireCourse', () => {
     categorieOrganisateurService.getAllCategorie.mockResolvedValue({ data: [{ id: 11, nom: 'Trail' }] });
     sousCategorieOrganisateurService.getAllSousCategorie.mockResolvedValue({ data: [{ id: 21, nom: '10 km' }] });
     avertissementOrganisateurService.getAllAvertissement.mockResolvedValue({ data: [{ id: 31, titre: 'Météo', contenu: 'Vent' }] });
+    questionOrganisateurService.getAllQuestions.mockResolvedValue({ data: [] });
   });
 
   test('affiche le mode création et charge les données initiales', async () => {
@@ -213,15 +233,18 @@ describe('FormulaireCourse', () => {
 
     expect(wrapper.find('[data-test="selection-modal"]').exists()).toBe(true);
 
-    const selectionButtons = wrapper.findAll('[data-test="selection-modal"] .selection-choice');
+    let selectionButtons = wrapper.findAll('[data-test="selection-modal"] .selection-choice');
     await selectionButtons[1].trigger('click');
     await selectionButtons[0].trigger('click');
+    await flushPromises();
+
+    selectionButtons = wrapper.findAll('[data-test="selection-modal"] .selection-choice');
 
     expect(selectionButtons[0].text()).toContain('2');
     expect(selectionButtons[1].text()).toContain('1');
 
     await wrapper.find('[data-test="confirm-selection"]').trigger('click');
 
-    expect(wrapper.vm.courseData.options.map((option) => option.id)).toEqual([2, 1]);
+    expect(wrapper.vm.courseData.options.map((option) => option.nom)).toEqual(['Pack Chrono', 'Pack VIP']);
   });
 });

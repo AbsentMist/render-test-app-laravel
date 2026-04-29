@@ -103,7 +103,7 @@ describe('ProfilUser', () => {
 
     expect(profilService.updateProfil).toHaveBeenCalledTimes(1)
     expect(authStoreMock.fetchUser).toHaveBeenCalledTimes(1)
-    expect(wrapper.text()).toContain('Profil mis a jour avec succes')
+    expect(wrapper.text()).toContain('Profil mis a jour avec succès')
   })
 
   test('soumet le formulaire profil et applique les erreurs API', async () => {

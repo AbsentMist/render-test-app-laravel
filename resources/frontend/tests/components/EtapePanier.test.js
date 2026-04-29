@@ -9,7 +9,20 @@ vi.mock('@iconify/vue', () => ({
   },
 }))
 
+vi.mock('../../services/codeDossardService', () => ({
+  default: {
+    validerCode: vi.fn(),
+  },
+}))
+
+vi.mock('../../services/codeRabaisService', () => ({
+  default: {
+    validerCode: vi.fn(),
+  },
+}))
+
 import EtapePanier from '../../components/EtapePanier.vue'
+import codeDossardService from '../../services/codeDossardService'
 
 function mountComponent(customProps = {}) {
   return mount(EtapePanier, {
@@ -64,28 +77,31 @@ describe('EtapePanier', () => {
   // Blur appelle verifierCodeEntreprise du parent si present
   test('verifierCodeEntrepriseParent appelle la methode du parent', async () => {
     const verifierSpy = vi.fn()
+    codeDossardService.validerCode.mockRejectedValue(new Error('API down'))
     const Host = defineComponent({
       components: { EtapePanier },
       data() {
-        return { code: '' }
+        return { code: 'ABC123' }
       },
       methods: {
         verifierCodeEntreprise: verifierSpy,
       },
-      template: '<EtapePanier v-model:codeParticipation="code" description_document="Doc" />',
+      template: '<EtapePanier v-model:codeParticipation="code" :idCourse="1" />',
     })
 
     const wrapper = mount(Host)
     const input = wrapper.find('input[placeholder="Code de participation"]')
 
-    await input.trigger('blur')
+    await input.trigger('keyup.enter')
+    await Promise.resolve()
     expect(verifierSpy).toHaveBeenCalledTimes(1)
   })
 
   // Ne casse pas si parent absent
   test('verifierCodeEntrepriseParent est safe sans parent', () => {
-    const wrapper = mountComponent()
+    codeDossardService.validerCode.mockRejectedValue(new Error('API down'))
+    const wrapper = mountComponent({ idCourse: 1, codeParticipation: 'ABC123' })
 
-    expect(() => wrapper.vm.verifierCodeEntrepriseParent()).not.toThrow()
+    expect(() => wrapper.vm.validerCodeDossard()).not.toThrow()
   })
 })

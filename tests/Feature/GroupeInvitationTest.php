@@ -78,6 +78,11 @@ class GroupeInvitationTest extends TestCase
     'id_groupe'      => $this->groupe->id,
     'id_participant' => $invite->id,
         ]);
+
+        $message = DB::table('messages')->orderByDesc('id')->first();
+        $payload = json_decode($message->content, true);
+        $this->assertSame('group_invitation_refused', $payload['type']);
+        $this->assertSame($this->user->id, $payload['recipient_user_id']);
     }
 
     // Recuperer ses invitations en attente
@@ -96,5 +101,22 @@ class GroupeInvitationTest extends TestCase
         $response->assertStatus(200);
         $data = $response->json();
         $this->assertGreaterThanOrEqual(1, count($data));
+    }
+
+    public function test_creation_groupe_accepte_un_participant_avec_photo_binaire(): void
+    {
+        DB::table('Participant')->where('id', $this->participant->id)->update([
+            'photo' => "\xFF\xFE\xFD",
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/participant/groupes', [
+                'nom' => 'Equipe Binaire',
+                'type' => 'Groupe',
+                'id_course' => null,
+            ]);
+
+        $response->assertStatus(201);
+        $response->assertJsonPath('participants.0.photo', $this->participant->fresh()->photo);
     }
 }

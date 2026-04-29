@@ -1606,7 +1606,6 @@ export default {
                         });
                     }
                 }
-                this.modal = optionModal.FERMEE;
             }
         },
 

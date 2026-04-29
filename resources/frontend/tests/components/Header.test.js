@@ -71,14 +71,22 @@ vi.mock('../../services/groupeService', () => ({
   },
 }))
 
+vi.mock('../../services/echangeDossardService', () => ({
+  default: {
+    mesDemandesRecues: vi.fn(),
+  },
+}))
+
 vi.mock('../../services/api', () => ({
   default: {
     get: vi.fn(),
+    delete: vi.fn(),
   },
 }))
 
 import Header from '../../components/Header.vue'
 import groupeService from '../../services/groupeService'
+import echangeDossardService from '../../services/echangeDossardService'
 import api from '../../services/api'
 
 function mountComponent() {
@@ -118,7 +126,12 @@ describe('Header', () => {
     groupeService.getMesInvitations.mockResolvedValue({ data: [] })
     groupeService.accepterInvitation.mockResolvedValue({})
     groupeService.refuserInvitation.mockResolvedValue({})
-    api.get.mockResolvedValue({ data: { tarif: 0 } })
+    echangeDossardService.mesDemandesRecues.mockResolvedValue({ data: [] })
+    api.delete.mockResolvedValue({})
+    api.get.mockImplementation((url) => {
+      if (url.includes('/notifications-info')) return Promise.resolve({ data: [] })
+      return Promise.resolve({ data: { tarif: 0 } })
+    })
 
     vi.stubGlobal('alert', alertMock)
   })
@@ -128,11 +141,13 @@ describe('Header', () => {
     groupeService.getMesInvitations.mockResolvedValue({
       data: [{ id: 1, nom: 'Team Flash', type: 'Groupe', course: { fin_inscription: '2099-01-01' } }],
     })
+    echangeDossardService.mesDemandesRecues.mockResolvedValue({ data: [] })
 
     const wrapper = mountComponent()
     await flushPromises()
 
     expect(groupeService.getMesInvitations).toHaveBeenCalledTimes(1)
+    expect(echangeDossardService.mesDemandesRecues).toHaveBeenCalledTimes(1)
     expect(wrapper.text()).toContain('Alice')
     expect(wrapper.text()).toContain('DUPONT')
   })
@@ -209,6 +224,7 @@ describe('Header', () => {
     groupeService.getMesInvitations.mockResolvedValue({
       data: [{ id: 5, nom: 'Team A', type: 'Groupe', course: { fin_inscription: '2099-01-01' } }],
     })
+    echangeDossardService.mesDemandesRecues.mockResolvedValue({ data: [] })
 
     const wrapper = mountComponent()
     await flushPromises()
@@ -225,7 +241,7 @@ describe('Header', () => {
 
     expect(groupeService.accepterInvitation).toHaveBeenCalledWith(5)
     expect(alertMock).toHaveBeenCalled()
-    expect(wrapper.text()).toContain("Vous n'avez aucune invitation en attente.")
+    expect(wrapper.text()).toContain("Vous n'avez aucune notification en attente.")
   })
 
   // Refuse une invitation expiree
@@ -233,6 +249,7 @@ describe('Header', () => {
     groupeService.getMesInvitations.mockResolvedValue({
       data: [{ id: 8, nom: 'Team B', type: 'Groupe', course: { fin_inscription: '2000-01-01' } }],
     })
+    echangeDossardService.mesDemandesRecues.mockResolvedValue({ data: [] })
 
     const wrapper = mountComponent()
     await flushPromises()
@@ -251,6 +268,36 @@ describe('Header', () => {
 
     expect(groupeService.refuserInvitation).toHaveBeenCalledWith(8)
     expect(alertMock).toHaveBeenCalled()
+  })
+
+  // Affiche les tags de notification groupe et échange
+  test('affiche les tags de notification pour groupe et echange', async () => {
+    groupeService.getMesInvitations.mockResolvedValue({
+      data: [{ id: 12, nom: 'Team Tag', type: 'Groupe', course: { fin_inscription: '2099-01-01' } }],
+    })
+    echangeDossardService.mesDemandesRecues.mockResolvedValue({
+      data: [{ id: 33, tag: 'Demande échange dossard', course: { evenement: { nom: 'Run 2026' }, nom: '10 km' }, ancienne_inscription: { dossard: { numero: 44 }, participant: { user: { email: 'b@example.com' } } } }],
+    })
+    api.get.mockImplementation((url) => {
+      if (url.includes('/notifications-info')) {
+        return Promise.resolve({
+          data: [{ id: 1, title: 'Invitation à un groupe refusée', content: 'Bob Martin a refusé votre invitation au groupe Team Tag.' }],
+        })
+      }
+      return Promise.resolve({ data: { tarif: 0 } })
+    })
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    const profileButton = wrapper.find('button.w-11.h-11.rounded-full')
+    await profileButton.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Invitation à un groupe')
+    expect(wrapper.text()).toContain('Demande échange dossard')
+    expect(wrapper.text()).toContain('Notifications d\'information')
+    expect(wrapper.text()).toContain('Invitation à un groupe refusée')
   })
 
   // Affiche la photo profil si disponible
@@ -287,5 +334,34 @@ describe('Header', () => {
     const avatarImage = wrapper.find('button.w-11.h-11.rounded-full img[alt="Photo de profil"]')
     expect(avatarImage.exists()).toBe(false)
     expect(wrapper.find('button.w-11.h-11.rounded-full [data-test="icon"]').exists()).toBe(true)
+  })
+
+  test('supprime une notification de refus via le bouton OK', async () => {
+    groupeService.getMesInvitations.mockResolvedValue({ data: [] })
+    echangeDossardService.mesDemandesRecues.mockResolvedValue({ data: [] })
+    api.get.mockImplementation((url) => {
+      if (url.includes('/notifications-info')) {
+        return Promise.resolve({
+          data: [{ id: 99, type: 'exchange_refused', title: 'Demande échange dossard refusée', content: 'Alice Dupont a refusé votre échange.' }],
+        })
+      }
+      return Promise.resolve({ data: { tarif: 0 } })
+    })
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    const profileButton = wrapper.find('button.w-11.h-11.rounded-full')
+    await profileButton.trigger('click')
+    await flushPromises()
+
+    const okButton = wrapper.findAll('button').find((b) => b.text().trim() === 'OK')
+    expect(okButton).toBeTruthy()
+
+    await okButton.trigger('click')
+    await flushPromises()
+
+    expect(api.delete).toHaveBeenCalledWith('/participant/notifications-info/99')
+    expect(wrapper.text()).toContain("Vous n'avez aucune notification en attente.")
   })
 })

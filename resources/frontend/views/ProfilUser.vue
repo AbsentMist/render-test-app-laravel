@@ -792,8 +792,8 @@ const submitForm = async () => {
     const response = await profilService.updateProfil(payload)
     applyProfileData(response.data)
     profileImageFile.value = null
-    successModalTitle.value = 'Profil mis a jour avec succes'
-    successModalMessage.value = 'Vos informations ont bien ete enregistrees.'
+    successModalTitle.value = 'Profil mis a jour avec succès'
+    successModalMessage.value = 'Vos informations ont bien été enregistrées.'
     showSuccessModal.value = true
     await authStore.fetchUser()
   } catch (error) {
