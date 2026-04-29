@@ -176,6 +176,7 @@ export default {
             codeRabaisInterne: "",
             rabaisApplique: null,
             erreurCode: null,
+            erreurCodeDossard: null,
             chargementCode: false,
             codeDossardValide: null,
             chargementCodeDossard: false,

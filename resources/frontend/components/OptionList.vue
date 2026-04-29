@@ -5,14 +5,16 @@
     >
       <ul class="text-sm text-gray-700">
         <li v-for="element in elements" :key="element">
-          <button v-if="element=='Supprimer'" type="button" @click="selectionnerElement(element)" class="block w-full px-4 py-4 hover:bg-accent-300 text-center border-b border-gray-300 text-accent font-medium">
-            <Icon icon="lucide:trash" class="inline-block h-5 w-5 mr-2" />
+          <a
+            href="#"
+            @click.prevent="selectionnerElement(element)"
+            class="block w-full px-4 py-4 text-center border-b border-gray-300 font-medium transition-colors"
+            :class="element == 'Supprimer' ? 'hover:bg-accent-300 text-accent' : element == 'Dupliquer' ? 'hover:bg-gray-200 text-body' : 'hover:bg-gray-100 text-body'"
+          >
+            <Icon v-if="element=='Supprimer'" icon="lucide:trash" class="inline-block h-5 w-5 mr-2" />
+            <Icon v-else-if="element=='Dupliquer'" icon="lucide:copy" class="inline-block h-5 w-5 mr-2" />
             {{ element }}
-          </button>
-          <button v-if="element=='Dupliquer'" type="button" @click="selectionnerElement(element)" class="block w-full px-4 py-4 hover:bg-gray-200 text-center border-b border-gray-300 text-body font-medium">
-            <Icon icon="lucide:copy" class="inline-block h-5 w-5 mr-2" />
-            {{ element }}
-          </button>
+          </a>
         </li>
       </ul>
     </div>

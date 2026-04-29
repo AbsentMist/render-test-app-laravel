@@ -81,7 +81,7 @@ describe('FormulaireOption', () => {
     const wrapper = mountComponent();
     await flushPromises();
 
-    const addButton = wrapper.findAll('button').find((b) => b.text().includes('Ajouter une option'));
+    const addButton = wrapper.findAll('button').find((b) => b.text().includes("Ajouter l'option"));
     await addButton.trigger('click');
     await flushPromises();
 

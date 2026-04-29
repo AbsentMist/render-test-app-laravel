@@ -1,6 +1,10 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
+const { copySpy } = vi.hoisted(() => ({
+  copySpy: vi.fn(),
+}))
+
 vi.stubGlobal('localStorage', {
   getItem: vi.fn(() => null),
   setItem: vi.fn(),
@@ -19,8 +23,6 @@ vi.stubGlobal('URL', {
 const routerMock = {
   push: vi.fn(),
 }
-
-const copySpy = vi.fn()
 
 vi.mock('@iconify/vue', () => ({
   Icon: {
@@ -298,7 +300,7 @@ describe('OrganisateurInscriptions', () => {
     await wrapper.find('[data-test="emit-email"]').trigger('click')
     await wrapper.vm.$nextTick()
 
-    expect(copySpy).toHaveBeenCalledWith('alice@example.com, bob@example.com')
+    expect(copySpy).toHaveBeenCalledWith('bob@example.com, alice@example.com')
     expect(wrapper.vm.copieConfirmeeEmail).toBe(true)
     expect(wrapper.find('[data-test="copie-email"]').exists()).toBe(true)
   })
