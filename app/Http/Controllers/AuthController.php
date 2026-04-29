@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Participant;
+use App\Models\Groupe;
+use App\Models\Inscription;
+use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -141,13 +144,7 @@ class AuthController extends Controller
 
     private function buildUserResponse(User $user): User
     {
-        $loadedUser = $user->load('participant', 'roles');
-
-        if ($loadedUser->participant && $loadedUser->participant->photo) {
-            $loadedUser->participant->photo = 'data:image/jpeg;base64,' . base64_encode($loadedUser->participant->photo);
-        }
-
-        return $loadedUser;
+        return $user->load('participant', 'roles');
     }
 
     // ===== RECHERCHE PARTICIPANT PAR EMAIL =====
@@ -343,6 +340,74 @@ public function mesParticipants(Request $request)
         }
 
         return response()->json($participant, 201);
+    }
+
+    public function mesNotificationsInfo(Request $request)
+    {
+        $messages = Message::orderByDesc('id')->get()->map(function (Message $message) use ($request) {
+            $payload = json_decode($message->content, true);
+
+            if (!is_array($payload) || ($payload['recipient_user_id'] ?? null) !== $request->user()->id) {
+                return null;
+            }
+
+            $payload['title'] = match ($payload['type'] ?? null) {
+                'exchange_refused' => 'Demande échange dossard refusée',
+                'group_invitation_refused' => 'Invitation à un groupe refusée',
+                default => 'Information',
+            };
+
+            $payload['content'] = match ($payload['type'] ?? null) {
+                'exchange_refused' => $this->buildExchangeRefusedNotification($payload),
+                'group_invitation_refused' => $this->buildGroupRefusedNotification($payload),
+                default => 'Notification.',
+            };
+
+            $payload['id'] = $message->id;
+            $payload['created_at'] = $message->created_at;
+
+            return $payload;
+        })->filter()->values();
+
+        return response()->json($messages);
+    }
+
+    public function supprimerNotificationInfo(Request $request, int $id)
+    {
+        $message = Message::findOrFail($id);
+        $payload = json_decode($message->content, true);
+
+        if (!is_array($payload) || ($payload['recipient_user_id'] ?? null) !== $request->user()->id) {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
+
+        $message->delete();
+
+        return response()->json(['message' => 'Notification supprimée avec succès.']);
+    }
+
+    private function buildExchangeRefusedNotification(array $payload): string
+    {
+        $sender = User::with('participant')->find($payload['sender_user_id'] ?? null);
+        $inscription = Inscription::with(['course.evenement', 'course', 'dossard'])->find($payload['inscription_a_id'] ?? null);
+
+        $prenom = $sender?->participant?->prenom ?? 'Quelqu\'un';
+        $nom = $sender?->participant?->nom ?? '';
+        $evenement = $inscription?->course?->evenement?->nom ?? 'l\'évènement';
+        $course = $inscription?->course?->nom ?? 'la course';
+
+        return sprintf('%s %s a refusé votre échange de dossard pour %s - %s.', $prenom, $nom, $evenement, $course);
+    }
+
+    private function buildGroupRefusedNotification(array $payload): string
+    {
+        $sender = User::with('participant')->find($payload['sender_user_id'] ?? null);
+        $groupe = Groupe::find($payload['groupe_id'] ?? null);
+
+        $prenom = $sender?->participant?->prenom ?? 'Quelqu\'un';
+        $nom = $sender?->participant?->nom ?? '';
+
+        return sprintf('%s %s a refusé votre invitation au groupe %s.', $prenom, $nom, $groupe?->nom ?? '—');
     }
     
 }

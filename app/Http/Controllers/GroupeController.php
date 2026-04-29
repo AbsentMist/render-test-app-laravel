@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Groupe;
 use App\Models\Participant;
+use App\Models\Message;
 use App\Enums\StatutParticipant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -152,7 +153,10 @@ class GroupeController extends Controller
     }
 
         if ($groupe->participants()->where('id_participant', $validatedData['id_participant'])->exists()) {
-            return response()->json(['message' => 'Ce participant est déjà dans le groupe.'], 409);
+            return response()->json([
+                'message' => 'Ce participant est déjà dans le groupe.',
+                'groupe' => $groupe->load('participants'),
+            ], 200);
         }
 
         //Différence entre l'ajout d'un profil rattaché au compte (sous-profil) et un utilisateur invité
@@ -248,6 +252,8 @@ class GroupeController extends Controller
         ->with('participants', 'course')
         ->get();
 
+        $invitations->each->setAttribute('tag', 'Invitation à un groupe');
+
         return response()->json($invitations);
     }
 
@@ -298,6 +304,15 @@ class GroupeController extends Controller
         $fondateur = $groupe->participants()->wherePivot('statut', 'fondateur')->first();
 
         if ($fondateur && $fondateur->user) {
+            Message::create([
+                'content' => json_encode([
+                    'recipient_user_id' => $fondateur->user->id,
+                    'sender_user_id' => $participantConnecte->user?->id,
+                    'type' => 'group_invitation_refused',
+                    'groupe_id' => $groupe->id,
+                ], JSON_UNESCAPED_UNICODE),
+            ]);
+
             try {
                 // Le mail part dans le fichier laravel.log pour le moment (à implémenter l'envoi réel plus tard)
                 \Illuminate\Support\Facades\Mail::send('emails.invitation_refusee', [

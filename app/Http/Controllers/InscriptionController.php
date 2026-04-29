@@ -297,7 +297,12 @@ if (!empty($validatedData['code_rabais'])) {
                     \Log::error("Erreur envoi mail confirmation inscription : " . $e->getMessage());
                 }
 
-        return response()->json($inscription->load(['course', 'dossard']), 201);
+        return response()->json([
+            'message' => 'Inscription enregistrée avec succès.',
+            'inscription' => [
+                'id' => $inscription->id,
+            ],
+        ], 201);
     }
 
     /**

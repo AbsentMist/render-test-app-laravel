@@ -59,6 +59,8 @@ use App\Http\Controllers\CodeDossardController;
             Route::get('/groupes/mes-invitations', [GroupeController::class, 'getInvitations']);
             Route::post('/groupes/{id}/accepter', [GroupeController::class, 'accepterInvitation']);
             Route::post('/groupes/{id}/refuser', [GroupeController::class, 'refuserInvitation']);
+            Route::get('/notifications-info', [AuthController::class, 'mesNotificationsInfo']);
+            Route::delete('/notifications-info/{id}', [AuthController::class, 'supprimerNotificationInfo']);
             
             // CRUD Groupe
             Route::get('/groupes', [GroupeController::class, 'index']);

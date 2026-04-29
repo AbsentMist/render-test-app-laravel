@@ -80,7 +80,7 @@ export default {
         },
         description_document:{
             type: String,
-            required: true
+            default: ''
         }
     },
     emits: ['update:modelValue'],
