@@ -25,6 +25,7 @@ use App\Http\Controllers\EchangeDossardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CodeRabaisController;
 use App\Http\Controllers\CodeDossardController;
+use App\Http\Controllers\ResultatController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -133,6 +134,9 @@ use App\Http\Controllers\CodeDossardController;
 
             //dossard personnalisé
             Route::post('/codes-dossard/valider', [CodeDossardController::class, 'valider']);
+
+            //mes résultats
+            Route::get('/resultats', [ResultatController::class, 'mesResultats']);
         });
 
         // Gestion du rôle Administrateur par Middleware
@@ -253,5 +257,11 @@ use App\Http\Controllers\CodeDossardController;
             Route::post('/courses/{id_course}/codes-dossard', [CodeDossardController::class, 'store']);
             Route::put('/codes-dossard/{id}',                 [CodeDossardController::class, 'update']);
             Route::delete('/codes-dossard/{id}',              [CodeDossardController::class, 'destroy']);
+
+            //gestion des résultats
+            Route::get('/courses/{id_course}/resultats',          [ResultatController::class, 'indexParCourse']);
+            Route::post('/courses/{id_course}/resultats/import',  [ResultatController::class, 'import']);
+            Route::delete('/courses/{id_course}/resultats',       [ResultatController::class, 'destroy']);
+ 
         });
     });

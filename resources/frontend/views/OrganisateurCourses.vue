@@ -118,6 +118,16 @@
                                             class="w-4 h-4"
                                         />
                                     </button>
+                                    <button
+                                        @click="ouvrirResultats(course)"
+                                        class="p-1.5 rounded-lg text-yellow-500 hover:text-primary hover:bg-tertiary transition-colors"
+                                        title="Résultats"
+                                    >
+                                        <Icon
+                                            icon="mdi:medal-outline"
+                                            class="w-4 h-4"
+                                        />
+                                    </button>
                                 </div>
                                 <div class="relative inline-block">
                                     <button
@@ -236,6 +246,37 @@
                 </div>
             </div>
         </div>
+        <!-- Popup résultats -->
+        <div
+            v-if="courseResultats"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+        >
+            <div
+                class="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 flex flex-col overflow-hidden max-h-[85vh]"
+            >
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-neutral-secondary-medium"
+                >
+                    <div>
+                        <p class="text-sm font-semibold text-heading">
+                            Résultats
+                        </p>
+                        <p class="text-xs text-body mt-0.5">
+                            {{ courseResultats.nom }}
+                        </p>
+                    </div>
+                    <button
+                        @click="courseResultats = null"
+                        class="text-body hover:text-heading transition-colors"
+                    >
+                        <Icon icon="mdi:close" class="w-5 h-5" />
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-6">
+                    <ImportResultats :idCourse="courseResultats.id" />
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -255,6 +296,7 @@ import courseQuestionOrganisateurService from "../services/courseQuestionOrganis
 import avertissementOrganisateurService from "../services/avertissementOrganisateurService";
 import GestionCodesRabais from "../components/GestionCodesRabais.vue";
 import GestionCodesDossard from "../components/GestionCodesDossard.vue";
+import ImportResultats from "../components/ImportResultats.vue";
 
 const optionModal = {
     FERMEE: 1,
@@ -271,6 +313,7 @@ export default {
         OptionList,
         GestionCodesRabais,
         GestionCodesDossard,
+        ImportResultats,
     },
     computed: {
         idEvenement() {
@@ -293,6 +336,7 @@ export default {
             handleEscapeKeyBound: null,
             courseCodesRabais: null,
             courseCodesDossard: null,
+            courseResultats: null,
         };
     },
     methods: {
@@ -567,6 +611,9 @@ export default {
             if (event.key === "Escape") {
                 this.activeOptionCourseId = null;
             }
+        },
+        ouvrirResultats(course) {
+            this.courseResultats = course;
         },
     },
     async mounted() {
