@@ -33,7 +33,6 @@
     v-if="popupInscription" 
     :course="courseSelectionnee"
     :participants="participants"
-    :couleur-primaire="evenement?.couleur_primaire" 
     @close="popupInscription = false"
     @ajouter-panier="gererAjoutPanier"
   />

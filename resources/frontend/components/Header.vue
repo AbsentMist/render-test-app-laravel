@@ -11,6 +11,7 @@ import { useCartStore } from '../stores/cart';
 import { useRouter } from 'vue-router';
 import { ref, computed, onMounted, watch } from 'vue';
 import groupeService from '../services/groupeService';
+import echangeDossardService from '../services/echangeDossardService';
 import api from '../services/api';
 
 const authStore = useAuthStore();
@@ -20,6 +21,8 @@ const router = useRouter();
 
 
 const invitations = ref([]);
+const demandesEchange = ref([]);
+const notificationsInfo = ref([]);
 const isProfileDropdownOpen = ref(false);
 const deductionChangement = ref(0);
 
@@ -118,13 +121,33 @@ const allerAuPanier = () => {
 const chargerInvitations = async () => {
   if (authStore.user?.participant) {
     try {
-      const res = await groupeService.getMesInvitations();
-      invitations.value = res.data;
+      const [groupesRes, echangesRes, infosRes] = await Promise.all([
+        groupeService.getMesInvitations(),
+        echangeDossardService.mesDemandesRecues(),
+        api.get('/participant/notifications-info'),
+      ]);
+
+      invitations.value = (groupesRes.data || []).map((invit) => ({
+        ...invit,
+        tag: 'Invitation à un groupe',
+      }));
+
+      demandesEchange.value = (echangesRes.data || []).map((demande) => ({
+        ...demande,
+        tag: 'Demande échange dossard',
+      }));
+
+      notificationsInfo.value = (Array.isArray(infosRes.data) ? infosRes.data : []).map((notification) => ({
+        ...notification,
+        tag: notification.title || 'Information',
+      }));
     } catch (e) {
       console.error("Erreur lors du chargement des invitations", e);
     }
   }
 };
+
+const totalNotifications = computed(() => invitations.value.length + demandesEchange.value.length + notificationsInfo.value.length);
 
 onMounted(() => {
   chargerInvitations();
@@ -194,6 +217,20 @@ const refuserInvitation = async (idGroupe) => {
   } catch (error) {
     console.error("Erreur lors du refus :", error);
     alert("Une erreur est survenue lors de l'action."); 
+  }
+};
+
+/**
+ * Supprime une notification d'information côté serveur et la retire de l'affichage local.
+ * @param {number} idNotification
+ * @returns {Promise<void>}
+ */
+const supprimerNotificationInfo = async (idNotification) => {
+  try {
+    await api.delete(`/participant/notifications-info/${idNotification}`);
+    notificationsInfo.value = notificationsInfo.value.filter((notification) => notification.id !== idNotification);
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la notification', error);
   }
 };
 </script>
@@ -362,11 +399,11 @@ const refuserInvitation = async (idGroupe) => {
               <Icon v-else icon="lucide:circle-user-round" class="w-7 h-7" />
               
               <span
-                v-if="invitations.length > 0 && authStore.user?.participant"
+                v-if="totalNotifications > 0 && authStore.user?.participant"
                 class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold border-2 shadow-sm pointer-events-none"
                 :class="themeStore.primaryColor ? 'border-[var(--primary-color)]' : 'border-[#EAE6F5]'"
               >
-                {{ invitations.length }}
+                {{ totalNotifications }}
               </span>
             </button>
 
@@ -385,18 +422,23 @@ const refuserInvitation = async (idGroupe) => {
               <div v-if="authStore.user?.participant">
                 <h3 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
                   <Icon icon="lucide:mail" class="w-4 h-4" />
-                  Mes invitations ({{ invitations.length }})
+                  Mes notifications ({{ totalNotifications }})
                 </h3>
 
-                <div v-if="invitations.length === 0" class="text-sm text-gray-500 italic text-center py-4 bg-gray-50 rounded-xl border border-gray-100">
-                  Vous n'avez aucune invitation en attente.
+                <div v-if="totalNotifications === 0" class="text-sm text-gray-500 italic text-center py-4 bg-gray-50 rounded-xl border border-gray-100">
+                  Vous n'avez aucune notification en attente.
                 </div>
 
                 <div v-else class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
-                  <div v-for="invit in invitations" :key="invit.id" class="bg-white border border-gray-200 shadow-sm rounded-xl p-4">
-                    
-                    <div class="flex justify-between items-start mb-1">
+                  <div v-for="invit in invitations" :key="`groupe-${invit.id}`" class="bg-white border border-gray-200 shadow-sm rounded-xl p-4">
+                    <div class="flex justify-between items-start mb-1 gap-2">
                       <p class="font-bold text-[#0e0f54] text-sm">{{ invit.nom }}</p>
+                      <span class="shrink-0 bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200">
+                        {{ invit.tag }}
+                      </span>
+                    </div>
+
+                    <div class="flex justify-between items-start mb-1">
                       <span v-if="estInvitationExpiree(invit)" class="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-200">
                         Expirée
                       </span>
@@ -420,6 +462,67 @@ const refuserInvitation = async (idGroupe) => {
                       >
                         {{ estInvitationExpiree(invit) ? 'Supprimer l\'invitation' : 'Refuser' }}
                       </button>
+                    </div>
+                  </div>
+
+                  <div v-if="demandesEchange.length > 0" class="pt-2 border-t border-gray-100">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
+                      <Icon icon="mdi:swap-horizontal" class="w-4 h-4 text-blue-500" />
+                      Demandes d'échange de dossard
+                    </h4>
+
+                    <div class="flex flex-col gap-3">
+                      <div v-for="demande in demandesEchange" :key="`echange-${demande.id}`" class="bg-white border border-gray-200 shadow-sm rounded-xl p-4">
+                        <div class="flex flex-col gap-2 mb-1">
+                          <p class="font-bold text-[#0e0f54] text-sm leading-snug">{{ demande.course?.evenement?.nom }} · {{ demande.course?.nom }}</p>
+                          <span class="shrink-0 bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200">
+                            {{ demande.tag }}
+                          </span>
+                        </div>
+
+                        <p class="text-xs text-gray-500 mb-3 font-medium">
+                          Dossard n°{{ demande.ancienne_inscription?.dossard?.numero ?? '—' }} · Envoyé par {{ demande.ancienne_inscription?.participant?.user?.email ?? '—' }}
+                        </p>
+
+                        <router-link
+                          to="/echange-dossard"
+                          class="inline-flex items-center justify-center w-full bg-[#0e0f54] hover:bg-[#0e0f54]/90 text-white py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
+                        >
+                          Voir la demande
+                        </router-link>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-if="notificationsInfo.length > 0" class="pt-2 border-t border-gray-100">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
+                      <Icon icon="mdi:information-outline" class="w-4 h-4 text-amber-500" />
+                      Notifications d'information
+                    </h4>
+
+                    <div class="flex flex-col gap-3">
+                      <div v-for="notification in notificationsInfo" :key="`info-${notification.id}`" class="bg-amber-50 border border-amber-200 shadow-sm rounded-xl p-4">
+                        <div class="flex flex-col gap-2 mb-1">
+                          <p class="font-bold text-[#0e0f54] text-sm leading-snug">{{ notification.title }}</p>
+                          <span class="shrink-0 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">
+                            {{ notification.tag }}
+                          </span>
+                        </div>
+
+                        <p class="text-xs text-gray-600 font-medium">
+                          {{ notification.content }}
+                        </p>
+
+                        <div v-if="notification.type === 'exchange_refused' || notification.type === 'group_invitation_refused'" class="mt-3 flex justify-end">
+                          <button
+                            type="button"
+                            @click="supprimerNotificationInfo(notification.id)"
+                            class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-200 transition-colors"
+                          >
+                            OK
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
