@@ -12,19 +12,25 @@
 
             <div class="flex justify-between items-center">
                 <label for="dropdown" class="text-sm font-medium text-heading"
-                    >Evènement</label
+                    >Evènement <span class="text-accent">*</span></label
                 >
                 <div class="relative">
                     <button
                         data-dropdown-toggle="dropdownEvent"
-                        class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5"
+                        class="inline-flex items-center justify-center shadow-xs font-medium text-sm px-4 py-2.5"
+                        :class="[
+                            courseData.event.nom || courseData.event.name
+                                ? 'border-b-2 text-primary border-tertiary hover:bg-gray-100 rounded-t-base'
+                                : 'hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5',
+                        ]"
                         type="button"
                     >
+                    <span>
                         {{
-                            courseData.event.nom ||
-                            courseData.event.name ||
+                            courseData.event.nom || courseData.event.name ||
                             "Sélectionner un évènement"
                         }}
+                    </span>
                         <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
                     </button>
                     <div
@@ -48,12 +54,13 @@
                     </div>
                 </div>
             </div>
+            <p v-if="errors.event" class="text-sm text-accent mt-1">{{ errors.event }}</p>
 
             <div class="w-full">
                 <label
                     for="name"
                     class="block mb-2.5 text-sm font-medium text-heading"
-                    >Nom</label
+                    >Nom <span class="text-accent">*</span></label
                 >
                 <input
                     type="text"
@@ -63,6 +70,7 @@
                     placeholder=""
                     required
                 />
+                <p v-if="errors.name" class="text-sm text-accent mt-1">{{ errors.name }}</p>
             </div>
 
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
@@ -72,21 +80,23 @@
                     <label
                         for="datepicker-start"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Date de début</label
+                        >Date de début <span class="text-accent">*</span></label
                     >
                     <input
                         id="datepicker-start"
                         v-model="courseData.date.start"
                         name="dateStart"
                         type="date"
+                        :min="new Date().toISOString().split('T')[0]"
                         class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
                     />
+                    <p v-if="errors.dateStart" class="text-sm text-accent mt-1">{{ errors.dateStart }}</p>
                 </div>
                 <div class="w-full">
                     <label
                         for="datepicker-end"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Date de fin</label
+                        >Date de fin <span class="text-accent">*</span></label
                     >
                     <input
                         id="datepicker-end"
@@ -96,6 +106,7 @@
                         type="date"
                         class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
                     />
+                    <p v-if="errors.dateEnd" class="text-sm text-accent mt-1">{{ errors.dateEnd }}</p>
                 </div>
             </div>
 
@@ -103,24 +114,31 @@
                 <label
                     for="inscriptionpicker-start"
                     class="block mb-2.5 text-sm font-medium text-heading"
-                    >Interval d'inscription</label
+                    >Interval d'inscription <span class="text-accent">*</span></label
                 >
                 <div class="flex row gap-4 basis-1/2">
-                    <input
-                        id="inscriptionpicker-start"
-                        v-model="courseData.date.inscriptionStart"
-                        name="inscriptionStart"
-                        type="date"
-                        class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
-                    />
-                    <input
-                        id="inscriptionpicker-end"
-                        v-model="courseData.date.inscriptionEnd"
-                        :min="courseData.date.inscriptionStart || undefined"
-                        name="inscriptionEnd"
-                        type="date"
-                        class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
-                    />
+                    <div class="w-full">
+                        <input
+                            id="inscriptionpicker-start"
+                            v-model="courseData.date.inscriptionStart"
+                            name="inscriptionStart"
+                            type="date"
+                            :min="new Date().toISOString().split('T')[0]"
+                            class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
+                        />
+                        <p v-if="errors.inscriptionStart" class="text-sm text-accent mt-1">{{ errors.inscriptionStart }}</p>
+                    </div>
+                    <div class="w-full">
+                        <input
+                            id="inscriptionpicker-end"
+                            v-model="courseData.date.inscriptionEnd"
+                            :min="courseData.date.inscriptionStart || undefined"
+                            name="inscriptionEnd"
+                            type="date"
+                            class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
+                        />
+                        <p v-if="errors.inscriptionEnd" class="text-sm text-accent mt-1">{{ errors.inscriptionEnd }}</p>
+                    </div>
                 </div>
             </div>
 
@@ -132,7 +150,7 @@
                     <label
                         for="distance"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Distance (km)</label
+                        >Distance (km) <span class="text-accent">*</span></label
                     >
                     <input
                         type="number"
@@ -140,12 +158,13 @@
                         v-model="courseData.distance"
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
                     />
+                    <p v-if="errors.distance" class="text-sm text-accent mt-1">{{ errors.distance }}</p>
                 </div>
                 <div class="flex-1">
                     <label
                         for="maxRunners"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Nombre de coureurs maximum</label
+                        >Nombre de coureurs maximum <span class="text-accent">*</span></label
                     >
                     <input
                         type="number"
@@ -153,6 +172,7 @@
                         v-model="courseData.maxRunners"
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
                     />
+                    <p v-if="errors.maxRunners" class="text-sm text-accent mt-1">{{ errors.maxRunners }}</p>
                 </div>
             </div>
 
@@ -162,7 +182,7 @@
                     <label
                         for="firstDossard"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Premier dossard</label
+                        >Premier dossard <span class="text-accent">*</span></label
                     >
                     <input
                         type="number"
@@ -170,12 +190,13 @@
                         v-model="courseData.dossard.first"
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
                     />
+                    <p v-if="errors.firstDossard" class="text-sm text-accent mt-1">{{ errors.firstDossard }}</p>
                 </div>
                 <div class="w-full">
                     <label
                         for="lastDossard"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Dernier dossard</label
+                        >Dernier dossard <span class="text-accent">*</span></label
                     >
                     <input
                         type="number"
@@ -183,6 +204,7 @@
                         v-model="courseData.dossard.last"
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
                     />
+                    <p v-if="errors.lastDossard" class="text-sm text-accent mt-1">{{ errors.lastDossard }}</p>
                 </div>
             </div>
 
@@ -215,7 +237,7 @@
                     <label
                         for="tarif"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Tarif</label
+                        >Tarif <span class="text-accent">*</span></label
                     >
                     <input
                         type="number"
@@ -223,6 +245,7 @@
                         v-model="courseData.tarif"
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
                     />
+                    <p v-if="errors.tarif" class="text-sm text-accent mt-1">{{ errors.tarif }}</p>
                 </div>
                 <div class="w-full">
                     <label
@@ -394,12 +417,17 @@
             <!-- Type de course -->
             <div class="flex justify-between items-center gap-4 my-4">
                 <label for="dropdown" class="text-sm font-medium text-heading"
-                    >Type de course</label
+                    >Type de course <span class="text-accent">*</span></label
                 >
                 <div class="relative">
                     <button
                         data-dropdown-toggle="dropdownType"
-                        class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5"
+                        class="inline-flex items-center justify-center shadow-xs font-medium text-sm px-4 py-2.5"
+                        :class="[
+                            courseData.type.name
+                                ? 'border-b-2 text-primary border-tertiary hover:bg-gray-100 rounded-t-base'
+                                : 'hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5',
+                        ]"
                         type="button"
                     >
                         {{
@@ -426,6 +454,7 @@
                     </div>
                 </div>
             </div>
+            <p v-if="errors.type" class="text-sm text-accent mt-1">{{ errors.type }}</p>
 
             <div
                 v-if="
@@ -442,7 +471,7 @@
                         courseData.type.name === "Relais"
                             ? "Nombre de coureurs par équipe"
                             : "Nombre maximum de personnes par groupe"
-                    }}
+                    }} <span class="text-accent">*</span>
                 </label>
                 <div class="w-full flex flex-col gap-1">
                     <input
@@ -457,15 +486,19 @@
                                 : 'Ex: 10'
                         "
                     />
+                    <p v-if="errors.maxNbPersonne" class="text-sm text-accent">{{ errors.maxNbPersonne }}</p>
                     <p
-                        v-if="courseData.type.name === 'Groupe'"
+                        v-if="courseData.type.name === 'Groupe' && !errors.maxNbPersonne"
                         class="text-xs text-body"
                     >
                         Minimum 2 personnes par groupe.
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-3 my-4">
+
+            <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
+
+            <div class="flex items-center gap-3 mb-4">
                 <label class="text-sm font-medium text-heading"
                     >Challenge</label
                 >
@@ -565,7 +598,7 @@
                     <label
                         for="ageMin"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Limite âge min</label
+                        >Limite âge min <span class="text-accent">*</span></label
                     >
                     <input
                         type="number"
@@ -574,6 +607,7 @@
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
                         required
                     />
+                    <p v-if="errors.ageMin" class="text-sm text-accent mt-1">{{ errors.ageMin }}</p>
                 </div>
                 <div class="w-full">
                     <label
@@ -588,6 +622,7 @@
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
                         required
                     />
+                    <p v-if="errors.ageMax" class="text-sm text-accent mt-1">{{ errors.ageMax }}</p>
                 </div>
                 <div class="w-full">
                     <label
@@ -715,7 +750,12 @@
                     <div class="relative">
                         <button
                             data-dropdown-toggle="dropdownCategory"
-                            class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5"
+                            class="inline-flex items-center justify-center shadow-xs font-medium text-sm px-4 py-2.5"
+                            :class="[
+                                courseData.category.nom
+                                    ? 'border-b-2 text-primary border-tertiary hover:bg-gray-100 rounded-t-base'
+                                    : 'hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5',
+                            ]"
                             type="button"
                         >
                             {{
@@ -759,7 +799,12 @@
                     <div class="relative">
                         <button
                             data-dropdown-toggle="dropdownSubcategory"
-                            class="inline-flex items-center justify-center border hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5"
+                            class="inline-flex items-center justify-center shadow-xs font-medium text-sm px-4 py-2.5"
+                            :class="[
+                                courseData.subCategory.nom
+                                    ? 'border-b-2 text-primary border-tertiary hover:bg-gray-100 rounded-t-base'
+                                    : 'hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5',
+                            ]"
                             type="button"
                         >
                             {{
@@ -828,7 +873,9 @@
                 :titre="'Sélectionner des options existantes'"
                 sous-titre="Cliquez sur plusieurs éléments, l'ordre affiché correspondra à l'ordre de clic."
                 :elements="optionModels.map((option) => option.nom)"
+                :preSelectedElements="preSelectedOptionsNames"
                 @select-item="handleOptionSelection"
+                @deselect-item="handleOptionDeselection"
                 @cancel="modal = optionModal.FERMEE"
             />
         </div>
@@ -938,7 +985,9 @@
                 :titre="'Sélectionner des questions existantes'"
                 sous-titre="Cliquez sur plusieurs éléments, l'ordre affiché correspondra à l'ordre de clic."
                 :elements="questionModels.map((question) => question.enonce)"
+                :preSelectedElements="preSelectedQuestionsEnonces"
                 @select-item="handleOptionSelection"
+                @deselect-item="handleOptionDeselection"
                 @cancel="modal = optionModal.FERMEE"
             />
         </div>
@@ -955,7 +1004,7 @@
             <button
                 v-if="etapesActives.indexOf(etape) < etapesActives.length - 1"
                 class="btn-tertiary ml-auto"
-                @click="etape = etapesActives[etapesActives.indexOf(etape) + 1]"
+                @click="handleNextStep()"
             >
                 Etape suivante
             </button>
@@ -1060,6 +1109,8 @@ export default {
             dataInserted: false,
             confirmationChangementModePrix: false,
             modePrixEvolutifEnAttente: null,
+            errors: {},
+            formError: '',
             evenements: [],
             nouvelleOrg: { nom: "", type: "Entreprise" },
             formulaireEtapesLabels: ["Général", "Options supplémentaires"],
@@ -1172,22 +1223,30 @@ export default {
             this.formulaireEtapesLabels = labels;
             return etapes.sort((a, b) => a - b);
         },
+        /**
+         * Noms des options déjà présentes dans la course.
+         * @returns {Array<string>}
+         */
+        preSelectedOptionsNames() {
+            return this.courseData.options.map((o) => o.nom);
+        },
+        /**
+         * Énoncés des questions déjà présentes dans la course.
+         * @returns {Array<string>}
+         */
+        preSelectedQuestionsEnonces() {
+            return this.courseData.questions.map((q) => q.enonce);
+        },
     },
     watch: {
         "courseData.date.start"(newStart) {
             if (!newStart) return;
-            if (
-                !this.courseData.date.end ||
-                this.courseData.date.end < newStart
-            )
                 this.courseData.date.end = newStart;
+                this.courseData.date.inscriptionEnd = newStart;
         },
         "courseData.date.inscriptionStart"(newStart) {
             if (!newStart) return;
-            if (
-                !this.courseData.date.inscriptionEnd ||
-                this.courseData.date.inscriptionEnd < newStart
-            )
+            if (this.courseData.date.inscriptionEnd < newStart)
                 this.courseData.date.inscriptionEnd = newStart;
         },
         "courseData.parameters.avertissement"(val) {
@@ -1258,6 +1317,134 @@ export default {
         },
     },
     methods: {
+        /**
+         * Valide les champs obligatoires de l'étape "Général".
+         * @returns {boolean}
+         */
+        validateGeneralStep() {
+            this.errors = {};
+            this.formError = '';
+
+            // Vérifier l'évènement
+            if (!this.courseData.event.id) {
+                this.errors.event = 'Le champ n\'est pas valide';
+            }
+
+            // Vérifier le nom
+            if (!this.courseData.name || this.courseData.name.trim() === '') {
+                this.errors.name = 'Le champ n\'est pas valide';
+            } else if (this.courseData.name.length > 120) {
+                this.errors.name = 'Le champ n\'est pas valide';
+            }
+
+            // Vérifier les dates de course
+            if (!this.courseData.date.start) {
+                this.errors.dateStart = 'Le champ n\'est pas valide';
+            }
+            if (!this.courseData.date.end) {
+                this.errors.dateEnd = 'Le champ n\'est pas valide';
+            }
+            if (this.courseData.date.start && this.courseData.date.end) {
+                if (new Date(this.courseData.date.end) < new Date(this.courseData.date.start)) {
+                    this.errors.dateEnd = 'La date de fin doit être après la date de début';
+                }
+            }
+
+            // Vérifier les dates d'inscription
+            if (!this.courseData.date.inscriptionStart) {
+                this.errors.inscriptionStart = 'Le champ n\'est pas valide';
+            }
+            if (!this.courseData.date.inscriptionEnd) {
+                this.errors.inscriptionEnd = 'Le champ n\'est pas valide';
+            }
+            if (this.courseData.date.inscriptionStart && this.courseData.date.inscriptionEnd) {
+                if (new Date(this.courseData.date.inscriptionEnd) < new Date(this.courseData.date.inscriptionStart)) {
+                    this.errors.inscriptionEnd = 'La date de fin d\'inscription doit être après la date de début';
+                }
+            }
+
+            if (this.courseData.distance === '' || this.courseData.distance === null) {
+                this.errors.distance = 'Le champ n\'est pas valide';
+            } else if(Number(this.courseData.distance) < 0) {
+                this.errors.distance = 'La distance doit être un nombre positif';
+            }
+
+            if(this.courseData.maxRunners === '' || this.courseData.maxRunners === null) {
+                this.errors.maxRunners = 'Le champ n\'est pas valide';
+            } else if(Number(this.courseData.maxRunners) < 1) {
+                this.errors.maxRunners = 'Le nombre maximum de coureurs doit être un nombre positif';
+            }
+
+            // Vérifier le tarif (si pas de prix évolutif)
+            if (!this.courseData.parameters.prixEvolutif) {
+                if (this.courseData.tarif === '' || this.courseData.tarif === null) {
+                    this.errors.tarif = 'Le champ n\'est pas valide';
+                } else if (Number(this.courseData.tarif) < 0) {
+                    this.errors.tarif = 'Le tarif doit être un nombre positif';
+                }
+            }
+
+            // Vérifier le type de course
+            if (!this.courseData.type.name) {
+                this.errors.type = 'Le champ n\'est pas valide';
+            }
+
+            // Vérifier les dossards
+            if (this.courseData.dossard.first === '' || this.courseData.dossard.first === null) {
+                this.errors.firstDossard = 'Le champ n\'est pas valide';
+            } else if (Number(this.courseData.dossard.first) < 1) {
+                this.errors.firstDossard = 'Le premier dossard doit être supérieur à 0';
+            }
+
+            if (this.courseData.dossard.last === '' || this.courseData.dossard.last === null) {
+                this.errors.lastDossard = 'Le champ n\'est pas valide';
+            } else if (Number(this.courseData.dossard.last) < Number(this.courseData.dossard.first)) {
+                this.errors.lastDossard = 'Le dernier dossard doit être supérieur ou égal au premier dossard';
+            } else if(Number(this.courseData.dossard.last) - Number(this.courseData.dossard.first) + 1 < Number(this.courseData.maxRunners)) {
+                this.errors.lastDossard = 'L\'intervalle de dossards doit pouvoir accueillir tous les coureurs';
+            }
+
+            // Vérifier les âges
+            if (this.courseData.age.min === '' || this.courseData.age.min === null) {
+                this.errors.ageMin = 'Le champ n\'est pas valide';
+            } else if (Number(this.courseData.age.min) < 1) {
+                this.errors.ageMin = 'L\'âge minimum doit être supérieur à 0';
+            }
+
+            if (this.courseData.age.max !== '' && this.courseData.age.max !== null) {
+                if (Number(this.courseData.age.max) < Number(this.courseData.age.min)) {
+                    this.errors.ageMax = 'L\'âge maximum doit être supérieur à l\'âge minimum';
+                }
+            }
+
+            // Vérifier le nombre de personnes pour les types Relais et Groupe
+            if (this.courseData.type.name === 'Relais' || this.courseData.type.name === 'Groupe') {
+                if (this.courseData.maxNbPersonne === '' || this.courseData.maxNbPersonne === null) {
+                    this.errors.maxNbPersonne = 'Le champ n\'est pas valide';
+                } else if (Number(this.courseData.maxNbPersonne) < 1) {
+                    this.errors.maxNbPersonne = 'Le nombre de personnes doit être supérieur à 0';
+                }
+            }
+
+            return Object.keys(this.errors).length === 0;
+        },
+
+        /**
+         * Valide et passe à l'étape suivante.
+         * @returns {void}
+         */
+        handleNextStep() {
+            if (this.etape === formulaireEtape.GENERAL) {
+                if (!this.validateGeneralStep()) {
+                    return;
+                }
+            }
+            const currentIndex = this.etapesActives.indexOf(this.etape);
+            if (currentIndex < this.etapesActives.length - 1) {
+                this.etape = this.etapesActives[currentIndex + 1];
+            }
+        },
+
         /**
          * Remet toutes les données du formulaire à leur état initial.
          * @returns {void}
@@ -1605,6 +1792,31 @@ export default {
                             ),
                         });
                     }
+                }
+            }
+        },
+
+        /**
+         * Retire une option ou une question du formulaire lors de la déselection.
+         * @param {string|object} element - Le nom de l'option ou l'énoncé de la question
+         * @returns {void}
+         */
+        handleOptionDeselection(element) {
+            if (this.etape === formulaireEtape.OPTIONS) {
+                // Retirer l'option par son nom
+                const index = this.courseData.options.findIndex(
+                    (o) => o.nom === element,
+                );
+                if (index !== -1) {
+                    this.courseData.options.splice(index, 1);
+                }
+            } else if (this.etape === formulaireEtape.QUESTIONNAIRE) {
+                // Retirer la question par son énoncé
+                const index = this.courseData.questions.findIndex(
+                    (q) => q.enonce === element,
+                );
+                if (index !== -1) {
+                    this.courseData.questions.splice(index, 1);
                 }
             }
         },
@@ -2007,6 +2219,15 @@ export default {
             const response =
                 await evenementOrganisateurService.getAllEvenements();
             this.evenements = response.data;
+            // Pré-remplir le champ événement si l'ID est présent dans l'URL
+            if (this.eventIdFromUrl && !this.isEditMode) {
+                const evenementSelectionne = this.evenements.find(
+                    (e) => e.id === parseInt(this.eventIdFromUrl),
+                );
+                if (evenementSelectionne) {
+                    this.courseData.event = evenementSelectionne;
+                }
+            }
         } catch (e) {
             console.log("Erreur lors de la récupération de l'évènement ", e);
         }

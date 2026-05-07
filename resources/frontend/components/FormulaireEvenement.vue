@@ -113,7 +113,7 @@
         </div>
 
         <div class="flex flex-row mt-6 gap-4"> 
-            <button class="btn-tertiary ml-auto disabled:opacity-50 disabled:cursor-not-allowed" :disabled="isEditMode && evenementIntrouvable" @click="confirmationPopup=true">
+            <button class="btn-tertiary ml-auto disabled:opacity-50 disabled:cursor-not-allowed" :disabled="isEditMode && evenementIntrouvable" @click="handleSubmit">
                 {{ isEditMode ? 'Enregistrer les modifications' : 'Créer l\'évènement' }}
             </button>
         </div>
@@ -224,6 +224,31 @@ export default {
         }
     },  
     methods: {
+        /**
+         * Valide les champs obligatoires du formulaire.
+         * @returns {boolean}
+         */
+        validateForm() {
+            this.errors = {};
+            this.formError = '';
+
+            if (!this.eventData.name || this.eventData.name.trim() === '') {
+                this.errors.nom = 'Le nom de l\'évènement est obligatoire';
+                return false;
+            }
+
+            return true;
+        },
+        /**
+         * Traite le clic sur le bouton de soumission.
+         * Valide le formulaire puis affiche la popup de confirmation.
+         * @returns {void}
+         */
+        handleSubmit() {
+            if (this.validateForm()) {
+                this.confirmationPopup = true;
+            }
+        },
         /**
          * Réinitialise l'intégralité du formulaire à son état initial.
          * @returns {void}

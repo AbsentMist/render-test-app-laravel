@@ -21,12 +21,19 @@
             v-for="element in elements"
             :key="elementKey(element)"
             type="button"
-            @click="$emit('select-item', element)"
-            class="flex w-full items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left transition-colors hover:border-tertiary hover:bg-gray-50"
+            @click="handleSelectItem(element)"
+            :class="[
+              'flex w-full items-center justify-between gap-4 rounded-xl border border-gray-200 px-4 py-3 text-left transition-colors',
+              isElementSelected(element)
+                ? 'bg-gray-300 text-gray-500 border-gray-300'
+                : 'bg-white hover:border-tertiary hover:bg-gray-50'
+            ]"
           >
             <div class="min-w-0 flex-1">
-              <p class="truncate font-medium text-gray-800">{{ elementLabel(element) }}</p>
-              <p v-if="elementDescription(element)" class="mt-1 text-xs text-gray-500">
+              <p class="truncate font-medium" :class="isElementSelected(element) ? 'text-gray-500' : 'text-gray-800'">
+                {{ elementLabel(element) }}
+              </p>
+              <p v-if="elementDescription(element)" class="mt-1 text-xs" :class="isElementSelected(element) ? 'text-gray-400' : 'text-gray-500'">
                 {{ elementDescription(element) }}
               </p>
             </div>
@@ -59,8 +66,30 @@ export default {
       default: () => [],
     },
   },
-  emits: ["select-item", "cancel"],
+  data() {
+    return {
+      selectedElements: [],
+    };
+  },
+  emits: ["select-item", "deselect-item", "cancel"],
   methods: {
+    handleSelectItem(element) {
+      const key = this.elementKey(element);
+      const isSelected = this.selectedElements.includes(key);
+      
+      if (isSelected) {
+        // Élément déjà sélectionné : le désélectionner
+        this.selectedElements = this.selectedElements.filter(k => k !== key);
+        this.$emit('deselect-item', element);
+      } else {
+        // Élément non sélectionné : l'ajouter
+        this.selectedElements.push(key);
+        this.$emit('select-item', element);
+      }
+    },
+    isElementSelected(element) {
+      return this.selectedElements.includes(this.elementKey(element));
+    },
     elementKey(element) {
       return element && typeof element === "object"
         ? element.id ?? element.label ?? element.name ?? element.enonce

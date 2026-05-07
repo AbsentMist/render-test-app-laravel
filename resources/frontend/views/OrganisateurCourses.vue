@@ -2,7 +2,7 @@
     <Title :texte="`Tableau de bord : courses ${nomEvenement}`" />
     <div class="p-6 relative">
         <button
-            @click="$router.push('/organisateur/formulaires?onglet=Course')"
+            @click="$router.push(`/organisateur/formulaires?onglet=Course&idEvenement=${idEvenement}`)"
             class="btn-tertiary px-4 py-2 rounded-lg inline-block mb-6"
         >
             Nouveau
