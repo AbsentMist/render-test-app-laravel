@@ -154,6 +154,7 @@
       ref="datePickerRef"
       type="date"
       class="absolute opacity-0 w-0 h-0 top-0 right-0"
+      :max="new Date().toISOString().split('T')[0]"
       @change="dateDepuisCalendrier"
     />
   </div>
@@ -180,6 +181,7 @@
             <input
               v-model="nationaliteSearch"
               type="text"
+              readonly="readonly"
               placeholder="Rechercher un pays..."
               class="input-field w-full pr-8"
               :class="{ 'border-accent': errors.nationalite }"

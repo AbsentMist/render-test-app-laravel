@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Mail\InvitationParticipantMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -25,7 +26,7 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/'],
             'nom'            => 'required|string|max:100',
             'prenom'         => 'required|string|max:100',
-            'date_naissance' => 'required|date',
+            'date_naissance' => ['required', 'date', Rule::date()->beforeOrEqual(today())],
             'telephone'      => 'required|string|max:20|unique:Participant,telephone',
             'nationalite'    => 'required|string|max:100',
             'adresse'        => 'required|string|max:100',
@@ -38,6 +39,8 @@ class AuthController extends Controller
             'instagram'      => 'nullable|string|max:255',
             'facebook'       => 'nullable|string|max:255',
             'photo'          => 'nullable|image|max:2048',
+        ], [
+            'date_naissance.before_or_equal' => 'La date de naissance ne peut pas être dans le futur.',
         ]);
 
         $user = User::create([
