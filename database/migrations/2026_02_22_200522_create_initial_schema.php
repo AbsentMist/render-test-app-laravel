@@ -21,7 +21,7 @@ return new class extends Migration
             $table->id();
             $table->string('nom', 180);
             $table->binary('logo')->nullable(); //à enlever plus tard pour une conformité avec la DB
-            $table->string('site', 255);
+            $table->string('site', 255) ->nullable();
             $table->string('couleur_primaire', 10);
             $table->string('couleur_secondaire', 10);
             $table->boolean('is_rabais')->default(0);

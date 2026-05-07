@@ -63,6 +63,8 @@ class EvenementController extends Controller
             'is_rabais' => 'boolean',
             'is_actif' => 'boolean',
             'is_interne' => 'boolean',
+        ], [
+            'nom.required' => `Le nom de l'évènement est requis.`
         ]);
 
         // Si une image, convertir en BLOB pour la base de données

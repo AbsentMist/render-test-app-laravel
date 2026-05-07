@@ -7,8 +7,9 @@
                 <div class="flex flex-row gap-4">
                     <div class="basis-3/4 flex flex-col gap-4">
                         <div>
-                            <label for="name" class="block mb-2.5 text-sm font-medium text-heading">Nom de l'évènement</label>
+                            <label for="name" class="block mb-2.5 text-sm font-medium text-heading">Nom de l'évènement <span class="text-accent">*</span></label>
                             <input type="text" id="name" v-model="eventData.name" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" placeholder="" required />
+                            <p v-if="errors.nom" class="text-sm text-accent mt-1">{{ errors.nom }}</p>
                         </div>
                         <div>
                             <label for="url" class="block mb-2.5 text-sm font-medium text-heading">Lien du site web</label>
@@ -156,6 +157,7 @@ export default {
             confirmationPopup: false,
             dataInserted: false,
             formError: '',
+            errors: {},
             evenementIntrouvable: false,
             eventData: {
                 name: '',
@@ -362,6 +364,12 @@ export default {
                     this.formError = `L'évènement #${this.eventId} est introuvable.`;
                     this.confirmationPopup = false;
                     return;
+                }
+                if (e?.response?.data?.errors) {
+                    this.errors = Object.fromEntries(
+                        Object.entries(e.response.data.errors).map(([k, v]) => [k, v[0]])
+                    );
+                    this.confirmationPopup = false;
                 }
                 console.log("Erreur:", e.response?.data);
             }
