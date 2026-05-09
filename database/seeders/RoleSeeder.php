@@ -11,7 +11,8 @@ class RoleSeeder extends Seeder
     {
         DB::table('Role')->insertOrIgnore([
             ['type' => 'Participant'],
-            ['type' => 'Administrateur']
+            ['type' => 'Administrateur'],
+            ['type' => 'Membre']
         ]);
     }
 }
