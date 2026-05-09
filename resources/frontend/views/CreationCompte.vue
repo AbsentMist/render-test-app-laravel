@@ -181,7 +181,6 @@
             <input
               v-model="nationaliteSearch"
               type="text"
-              readonly="readonly"
               placeholder="Rechercher un pays..."
               class="input-field w-full pr-8"
               :class="{ 'border-accent': errors.nationalite }"

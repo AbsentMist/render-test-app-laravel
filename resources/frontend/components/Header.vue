@@ -13,6 +13,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import groupeService from '../services/groupeService';
 import echangeDossardService from '../services/echangeDossardService';
 import api from '../services/api';
+import PopupAccepterInvitationCourse from './PopupAccepterInvitationCourse.vue';
 
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
@@ -28,6 +29,7 @@ const isProfileDropdownOpen = ref(false);
 const deductionChangement = ref(0);
 const notificationsRefreshIntervalId = ref(null);
 const notificationsRefreshMs = 10000;
+const invitationEnCoursAcceptation = ref(null);
 
 /**
  * Observe le panier pour recalculer la déduction liée aux changements de course.
@@ -230,18 +232,46 @@ const estInvitationExpiree = (invit) => {
 };
 
 /**
- * Accepte une invitation groupe et met à jour la liste locale.
- * @param {number} idGroupe
+ * Affiche le popup pour accepter une invitation avec questionnaire, ou accepte directement si pas de questionnaire.
+ * @param {object} invit L'invitation à accepter
  * @returns {Promise<void>}
  */
-const accepterInvitation = async (idGroupe) => {
-  try {
-    await groupeService.accepterInvitation(idGroupe);
-    invitations.value = invitations.value.filter(g => g.id !== idGroupe);
-    alert("Invitation acceptée ! Vous êtes maintenant validé dans le groupe.");
-  } catch (error) {
-    console.error("Erreur lors de l'acceptation :", error);
+const afficherPopupAccepterInvitation = async (invit) => {
+  // Si la course n'a pas de questionnaire, accepter directement
+  if (!invit.course?.is_questionnaire) {
+    try {
+      await groupeService.accepterInvitation(invit.id);
+      invitations.value = invitations.value.filter(g => g.id !== invit.id);
+      alert("Invitation acceptée ! Vous êtes maintenant validé dans le groupe.");
+    } catch (error) {
+      console.error("Erreur lors de l'acceptation :", error);
+      alert("Une erreur est survenue lors de l'acceptation de l'invitation.");
+    }
+    return;
   }
+  
+  // Sinon, afficher le popup pour remplir le questionnaire
+  invitationEnCoursAcceptation.value = invit;
+};
+
+/**
+ * Ferme le popup d'acceptation d'invitation.
+ * @returns {void}
+ */
+const fermerPopupAccepterInvitation = () => {
+  invitationEnCoursAcceptation.value = null;
+};
+
+/**
+ * Traite l'acceptation réussie de l'invitation depuis le popup.
+ * Retire l'invitation de la liste et ferme le popup.
+ * @param {object} data Données d'acceptation ({ idGroupe, reponses })
+ * @returns {void}
+ */
+const onInvitationAcceptee = (data) => {
+  invitations.value = invitations.value.filter(g => g.id !== data.idGroupe);
+  fermerPopupAccepterInvitation();
+  alert("Invitation acceptée ! Vous êtes maintenant validé dans le groupe.");
 };
 
 /**
@@ -321,6 +351,13 @@ const ouvrirNotificationInfo = async (notification) => {
 </script>
 
 <template>
+  <PopupAccepterInvitationCourse
+    v-if="invitationEnCoursAcceptation"
+    :invitation="invitationEnCoursAcceptation"
+    @close="fermerPopupAccepterInvitation"
+    @accepte="onInvitationAcceptee"
+  />
+
   <nav
     class="fixed top-0 z-50 w-full border-b shadow-sm h-20 transition-colors duration-300"
     :class="themeStore.primaryColor ? '' : 'bg-primary-900 border-primary-900'"
@@ -534,7 +571,7 @@ const ouvrirNotificationInfo = async (notification) => {
                     <div class="flex gap-2 mt-2">
                       <button
                         v-if="!estInvitationExpiree(invit)"
-                        @click="accepterInvitation(invit.id)"
+                        @click="afficherPopupAccepterInvitation(invit)"
                         class="flex-1 bg-[#d9f20b] hover:bg-[#c4da0a] text-[#0e0f54] py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
                       >
                         Accepter

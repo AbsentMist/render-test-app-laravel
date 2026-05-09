@@ -40,8 +40,8 @@ export default {
     return api.get('/participant/groupes/mes-invitations');
   },
 
-  accepterInvitation(idGroupe) {
-    return api.post(`/participant/groupes/${idGroupe}/accepter`);
+  accepterInvitation(idGroupe, data = {}) {
+    return api.post(`/participant/groupes/${idGroupe}/accepter`, data);
   },
 
   refuserInvitation(idGroupe) {

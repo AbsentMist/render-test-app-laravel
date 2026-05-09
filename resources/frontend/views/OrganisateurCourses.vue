@@ -595,7 +595,18 @@ export default {
                 this.erreur = "";
             } catch (e) {
                 console.error("Erreur lors de la duplication:", e);
-                this.erreur = "Impossible de dupliquer cette course.";
+                // Extraire le vrai message d'erreur du serveur
+                let messageErreur = "Impossible de dupliquer cette course.";
+                if (e.response?.data?.message) {
+                    messageErreur = e.response.data.message;
+                } else if (e.response?.data?.errors) {
+                    // Si c'est une erreur de validation, récupérer le premier message
+                    const firstErrorKey = Object.keys(e.response.data.errors)[0];
+                    if (firstErrorKey && Array.isArray(e.response.data.errors[firstErrorKey])) {
+                        messageErreur = e.response.data.errors[firstErrorKey][0];
+                    }
+                }
+                this.erreur = messageErreur;
             }
         },
         handleClickOutside(event) {

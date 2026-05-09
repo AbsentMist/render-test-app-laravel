@@ -249,8 +249,32 @@ class GroupeController extends Controller
                   ->where('id_participant', $idParticipant)
                   ->where('statut', StatutParticipant::EN_ATTENTE->value);
         })
-        ->with('participants', 'course')
-        ->get();
+        ->with('participants', 'course.questions.choix', 'course.evenement')
+        ->get()
+        ->map(function($groupe) {
+            $course = $groupe->course;
+            
+            // Transformer les données de la course pour inclure le questionnaire formaté
+            // Uniquement si is_questionnaire est à true et qu'il y a des questions
+            if ($course && $course->is_questionnaire && $course->questions) {
+                $course->questionnaire = $course->questions->map(function($q) {
+                    return [
+                        'id'       => $q->id,
+                        'question' => $q->enonce,
+                        'answers'  => $q->choix->map(function($choix) {
+                            return [
+                                'id'    => $choix->id,
+                                'texte' => $choix->texte_option,
+                            ];
+                        }),
+                    ];
+                });
+            } else {
+                $course->questionnaire = null;
+            }
+            
+            return $groupe;
+        });
 
         $invitations->each->setAttribute('tag', 'Invitation à un groupe');
 
@@ -258,7 +282,7 @@ class GroupeController extends Controller
     }
 
     // Acceptation d'une invitation
-    public function accepterInvitation($idGroupe)
+    public function accepterInvitation(Request $request, $idGroupe)
     {
         $idParticipant = Auth::user()->participant->id;
         $groupe = Groupe::findOrFail($idGroupe);
@@ -270,19 +294,53 @@ class GroupeController extends Controller
             ], 403);
         }
 
-        // On met à jour le statut dans la table d'association
-        $groupe->participants()->updateExistingPivot($idParticipant, [
-            'statut' => 'Membre' //Passe de "En attente" à "Membre"
-        ]);
+        \DB::beginTransaction();
+        try {
+            // On met à jour le statut dans la table d'association
+            $groupe->participants()->updateExistingPivot($idParticipant, [
+                'statut' => 'Membre' //Passe de "En attente" à "Membre"
+            ]);
 
-        // On met à jour le statut des inscriptions liées au groupe(Fondateur ET Membre)
-        \App\Models\Inscription::where('id_groupe', $idGroupe)
-            ->update(['status_paiement' => 'Validé']);
+            // On met à jour le statut des inscriptions liées au groupe(Fondateur ET Membre)
+            \App\Models\Inscription::where('id_groupe', $idGroupe)
+                ->update(['status_paiement' => 'Validé']);
 
-        return response()->json([
-            'message' => 'Invitation acceptée avec succès.',
-            'groupe' => $groupe
-        ], 200);
+            // Traiter les réponses au questionnaire si présentes
+            $reponses = $request->input('reponses', []);
+            if (!empty($reponses)) {
+                // Récupérer l'inscription du participant dans ce groupe
+                $inscription = \App\Models\Inscription::where('id_groupe', $idGroupe)
+                    ->where('id_participant', $idParticipant)
+                    ->first();
+
+                if ($inscription) {
+                    foreach ($reponses as $data) {
+                        \App\Models\ReponseQuestion::updateOrCreate(
+                            [
+                                'id_inscription' => $inscription->id,
+                                'id_question'    => $data['id_question'] ?? null,
+                            ],
+                            [
+                                'id_option_choisie' => $data['id_option_choisie'] ?? null,
+                            ]
+                        );
+                    }
+                }
+            }
+
+            \DB::commit();
+
+            return response()->json([
+                'message' => 'Invitation acceptée avec succès.',
+                'groupe' => $groupe
+            ], 200);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json([
+                'message' => 'Erreur lors de l\'acceptation : ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     // Refus d'une invitation

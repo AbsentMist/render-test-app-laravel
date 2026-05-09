@@ -81,7 +81,7 @@
                                                 'Transféré',
                                             'bg-blue-300 text-blue-600':
                                                 inscription.status_paiement ===
-                                                'Échangé',
+                                                'Echangé',
                                         }"
                                     >
                                         {{ inscription.status_paiement ?? "—" }}

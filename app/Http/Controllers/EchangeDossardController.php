@@ -143,7 +143,7 @@ class EchangeDossardController extends Controller
      * B accepte l'échange :
      * - Son inscription passe à 'Validé'
      * - Le dossard de A est transféré vers B
-     * - L'inscription de A passe à 'Échangé'
+     * - L'inscription de A passe à 'Echangé'
      */
     public function accepter($id)
     {
@@ -179,7 +179,7 @@ class EchangeDossardController extends Controller
 
         // Mise à jour des statuts
         $inscriptionB->update(['status_paiement' => 'Validé']);
-        $inscriptionA->update(['status_paiement' => 'Validé']);
+        $inscriptionA->update(['status_paiement' => 'Echangé']);
 
         // TODO (Steven - tâche 2,3) : envoyer mail de confirmation à A et B
 
