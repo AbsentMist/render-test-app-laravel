@@ -7,6 +7,7 @@ use App\Models\Participant;
 use App\Models\Groupe;
 use App\Models\Inscription;
 use App\Models\Message;
+use App\Models\DemandeMembership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -354,15 +355,29 @@ public function mesParticipants(Request $request)
                 return null;
             }
 
+            if (($payload['type'] ?? null) === 'new_membership_request') {
+                $demande = DemandeMembership::find($payload['demande_id'] ?? null);
+
+                if (!$demande || $demande->status !== 'En attente') {
+                    return null;
+                }
+            }
+
             $payload['title'] = match ($payload['type'] ?? null) {
                 'exchange_refused' => 'Demande échange dossard refusée',
                 'group_invitation_refused' => 'Invitation à un groupe refusée',
+                'new_membership_request' => 'Nouvelle demande de membership',
+                'membership_approved_info' => 'Demande membership approuvée',
+                'membership_refused_info' => 'Demande membership refusée',
                 default => 'Information',
             };
 
             $payload['content'] = match ($payload['type'] ?? null) {
                 'exchange_refused' => $this->buildExchangeRefusedNotification($payload),
                 'group_invitation_refused' => $this->buildGroupRefusedNotification($payload),
+                'new_membership_request' => $this->buildMembershipRequestNotification($payload),
+                'membership_approved_info' => $this->buildMembershipApprovedNotification($payload),
+                'membership_refused_info' => $this->buildMembershipRefusedNotification($payload),
                 default => 'Notification.',
             };
 
@@ -412,5 +427,33 @@ public function mesParticipants(Request $request)
 
         return sprintf('%s %s a refusé votre invitation au groupe %s.', $prenom, $nom, $groupe?->nom ?? '—');
     }
-    
+
+
+    private function buildMembershipApprovedNotification(array $payload): string
+    {
+        $prenom = $payload['prenom'] ?? 'Un participant';
+        $nom = $payload['nom'] ?? '';
+        $adminEmail = $payload['admin_decideur_email'] ?? 'Un administrateur';
+
+        return sprintf('La demande de membership de %s %s a été approuvée par %s.', $prenom, $nom, $adminEmail);
+    }
+
+    private function buildMembershipRequestNotification(array $payload): string
+    {
+        $prenom = $payload['prenom'] ?? 'Un participant';
+        $nom = $payload['nom'] ?? '';
+        $email = $payload['email'] ?? 'email inconnu';
+
+        return sprintf('%s %s (%s) a soumis une demande de membership.', $prenom, $nom, $email);
+    }
+
+    private function buildMembershipRefusedNotification(array $payload): string
+    {
+        $prenom = $payload['prenom'] ?? 'Un participant';
+        $nom = $payload['nom'] ?? '';
+        $adminEmail = $payload['admin_decideur_email'] ?? 'Un administrateur';
+
+        return sprintf('La demande de membership de %s %s a été refusée par %s.', $prenom, $nom, $adminEmail);
+    }
+
 }

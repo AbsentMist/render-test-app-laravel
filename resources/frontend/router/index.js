@@ -130,6 +130,12 @@ const routes = [
     name: "OrganisateurInscriptions",
     component: () => import("../views/OrganisateurInscriptions.vue"),
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: "/organisateur/membership",
+    name: "OrganisateurMembership",
+    component: () => import("../views/OrganisateurMembership.vue"),
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ];
 

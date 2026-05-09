@@ -9,7 +9,7 @@ import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { useCartStore } from '../stores/cart'; 
 import { useRouter } from 'vue-router';
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import groupeService from '../services/groupeService';
 import echangeDossardService from '../services/echangeDossardService';
 import api from '../services/api';
@@ -23,8 +23,11 @@ const router = useRouter();
 const invitations = ref([]);
 const demandesEchange = ref([]);
 const notificationsInfo = ref([]);
+const membershipRequests = ref([]);
 const isProfileDropdownOpen = ref(false);
 const deductionChangement = ref(0);
+const notificationsRefreshIntervalId = ref(null);
+const notificationsRefreshMs = 10000;
 
 /**
  * Observe le panier pour recalculer la déduction liée aux changements de course.
@@ -141,16 +144,55 @@ const chargerInvitations = async () => {
         ...notification,
         tag: notification.title || 'Information',
       }));
+
+      // Filtrer les demandes membership des notifications info AVANT d'exclure
+      membershipRequests.value = notificationsInfo.value
+        .filter(n => n.type === 'new_membership_request')
+        .map(n => ({
+          ...n,
+          id: n.id,
+          prenom: n.prenom || 'Candidat',
+          nom: n.nom || '',
+          email: n.email || '',
+        }));
+      
+      // Exclure les membership requests des notifications info pour éviter le doublon
+      notificationsInfo.value = notificationsInfo.value.filter(n => n.type !== 'new_membership_request');
     } catch (e) {
       console.error("Erreur lors du chargement des invitations", e);
     }
   }
 };
 
-const totalNotifications = computed(() => invitations.value.length + demandesEchange.value.length + notificationsInfo.value.length);
+const rafraichirNotifications = () => {
+  chargerInvitations();
+};
+
+const totalNotifications = computed(() => invitations.value.length + demandesEchange.value.length + notificationsInfo.value.length + membershipRequests.value.length);
 
 onMounted(() => {
   chargerInvitations();
+
+  notificationsRefreshIntervalId.value = window.setInterval(() => {
+    rafraichirNotifications();
+  }, notificationsRefreshMs);
+
+  window.addEventListener('membership-notifications-updated', rafraichirNotifications);
+});
+
+onBeforeUnmount(() => {
+  if (notificationsRefreshIntervalId.value) {
+    window.clearInterval(notificationsRefreshIntervalId.value);
+    notificationsRefreshIntervalId.value = null;
+  }
+
+  window.removeEventListener('membership-notifications-updated', rafraichirNotifications);
+});
+
+watch(isProfileDropdownOpen, (isOpen) => {
+  if (isOpen) {
+    rafraichirNotifications();
+  }
 });
 
 /**
@@ -231,6 +273,49 @@ const supprimerNotificationInfo = async (idNotification) => {
     notificationsInfo.value = notificationsInfo.value.filter((notification) => notification.id !== idNotification);
   } catch (error) {
     console.error('Erreur lors de la suppression de la notification', error);
+  }
+};
+
+const isMembershipInfoNotification = (notification) => ['membership_approved_info', 'membership_refused_info'].includes(notification?.type);
+
+const getInfoNotificationCardClass = (notification) => {
+  if (isMembershipInfoNotification(notification)) {
+    return 'bg-blue-50 border border-blue-200';
+  }
+  return 'bg-amber-50 border border-amber-200';
+};
+
+const getInfoNotificationTagClass = (notification) => {
+  if (isMembershipInfoNotification(notification)) {
+    return 'bg-blue-100 text-blue-700 border border-blue-200';
+  }
+  return 'bg-amber-100 text-amber-700 border border-amber-200';
+};
+
+const getInfoNotificationIcon = (notification) => {
+  if (isMembershipInfoNotification(notification)) {
+    return 'mdi:account-group-outline';
+  }
+  return 'mdi:information-outline';
+};
+
+const getInfoNotificationRoute = (notification) => {
+  if (notification?.type === 'new_membership_request') {
+    return '/organisateur/membership';
+  }
+  return null;
+};
+
+const ouvrirNotificationInfo = async (notification) => {
+  const route = getInfoNotificationRoute(notification);
+  if (route) {
+    isProfileDropdownOpen.value = false;
+    await router.push(route);
+    // Pour les notifications d'information simples (refus), on les supprime
+    // Pour les membership requests, on les garde jusqu'à ce que l'admin prenne une action
+    if (notification.type !== 'new_membership_request') {
+      await supprimerNotificationInfo(notification.id);
+    }
   }
 };
 </script>
@@ -494,6 +579,35 @@ const supprimerNotificationInfo = async (idNotification) => {
                     </div>
                   </div>
 
+                  <div v-if="membershipRequests.length > 0" class="pt-2 border-t border-gray-100">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
+                      <Icon icon="mdi:file-document-outline" class="w-4 h-4 text-purple-500" />
+                      Demandes de membership
+                    </h4>
+
+                    <div class="flex flex-col gap-3">
+                      <div v-for="notif in membershipRequests" :key="`membership-${notif.id}`" class="bg-purple-50 border border-purple-200 shadow-sm rounded-xl p-4">
+                        <div class="flex flex-col gap-2 mb-1">
+                          <span class="shrink-0 bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-200 w-fit">
+                            Demande membership
+                          </span>
+                        </div>
+
+                        <p class="text-xs text-gray-600 font-medium mb-3 leading-snug">
+                          <strong class="text-[#0e0f54]">{{ notif.prenom }} {{ notif.nom }}</strong> ({{ notif.email }}) a soumis une demande de membership.
+                        </p>
+
+                        <router-link
+                          to="/organisateur/membership"
+                          @click="isProfileDropdownOpen = false"
+                          class="inline-flex items-center justify-center w-full bg-[#0e0f54] hover:bg-[#0e0f54]/90 text-white py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
+                        >
+                          Gérer les demandes
+                        </router-link>
+                      </div>
+                    </div>
+                  </div>
+
                   <div v-if="notificationsInfo.length > 0" class="pt-2 border-t border-gray-100">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
                       <Icon icon="mdi:information-outline" class="w-4 h-4 text-amber-500" />
@@ -501,10 +615,18 @@ const supprimerNotificationInfo = async (idNotification) => {
                     </h4>
 
                     <div class="flex flex-col gap-3">
-                      <div v-for="notification in notificationsInfo" :key="`info-${notification.id}`" class="bg-amber-50 border border-amber-200 shadow-sm rounded-xl p-4">
+                      <div
+                        v-for="notification in notificationsInfo"
+                        :key="`info-${notification.id}`"
+                        class="shadow-sm rounded-xl p-4"
+                        :class="getInfoNotificationCardClass(notification)"
+                      >
                         <div class="flex flex-col gap-2 mb-1">
-                          <p class="font-bold text-[#0e0f54] text-sm leading-snug">{{ notification.title }}</p>
-                          <span class="shrink-0 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">
+                          <div class="flex items-center gap-2">
+                            <Icon :icon="getInfoNotificationIcon(notification)" class="w-4 h-4 text-[#0e0f54]" />
+                            <p class="font-bold text-[#0e0f54] text-sm leading-snug">{{ notification.title }}</p>
+                          </div>
+                          <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full w-fit" :class="getInfoNotificationTagClass(notification)">
                             {{ notification.tag }}
                           </span>
                         </div>
@@ -513,13 +635,21 @@ const supprimerNotificationInfo = async (idNotification) => {
                           {{ notification.content }}
                         </p>
 
-                        <div v-if="notification.type === 'exchange_refused' || notification.type === 'group_invitation_refused'" class="mt-3 flex justify-end">
+                        <div class="mt-3 flex justify-end gap-2">
+                          <button
+                            v-if="getInfoNotificationRoute(notification)"
+                            type="button"
+                            @click="ouvrirNotificationInfo(notification)"
+                            class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-[#0e0f54] text-white border border-[#0e0f54] hover:bg-[#0e0f54]/90 transition-colors"
+                          >
+                            Voir
+                          </button>
                           <button
                             type="button"
                             @click="supprimerNotificationInfo(notification.id)"
-                            class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-200 transition-colors"
+                            class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-white text-gray-700 border border-gray-200 hover:bg-gray-100 transition-colors"
                           >
-                            OK
+                            Fermer
                           </button>
                         </div>
                       </div>
