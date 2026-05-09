@@ -73,6 +73,18 @@ const handleLogout = async () => {
                  <span class="ms-3 font-medium">Formulaires</span>
               </router-link>
            </li>
+
+           <li>
+              <router-link 
+                to="/organisateur/membership" 
+                class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200" 
+                :class="themeStore.primaryColor ? 'hover:bg-white/50 text-[#0e0f54]' : 'text-secondary hover:bg-tertiary hover:text-primary'"
+                :active-class="themeStore.primaryColor ? 'bg-white shadow-sm font-bold' : 'bg-tertiary !text-primary'"
+              >
+                 <Icon icon="lucide:file-check-2" class="w-5 h-5 opacity-90 transition duration-75" />
+                 <span class="ms-3 font-medium">Memberships</span>
+              </router-link>
+           </li>
            
            <li>
             <button @click="handleLogout" class="flex items-center px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors w-full text-left mt-2">
