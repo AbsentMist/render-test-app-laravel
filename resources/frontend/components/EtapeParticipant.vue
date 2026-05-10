@@ -52,68 +52,48 @@
                     @click="toggleMembreGroupe(participant)"
                     @mouseenter="hoveredId = participant.id"
                     @mouseleave="hoveredId = null"
-                    :disabled="estPlein && !estDansGroupe(participant.id)"
                     :class="[
-                        'flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-left',
+                        'flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-left bg-white',
                         estDansGroupe(participant.id)
-                            ? 'border-tertiary text-tertiary-900 bg-white'
-                            : estPlein
-                              ? 'border-gray-100 text-gray-300 bg-gray-50 cursor-not-allowed'
-                              : 'border-gray-200 text-primary hover:border-tertiary hover:text-tertiary-900 bg-white',
+                            ? 'border-tertiary text-tertiary-900'
+                            : 'border-gray-200 text-primary hover:border-tertiary hover:text-tertiary-900',
                     ]"
                 >
                     <Icon
                         icon="mdi:account-outline"
                         class="w-5 h-5 shrink-0 transition-colors"
                         :class="
-                            estDansGroupe(participant.id)
+                            estDansGroupe(participant.id) ||
+                            hoveredId === participant.id
                                 ? 'text-tertiary-900'
-                                : estPlein
-                                  ? 'text-gray-300'
-                                  : hoveredId === participant.id
-                                    ? 'text-tertiary-900'
-                                    : 'text-gray-400'
+                                : 'text-gray-400'
                         "
                     />
                     <span>{{ participant.prenom }} {{ participant.nom }}</span>
-                    <!-- Badge numéro si sélectionné -->
+                    <!-- Badge numéro -->
                     <span
                         v-if="estDansGroupe(participant.id)"
                         class="ml-auto text-xs bg-tertiary text-primary font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0"
                     >
                         {{ numeroMembre(participant.id) }}
                     </span>
-                    <!-- Icône check si sélectionné -->
-                    <Icon
-                        v-else-if="!estPlein"
-                        icon="mdi:plus"
-                        class="ml-auto w-4 h-4 shrink-0 text-gray-300"
-                    />
                 </button>
 
-                <!-- Bouton nouvelle personne (désactivé si groupe complet) -->
+                <!-- Bouton nouvelle personne -->
                 <button
                     type="button"
-                    @click="!estPlein && ouvrirFormulaire()"
+                    @click="ouvrirFormulaire"
                     @mouseenter="hoveredNouveau = true"
                     @mouseleave="hoveredNouveau = false"
-                    :disabled="estPlein"
-                    :class="[
-                        'flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed text-sm font-medium transition-all text-left',
-                        estPlein
-                            ? 'border-gray-100 text-gray-300 bg-gray-50 cursor-not-allowed'
-                            : 'border-gray-300 text-gray-500 hover:border-tertiary hover:text-tertiary-900 bg-white',
-                    ]"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 text-sm font-medium text-gray-500 hover:border-tertiary hover:text-tertiary-900 transition-all text-left bg-white"
                 >
                     <Icon
                         icon="mdi:account-plus-outline"
                         class="w-5 h-5 shrink-0 transition-colors"
                         :class="
-                            estPlein
-                                ? 'text-gray-300'
-                                : hoveredNouveau
-                                  ? 'text-tertiary-900'
-                                  : 'text-gray-400'
+                            hoveredNouveau
+                                ? 'text-tertiary-900'
+                                : 'text-gray-400'
                         "
                     />
                     <span>Nouvelle personne</span>
@@ -566,7 +546,10 @@
                                 <div class="flex flex-col gap-1">
                                     <label
                                         class="text-xs font-medium text-gray-600"
-                                        >Nom</label
+                                        >Nom
+                                        <span class="text-red-400"
+                                            >*</span
+                                        ></label
                                     >
                                     <input
                                         v-model="form.nom"
@@ -578,7 +561,10 @@
                                 <div class="flex flex-col gap-1">
                                     <label
                                         class="text-xs font-medium text-gray-600"
-                                        >Prénom</label
+                                        >Prénom
+                                        <span class="text-red-400"
+                                            >*</span
+                                        ></label
                                     >
                                     <input
                                         v-model="form.prenom"
@@ -590,70 +576,82 @@
                             </div>
                             <div class="flex flex-col gap-1">
                                 <label class="text-xs font-medium text-gray-600"
-                                    >Date de naissance (JJ/MM/AAAA)</label
+                                    >Date de naissance
+                                    <span class="text-red-400">*</span></label
                                 >
                                 <input
                                     v-model="form.date_naissance"
-                                    type="text"
-                                    placeholder="JJ/MM/AAAA"
+                                    type="date"
+                                    :max="
+                                        new Date().toISOString().split('T')[0]
+                                    "
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
                                 />
                             </div>
-                            <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium text-gray-600"
-                                    >Adresse</label
-                                >
-                                <input
-                                    v-model="form.adresse"
-                                    type="text"
-                                    placeholder="Rue et numéro"
-                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+
+                            <!-- Badge mineur / adulte -->
+                            <div
+                                v-if="form.date_naissance && !estSousAgeMinimum"
+                                class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium"
+                                :class="
+                                    estMineur
+                                        ? 'bg-blue-50 text-blue-700'
+                                        : 'bg-green-50 text-green-700'
+                                "
+                            >
+                                <Icon
+                                    :icon="
+                                        estMineur
+                                            ? 'mdi:account-child-outline'
+                                            : 'mdi:account-outline'
+                                    "
+                                    class="w-4 h-4 shrink-0"
                                 />
+                                <span v-if="estMineur">
+                                    Participant mineur — rattaché à votre
+                                    compte, aucun email requis.
+                                </span>
+                                <span v-else>
+                                    Participant adulte — une invitation sera
+                                    envoyée par email pour finaliser son compte.
+                                </span>
                             </div>
-                            <div class="grid grid-cols-3 gap-3">
-                                <div class="flex flex-col gap-1">
-                                    <label
-                                        class="text-xs font-medium text-gray-600"
-                                        >NPA</label
-                                    >
-                                    <input
-                                        v-model="form.code_postal"
-                                        type="text"
-                                        placeholder="1000"
-                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
-                                    />
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <label
-                                        class="text-xs font-medium text-gray-600"
-                                        >Ville</label
-                                    >
-                                    <input
-                                        v-model="form.ville"
-                                        type="text"
-                                        placeholder="Lausanne"
-                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
-                                    />
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <label
-                                        class="text-xs font-medium text-gray-600"
-                                        >Pays</label
-                                    >
-                                    <select
-                                        v-model="form.pays"
-                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
-                                    >
-                                        <option value="Suisse">Suisse</option>
-                                        <option value="France">France</option>
-                                        <option value="Autre">Autre</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium text-gray-600"
-                                    >Téléphone</label
+
+                            <!-- Avertissement âge minimum course -->
+                            <div
+                                v-if="
+                                    form.date_naissance &&
+                                    ageMinimum &&
+                                    estSousAgeMinimum
+                                "
+                                class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-red-50 text-red-600 border border-red-100"
+                            >
+                                <Icon
+                                    icon="mdi:alert-circle-outline"
+                                    class="w-4 h-4 shrink-0"
+                                />
+                                <span
+                                    >Ce participant a moins de
+                                    {{ ageMinimum }} ans — il ne peut pas être
+                                    inscrit à cette course.</span
                                 >
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <label
+                                    class="text-xs font-medium text-gray-600"
+                                >
+                                    Téléphone
+                                    <span v-if="!estMineur" class="text-red-400"
+                                        >*</span
+                                    >
+                                    <span
+                                        v-else
+                                        class="text-gray-400 font-normal"
+                                        >(optionnel — même numéro que le
+                                        parent)</span
+                                    >
+                                </label>
                                 <input
                                     v-model="form.telephone"
                                     type="text"
@@ -662,9 +660,19 @@
                                 />
                             </div>
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium text-gray-600"
-                                    >Email</label
+                                <label
+                                    class="text-xs font-medium text-gray-600"
                                 >
+                                    Email
+                                    <span v-if="!estMineur" class="text-red-400"
+                                        >*</span
+                                    >
+                                    <span
+                                        v-else
+                                        class="text-gray-400 font-normal"
+                                        >(optionnel pour les mineurs)</span
+                                    >
+                                </label>
                                 <input
                                     v-model="form.email"
                                     type="email"
@@ -709,21 +717,30 @@
                     </div>
 
                     <div
-                        class="flex justify-end px-6 py-4 border-t border-gray-100"
+                        class="flex flex-col gap-2 px-6 py-4 border-t border-gray-100"
                     >
-                        <button
-                            type="button"
-                            @click="valider"
-                            :disabled="!formulaireValide"
-                            :class="[
-                                'btn-tertiary',
-                                !formulaireValide
-                                    ? 'opacity-50 cursor-not-allowed'
-                                    : '',
-                            ]"
+                        <!-- Message d'erreur formulaire -->
+                        <p
+                            v-if="erreurFormulaire"
+                            class="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2"
                         >
-                            Ajouter la personne
-                        </button>
+                            {{ erreurFormulaire }}
+                        </p>
+                        <div class="flex justify-end">
+                            <button
+                                type="button"
+                                @click="valider"
+                                :disabled="!formulaireValide"
+                                :class="[
+                                    'btn-tertiary',
+                                    !formulaireValide
+                                        ? 'opacity-50 cursor-not-allowed'
+                                        : '',
+                                ]"
+                            >
+                                Ajouter la personne
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -764,8 +781,17 @@ export default {
         typeSelectionne: { type: Object, default: null },
         modelValue: { type: Array, default: () => [] },
         groupeValue: { type: Object, default: null },
+    },
+    emits: ["update:modelValue", "update:groupeValue", "creer-participant"],
+    props: {
+        participants: { type: Array, default: () => [] },
+        chargement: { type: Boolean, default: false },
+        typeSelectionne: { type: Object, default: null },
+        modelValue: { type: Array, default: () => [] },
+        groupeValue: { type: Object, default: null },
         courseId: { type: [Number, String], default: null },
         maxPersonnes: { type: Number, default: null },
+        ageMinimum: { type: Number, default: null },
     },
     emits: ["update:modelValue", "update:groupeValue", "creer-participant"],
     data() {
@@ -783,6 +809,7 @@ export default {
             emailRecherche: "",
             participantTrouve: null,
             erreurRecherche: null,
+            erreurFormulaire: null,
             hoveredId: null,
             hoveredNouveau: false,
             form: formVide(),
@@ -838,16 +865,6 @@ export default {
             return null;
         },
 
-        /**
-         * Indique si le groupe a atteint son nombre maximum de participants.
-         * @returns {boolean}
-         */
-        estPlein() {
-            const max = this.limiteGroupe?.max;
-            if (!max) return false;
-            return this.groupeData.participants.length >= max;
-        },
-
         messageStatutGroupe() {
             const nb = this.groupeData.participants.length;
             const limite = this.limiteGroupe;
@@ -864,20 +881,6 @@ export default {
                     };
                 return { type: "ok", texte: `${nb} membre(s) sélectionné(s).` };
             }
-            // Nombre fixe requis (min === max)
-            if (limite.min === limite.max) {
-                if (nb < limite.min) {
-                    return {
-                        type: "erreur",
-                        texte: `${nb}/${limite.max} participant(s) — il faut exactement ${limite.max} membres pour continuer.`,
-                    };
-                }
-                return {
-                    type: "ok",
-                    texte: `${nb}/${limite.max} participant(s) sélectionné(s). ✓`,
-                };
-            }
-            // Plage min-max
             if (nb < limite.min) {
                 return {
                     type: "erreur",
@@ -906,9 +909,40 @@ export default {
         },
 
         formulaireValide() {
-            return (
-                this.form.nom.trim() !== "" && this.form.prenom.trim() !== ""
-            );
+            const baseValide =
+                this.form.nom.trim() !== "" &&
+                this.form.prenom.trim() !== "" &&
+                !!this.form.date_naissance;
+            if (!baseValide) return false;
+            if (this.estSousAgeMinimum) return false;
+            // Champs obligatoires uniquement pour les adultes
+            if (!this.estMineur) {
+                if (!this.form.email?.trim()) return false;
+                if (!this.form.telephone?.trim()) return false;
+            }
+            return true;
+        },
+
+        /**
+         * Indique si la personne saisie est mineure (< 18 ans).
+         * @returns {boolean}
+         */
+        estMineur() {
+            if (!this.form.date_naissance) return false;
+            const limite = new Date();
+            limite.setFullYear(limite.getFullYear() - 18);
+            return new Date(this.form.date_naissance) > limite;
+        },
+
+        /**
+         * Indique si la personne saisie est sous l'âge minimum de la course.
+         * @returns {boolean}
+         */
+        estSousAgeMinimum() {
+            if (!this.ageMinimum || !this.form.date_naissance) return false;
+            const limite = new Date();
+            limite.setFullYear(limite.getFullYear() - this.ageMinimum);
+            return new Date(this.form.date_naissance) > limite;
         },
     },
     methods: {
@@ -1061,6 +1095,7 @@ export default {
             this.emailRecherche = "";
             this.participantTrouve = null;
             this.erreurRecherche = null;
+            this.erreurFormulaire = null;
             this.form = formVide();
         },
         /**
@@ -1114,18 +1149,75 @@ export default {
         async valider() {
             if (!this.formulaireValide) return;
 
+            // Vérifier l'âge minimum de la course
+            if (this.ageMinimum && this.form.date_naissance) {
+                const dateNaissance = new Date(this.form.date_naissance);
+                const ageLimite = new Date();
+                ageLimite.setFullYear(
+                    ageLimite.getFullYear() - this.ageMinimum,
+                );
+                if (dateNaissance > ageLimite) {
+                    this.erreurFormulaire = `Cette course est réservée aux personnes de ${this.ageMinimum} ans et plus. Ce participant ne peut pas être inscrit.`;
+                    return;
+                }
+            }
+
             let nouveau;
             try {
-                const response = await participantService.creerParticipant(
-                    this.form,
-                );
-                nouveau = response.data;
+                if (this.estMineur) {
+                    // Mineur → sous-profil rattaché au compte, sans invitation
+                    const response = await participantService.creerParticipant(
+                        this.form,
+                    );
+                    nouveau = response.data;
+                } else {
+                    // Adulte → création compte + invitation par email
+                    try {
+                        const response = await api.post(
+                            "/participant/inviter-participant",
+                            {
+                                ...this.form,
+                                nationalite: this.form.pays ?? "Suisse",
+                            },
+                        );
+                        nouveau = response.data?.participant ?? response.data;
+                    } catch (e) {
+                        // Si l'email existe déjà → guider l'utilisateur vers la recherche
+                        const emailExiste = e.response?.data?.errors?.email;
+                        if (e.response?.status === 422 && emailExiste) {
+                            this.erreurFormulaire =
+                                "Un compte existe déjà avec cet email. Utilisez la recherche par email ci-dessus pour ajouter cette personne directement.";
+                            return;
+                        }
+                        throw e;
+                    }
+                }
             } catch (e) {
-                console.warn(
-                    "Participant non sauvegardé en DB, création locale :",
-                    e,
-                );
-                nouveau = { ...this.form, id: Date.now() };
+                console.warn("Erreur création participant :", e);
+                const erreurs = e.response?.data?.errors ?? {};
+                const traductions = {
+                    "The telephone has already been taken.":
+                        "Ce numéro de téléphone est déjà utilisé par un autre compte.",
+                    "The email has already been taken.":
+                        "Cette adresse email est déjà utilisée par un autre compte.",
+                    "The telephone field is required.":
+                        "Le numéro de téléphone est requis.",
+                    "The email field is required.":
+                        "L'adresse email est requise.",
+                    "The adresse field is required.": "L'adresse est requise.",
+                    "The nom field is required.": "Le nom est requis.",
+                    "The prenom field is required.": "Le prénom est requis.",
+                };
+                const premierMessage =
+                    Object.values(erreurs)?.[0]?.[0] ??
+                    e.response?.data?.message ??
+                    null;
+                const traduit = premierMessage
+                    ? (traductions[premierMessage] ?? premierMessage)
+                    : null;
+                this.erreurFormulaire =
+                    traduit || "Une erreur est survenue, veuillez réessayer.";
+                return;
             }
 
             if (this.estGroupe || this.estRelais) {

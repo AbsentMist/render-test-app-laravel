@@ -80,7 +80,8 @@ class CourseController extends Controller
                     'dossards_restants' => $course->max_inscription
                         ? ($course->max_inscription - $course->inscriptions_count)
                         : 'Illimité',
-                        'max_nb_personne' => $course->max_nb_personne,
+                    'max_nb_personne' => $course->max_nb_personne,
+                    'age_minimum'     => $course->age_minimum,
                 ];
             });
 
@@ -187,13 +188,6 @@ class CourseController extends Controller
             'is_questionnaire'  => 'boolean',
             'is_prix_evolutif'  => 'boolean',
             'document_description' => 'nullable|string',
-        ],
-        [
-            'date_debut.after_or_equal' => 'La date de début doit être aujourd\'hui ou dans le futur.',
-            'debut_inscription.after_or_equal' => 'La date de début d\'inscription doit être aujourd\'hui ou dans le futur.',
-            'fin_inscription.after_or_equal' => 'La date de fin d\'inscription doit être après ou égale à la date de début d\'inscription.',
-            'fin_inscription.before_or_equal' => 'La date de fin d\'inscription doit être avant ou égale à la date de début de la course.',
-            'date_fin.after_or_equal' => 'La date de fin doit être après ou égale à la date de début.',
         ]);
 
         $course = Course::create($validatedData);
