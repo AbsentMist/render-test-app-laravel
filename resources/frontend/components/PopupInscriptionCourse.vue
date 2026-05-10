@@ -90,6 +90,7 @@
                             "
                             @update:nomEquipe="inscription.nom_equipe = $event"
                             :maxPersonnes="course.max_nb_personne"
+                            :ageMinimum="course.age_minimum"
                         />
 
                         <EtapeOptions
@@ -751,6 +752,7 @@ export default {
     },
     mounted() {
         console.log("max_nb_personne:", this.course.max_nb_personne);
+        console.log("age_minimum:", this.course.age_minimum);
         this.etape = this.etapesActives[0];
         this.modalAffichage = this.course.avertissement
             ? modals.AVERTISSEMENT
