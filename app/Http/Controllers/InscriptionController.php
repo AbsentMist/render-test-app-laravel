@@ -500,6 +500,24 @@ if (!empty($validatedData['code_rabais'])) {
         // Changement du statut à 'Annulé' au lieu d'une suppression en base de données (réservé à l'admin)
         $inscription->update(['status_paiement' => 'Annulé']);
 
+        // Suppression du groupe si toutes ses inscriptions sont annulées/transférées
+        // (hors groupes Challenge de type Entreprise qui sont partagés)
+        $idGroupe = $inscription->id_groupe;
+        if ($idGroupe) {
+            $autresActives = Inscription::where('id_groupe', $idGroupe)
+                ->whereIn('status_paiement', ['Validé', 'En attente'])
+                ->where('id', '!=', $inscription->id)
+                ->count();
+
+            if ($autresActives === 0) {
+                $groupe = Groupe::find($idGroupe);
+                if ($groupe && $groupe->type !== 'Entreprise') {
+                    $groupe->participants()->detach();
+                    $groupe->delete();
+                }
+            }
+        }
+
         return response()->json([
             'message' => 'Inscription annulée avec succès.',
             'inscription' => $inscription
