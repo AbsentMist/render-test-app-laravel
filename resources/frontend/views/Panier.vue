@@ -55,7 +55,7 @@
                     <div v-else class="flex flex-col gap-6">
                         <div
                             v-for="(article, index) in panier"
-                            :key="index"
+                            :key="article.id_groupe ?? index"
                             class="border-b border-gray-100 pb-6 last:border-0 last:pb-0"
                         >
                             <div class="flex flex-col sm:flex-row gap-6">
@@ -301,15 +301,14 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="flex justify-end mt-2">
-                            <button
-                                @click="cartStore.supprimerInscription(index)"
-                                class="text-xs text-red-400 hover:text-red-600 font-medium transition-colors"
-                            >
-                                Retirer du panier
-                            </button>
+                            <div class="flex justify-end mt-2">
+                                <button
+                                    @click="retirerArticle(article.id_groupe)"
+                                    class="text-xs text-red-400 hover:text-red-600 font-medium transition-colors"
+                                >
+                                    Retirer du panier
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -485,6 +484,15 @@ const authStore = useAuthStore();
 
 // Données du panier via le store Pinia
 const panier = computed(() => cartStore.inscriptions);
+
+/**
+ * Retire un article du panier et supprime le groupe associé si nécessaire.
+ * Utilise panier.value[index] pour éviter le problème de cache du handler Vue.
+ */
+async function retirerArticle(idGroupe) {
+    const index = panier.value.findIndex((i) => i.id_groupe === idGroupe);
+    await cartStore.supprimerInscription(index === -1 ? 0 : index, idGroupe);
+}
 
 const accepteConditions = ref(false);
 const isProcessing = ref(false);

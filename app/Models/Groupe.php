@@ -41,7 +41,13 @@ class Groupe extends Model
     }
 
     public function course(): BelongsTo
-{
-    return $this->belongsTo(Course::class, 'id_course');
-}
+    {
+        return $this->belongsTo(Course::class, 'id_course');
+    }
+
+    // Relation avec les inscriptions liées à ce groupe
+    public function inscriptions()
+    {
+        return $this->hasMany(\App\Models\Inscription::class, 'id_groupe');
+    }
 }
