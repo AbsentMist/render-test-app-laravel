@@ -25,12 +25,13 @@
                         ]"
                         type="button"
                     >
-                    <span>
-                        {{
-                            courseData.event.nom || courseData.event.name ||
-                            "Sélectionner un évènement"
-                        }}
-                    </span>
+                        <span>
+                            {{
+                                courseData.event.nom ||
+                                courseData.event.name ||
+                                "Sélectionner un évènement"
+                            }}
+                        </span>
                         <Icon icon="mdi:chevron-down" class="ml-2 w-6 h-6" />
                     </button>
                     <div
@@ -54,7 +55,9 @@
                     </div>
                 </div>
             </div>
-            <p v-if="errors.event" class="text-sm text-accent mt-1">{{ errors.event }}</p>
+            <p v-if="errors.event" class="text-sm text-accent mt-1">
+                {{ errors.event }}
+            </p>
 
             <div class="w-full">
                 <label
@@ -70,7 +73,9 @@
                     placeholder=""
                     required
                 />
-                <p v-if="errors.name" class="text-sm text-accent mt-1">{{ errors.name }}</p>
+                <p v-if="errors.name" class="text-sm text-accent mt-1">
+                    {{ errors.name }}
+                </p>
             </div>
 
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
@@ -90,7 +95,9 @@
                         :min="new Date().toISOString().split('T')[0]"
                         class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
                     />
-                    <p v-if="errors.dateStart" class="text-sm text-accent mt-1">{{ errors.dateStart }}</p>
+                    <p v-if="errors.dateStart" class="text-sm text-accent mt-1">
+                        {{ errors.dateStart }}
+                    </p>
                 </div>
                 <div class="w-full">
                     <label
@@ -106,7 +113,9 @@
                         type="date"
                         class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
                     />
-                    <p v-if="errors.dateEnd" class="text-sm text-accent mt-1">{{ errors.dateEnd }}</p>
+                    <p v-if="errors.dateEnd" class="text-sm text-accent mt-1">
+                        {{ errors.dateEnd }}
+                    </p>
                 </div>
             </div>
 
@@ -114,7 +123,8 @@
                 <label
                     for="inscriptionpicker-start"
                     class="block mb-2.5 text-sm font-medium text-heading"
-                    >Interval d'inscription <span class="text-accent">*</span></label
+                    >Interval d'inscription
+                    <span class="text-accent">*</span></label
                 >
                 <div class="flex row gap-4 basis-1/2">
                     <div class="w-full">
@@ -126,7 +136,12 @@
                             :min="new Date().toISOString().split('T')[0]"
                             class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
                         />
-                        <p v-if="errors.inscriptionStart" class="text-sm text-accent mt-1">{{ errors.inscriptionStart }}</p>
+                        <p
+                            v-if="errors.inscriptionStart"
+                            class="text-sm text-accent mt-1"
+                        >
+                            {{ errors.inscriptionStart }}
+                        </p>
                     </div>
                     <div class="w-full">
                         <input
@@ -137,7 +152,12 @@
                             type="date"
                             class="block w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs placeholder:text-body"
                         />
-                        <p v-if="errors.inscriptionEnd" class="text-sm text-accent mt-1">{{ errors.inscriptionEnd }}</p>
+                        <p
+                            v-if="errors.inscriptionEnd"
+                            class="text-sm text-accent mt-1"
+                        >
+                            {{ errors.inscriptionEnd }}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -158,13 +178,16 @@
                         v-model="courseData.distance"
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
                     />
-                    <p v-if="errors.distance" class="text-sm text-accent mt-1">{{ errors.distance }}</p>
+                    <p v-if="errors.distance" class="text-sm text-accent mt-1">
+                        {{ errors.distance }}
+                    </p>
                 </div>
                 <div class="flex-1">
                     <label
                         for="maxRunners"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Nombre de coureurs maximum <span class="text-accent">*</span></label
+                        >Nombre de coureurs maximum
+                        <span class="text-accent">*</span></label
                     >
                     <input
                         type="number"
@@ -172,7 +195,12 @@
                         v-model="courseData.maxRunners"
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
                     />
-                    <p v-if="errors.maxRunners" class="text-sm text-accent mt-1">{{ errors.maxRunners }}</p>
+                    <p
+                        v-if="errors.maxRunners"
+                        class="text-sm text-accent mt-1"
+                    >
+                        {{ errors.maxRunners }}
+                    </p>
                 </div>
             </div>
 
@@ -182,7 +210,8 @@
                     <label
                         for="firstDossard"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Premier dossard <span class="text-accent">*</span></label
+                        >Premier dossard
+                        <span class="text-accent">*</span></label
                     >
                     <input
                         type="number"
@@ -190,13 +219,19 @@
                         v-model="courseData.dossard.first"
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
                     />
-                    <p v-if="errors.firstDossard" class="text-sm text-accent mt-1">{{ errors.firstDossard }}</p>
+                    <p
+                        v-if="errors.firstDossard"
+                        class="text-sm text-accent mt-1"
+                    >
+                        {{ errors.firstDossard }}
+                    </p>
                 </div>
                 <div class="w-full">
                     <label
                         for="lastDossard"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Dernier dossard <span class="text-accent">*</span></label
+                        >Dernier dossard
+                        <span class="text-accent">*</span></label
                     >
                     <input
                         type="number"
@@ -204,7 +239,12 @@
                         v-model="courseData.dossard.last"
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
                     />
-                    <p v-if="errors.lastDossard" class="text-sm text-accent mt-1">{{ errors.lastDossard }}</p>
+                    <p
+                        v-if="errors.lastDossard"
+                        class="text-sm text-accent mt-1"
+                    >
+                        {{ errors.lastDossard }}
+                    </p>
                 </div>
             </div>
 
@@ -245,7 +285,9 @@
                         v-model="courseData.tarif"
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs"
                     />
-                    <p v-if="errors.tarif" class="text-sm text-accent mt-1">{{ errors.tarif }}</p>
+                    <p v-if="errors.tarif" class="text-sm text-accent mt-1">
+                        {{ errors.tarif }}
+                    </p>
                 </div>
                 <div class="w-full">
                     <label
@@ -454,7 +496,9 @@
                     </div>
                 </div>
             </div>
-            <p v-if="errors.type" class="text-sm text-accent mt-1">{{ errors.type }}</p>
+            <p v-if="errors.type" class="text-sm text-accent mt-1">
+                {{ errors.type }}
+            </p>
 
             <div
                 v-if="
@@ -471,7 +515,8 @@
                         courseData.type.name === "Relais"
                             ? "Nombre de coureurs par équipe"
                             : "Nombre maximum de personnes par groupe"
-                    }} <span class="text-accent">*</span>
+                    }}
+                    <span class="text-accent">*</span>
                 </label>
                 <div class="w-full flex flex-col gap-1">
                     <input
@@ -486,9 +531,14 @@
                                 : 'Ex: 10'
                         "
                     />
-                    <p v-if="errors.maxNbPersonne" class="text-sm text-accent">{{ errors.maxNbPersonne }}</p>
+                    <p v-if="errors.maxNbPersonne" class="text-sm text-accent">
+                        {{ errors.maxNbPersonne }}
+                    </p>
                     <p
-                        v-if="courseData.type.name === 'Groupe' && !errors.maxNbPersonne"
+                        v-if="
+                            courseData.type.name === 'Groupe' &&
+                            !errors.maxNbPersonne
+                        "
                         class="text-xs text-body"
                     >
                         Minimum 2 personnes par groupe.
@@ -598,7 +648,8 @@
                     <label
                         for="ageMin"
                         class="block mb-2.5 text-sm font-medium text-heading"
-                        >Limite âge min <span class="text-accent">*</span></label
+                        >Limite âge min
+                        <span class="text-accent">*</span></label
                     >
                     <input
                         type="number"
@@ -607,7 +658,9 @@
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
                         required
                     />
-                    <p v-if="errors.ageMin" class="text-sm text-accent mt-1">{{ errors.ageMin }}</p>
+                    <p v-if="errors.ageMin" class="text-sm text-accent mt-1">
+                        {{ errors.ageMin }}
+                    </p>
                 </div>
                 <div class="w-full">
                     <label
@@ -622,7 +675,9 @@
                         class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
                         required
                     />
-                    <p v-if="errors.ageMax" class="text-sm text-accent mt-1">{{ errors.ageMax }}</p>
+                    <p v-if="errors.ageMax" class="text-sm text-accent mt-1">
+                        {{ errors.ageMax }}
+                    </p>
                 </div>
                 <div class="w-full">
                     <label
@@ -1110,7 +1165,7 @@ export default {
             confirmationChangementModePrix: false,
             modePrixEvolutifEnAttente: null,
             errors: {},
-            formError: '',
+            formError: "",
             evenements: [],
             nouvelleOrg: { nom: "", type: "Entreprise" },
             formulaireEtapesLabels: ["Général", "Options supplémentaires"],
@@ -1241,8 +1296,8 @@ export default {
     watch: {
         "courseData.date.start"(newStart) {
             if (!newStart) return;
-                this.courseData.date.end = newStart;
-                this.courseData.date.inscriptionEnd = newStart;
+            this.courseData.date.end = newStart;
+            this.courseData.date.inscriptionEnd = newStart;
         },
         "courseData.date.inscriptionStart"(newStart) {
             if (!newStart) return;
@@ -1323,106 +1378,162 @@ export default {
          */
         validateGeneralStep() {
             this.errors = {};
-            this.formError = '';
+            this.formError = "";
 
             // Vérifier l'évènement
             if (!this.courseData.event.id) {
-                this.errors.event = 'Le champ n\'est pas valide';
+                this.errors.event = "Le champ n'est pas valide";
             }
 
             // Vérifier le nom
-            if (!this.courseData.name || this.courseData.name.trim() === '') {
-                this.errors.name = 'Le champ n\'est pas valide';
+            if (!this.courseData.name || this.courseData.name.trim() === "") {
+                this.errors.name = "Le champ n'est pas valide";
             } else if (this.courseData.name.length > 120) {
-                this.errors.name = 'Le champ n\'est pas valide';
+                this.errors.name = "Le champ n'est pas valide";
             }
 
             // Vérifier les dates de course
             if (!this.courseData.date.start) {
-                this.errors.dateStart = 'Le champ n\'est pas valide';
+                this.errors.dateStart = "Le champ n'est pas valide";
             }
             if (!this.courseData.date.end) {
-                this.errors.dateEnd = 'Le champ n\'est pas valide';
+                this.errors.dateEnd = "Le champ n'est pas valide";
             }
             if (this.courseData.date.start && this.courseData.date.end) {
-                if (new Date(this.courseData.date.end) < new Date(this.courseData.date.start)) {
-                    this.errors.dateEnd = 'La date de fin doit être après la date de début';
+                if (
+                    new Date(this.courseData.date.end) <
+                    new Date(this.courseData.date.start)
+                ) {
+                    this.errors.dateEnd =
+                        "La date de fin doit être après la date de début";
                 }
             }
 
             // Vérifier les dates d'inscription
             if (!this.courseData.date.inscriptionStart) {
-                this.errors.inscriptionStart = 'Le champ n\'est pas valide';
+                this.errors.inscriptionStart = "Le champ n'est pas valide";
             }
             if (!this.courseData.date.inscriptionEnd) {
-                this.errors.inscriptionEnd = 'Le champ n\'est pas valide';
+                this.errors.inscriptionEnd = "Le champ n'est pas valide";
             }
-            if (this.courseData.date.inscriptionStart && this.courseData.date.inscriptionEnd) {
-                if (new Date(this.courseData.date.inscriptionEnd) < new Date(this.courseData.date.inscriptionStart)) {
-                    this.errors.inscriptionEnd = 'La date de fin d\'inscription doit être après la date de début';
+            if (
+                this.courseData.date.inscriptionStart &&
+                this.courseData.date.inscriptionEnd
+            ) {
+                if (
+                    new Date(this.courseData.date.inscriptionEnd) <
+                    new Date(this.courseData.date.inscriptionStart)
+                ) {
+                    this.errors.inscriptionEnd =
+                        "La date de fin d'inscription doit être après la date de début";
                 }
             }
 
-            if (this.courseData.distance === '' || this.courseData.distance === null) {
-                this.errors.distance = 'Le champ n\'est pas valide';
-            } else if(Number(this.courseData.distance) < 0) {
-                this.errors.distance = 'La distance doit être un nombre positif';
+            if (
+                this.courseData.distance === "" ||
+                this.courseData.distance === null
+            ) {
+                this.errors.distance = "Le champ n'est pas valide";
+            } else if (Number(this.courseData.distance) < 0) {
+                this.errors.distance =
+                    "La distance doit être un nombre positif";
             }
 
-            if(this.courseData.maxRunners === '' || this.courseData.maxRunners === null) {
-                this.errors.maxRunners = 'Le champ n\'est pas valide';
-            } else if(Number(this.courseData.maxRunners) < 1) {
-                this.errors.maxRunners = 'Le nombre maximum de coureurs doit être un nombre positif';
+            if (
+                this.courseData.maxRunners === "" ||
+                this.courseData.maxRunners === null
+            ) {
+                this.errors.maxRunners = "Le champ n'est pas valide";
+            } else if (Number(this.courseData.maxRunners) < 1) {
+                this.errors.maxRunners =
+                    "Le nombre maximum de coureurs doit être un nombre positif";
             }
 
             // Vérifier le tarif (si pas de prix évolutif)
             if (!this.courseData.parameters.prixEvolutif) {
-                if (this.courseData.tarif === '' || this.courseData.tarif === null) {
-                    this.errors.tarif = 'Le champ n\'est pas valide';
+                if (
+                    this.courseData.tarif === "" ||
+                    this.courseData.tarif === null
+                ) {
+                    this.errors.tarif = "Le champ n'est pas valide";
                 } else if (Number(this.courseData.tarif) < 0) {
-                    this.errors.tarif = 'Le tarif doit être un nombre positif';
+                    this.errors.tarif = "Le tarif doit être un nombre positif";
                 }
             }
 
             // Vérifier le type de course
             if (!this.courseData.type.name) {
-                this.errors.type = 'Le champ n\'est pas valide';
+                this.errors.type = "Le champ n'est pas valide";
             }
 
             // Vérifier les dossards
-            if (this.courseData.dossard.first === '' || this.courseData.dossard.first === null) {
-                this.errors.firstDossard = 'Le champ n\'est pas valide';
+            if (
+                this.courseData.dossard.first === "" ||
+                this.courseData.dossard.first === null
+            ) {
+                this.errors.firstDossard = "Le champ n'est pas valide";
             } else if (Number(this.courseData.dossard.first) < 1) {
-                this.errors.firstDossard = 'Le premier dossard doit être supérieur à 0';
+                this.errors.firstDossard =
+                    "Le premier dossard doit être supérieur à 0";
             }
 
-            if (this.courseData.dossard.last === '' || this.courseData.dossard.last === null) {
-                this.errors.lastDossard = 'Le champ n\'est pas valide';
-            } else if (Number(this.courseData.dossard.last) < Number(this.courseData.dossard.first)) {
-                this.errors.lastDossard = 'Le dernier dossard doit être supérieur ou égal au premier dossard';
-            } else if(Number(this.courseData.dossard.last) - Number(this.courseData.dossard.first) + 1 < Number(this.courseData.maxRunners)) {
-                this.errors.lastDossard = 'L\'intervalle de dossards doit pouvoir accueillir tous les coureurs';
+            if (
+                this.courseData.dossard.last === "" ||
+                this.courseData.dossard.last === null
+            ) {
+                this.errors.lastDossard = "Le champ n'est pas valide";
+            } else if (
+                Number(this.courseData.dossard.last) <
+                Number(this.courseData.dossard.first)
+            ) {
+                this.errors.lastDossard =
+                    "Le dernier dossard doit être supérieur ou égal au premier dossard";
+            } else if (
+                Number(this.courseData.dossard.last) -
+                    Number(this.courseData.dossard.first) +
+                    1 <
+                Number(this.courseData.maxRunners)
+            ) {
+                this.errors.lastDossard =
+                    "L'intervalle de dossards doit pouvoir accueillir tous les coureurs";
             }
 
             // Vérifier les âges
-            if (this.courseData.age.min === '' || this.courseData.age.min === null) {
-                this.errors.ageMin = 'Le champ n\'est pas valide';
+            if (
+                this.courseData.age.min === "" ||
+                this.courseData.age.min === null
+            ) {
+                this.errors.ageMin = "Le champ n'est pas valide";
             } else if (Number(this.courseData.age.min) < 1) {
-                this.errors.ageMin = 'L\'âge minimum doit être supérieur à 0';
+                this.errors.ageMin = "L'âge minimum doit être supérieur à 0";
             }
 
-            if (this.courseData.age.max !== '' && this.courseData.age.max !== null) {
-                if (Number(this.courseData.age.max) < Number(this.courseData.age.min)) {
-                    this.errors.ageMax = 'L\'âge maximum doit être supérieur à l\'âge minimum';
+            if (
+                this.courseData.age.max !== "" &&
+                this.courseData.age.max !== null
+            ) {
+                if (
+                    Number(this.courseData.age.max) <
+                    Number(this.courseData.age.min)
+                ) {
+                    this.errors.ageMax =
+                        "L'âge maximum doit être supérieur à l'âge minimum";
                 }
             }
 
             // Vérifier le nombre de personnes pour les types Relais et Groupe
-            if (this.courseData.type.name === 'Relais' || this.courseData.type.name === 'Groupe') {
-                if (this.courseData.maxNbPersonne === '' || this.courseData.maxNbPersonne === null) {
-                    this.errors.maxNbPersonne = 'Le champ n\'est pas valide';
+            if (
+                this.courseData.type.name === "Relais" ||
+                this.courseData.type.name === "Groupe"
+            ) {
+                if (
+                    this.courseData.maxNbPersonne === "" ||
+                    this.courseData.maxNbPersonne === null
+                ) {
+                    this.errors.maxNbPersonne = "Le champ n'est pas valide";
                 } else if (Number(this.courseData.maxNbPersonne) < 1) {
-                    this.errors.maxNbPersonne = 'Le nombre de personnes doit être supérieur à 0';
+                    this.errors.maxNbPersonne =
+                        "Le nombre de personnes doit être supérieur à 0";
                 }
             }
 
@@ -1510,6 +1621,10 @@ export default {
                 this.courseData.tarif = course.tarif || "";
                 this.courseData.maxRunners = course.max_inscription || "";
                 this.courseData.maxNbPersonne = course.max_nb_personne || "";
+                console.log(
+                    "maxNbPersonne chargé:",
+                    this.courseData.maxNbPersonne,
+                );
                 this.courseData.dossard.first = course.premier_dossard || "";
                 this.courseData.dossard.last = course.dernier_dossard || "";
                 this.courseData.age.min = course.age_minimum || "";
@@ -1990,6 +2105,7 @@ export default {
                         ? 0
                         : this.courseData.tarif,
                     max_inscription: this.courseData.maxRunners,
+                    max_nb_personne: this.courseData.maxNbPersonne || null,
                     premier_dossard: this.courseData.dossard.first,
                     dernier_dossard: this.courseData.dossard.last,
                     age_minimum: this.courseData.age.min,
@@ -2019,7 +2135,14 @@ export default {
                         this.courseData.parameters.prixEvolutif,
                     ),
                 };
-
+                console.log(
+                    "maxNbPersonne envoyé:",
+                    this.courseData.maxNbPersonne,
+                );
+                console.log(
+                    "payload max_nb_personne:",
+                    payload.max_nb_personne,
+                );
                 let response;
                 if (this.isEditMode) {
                     response = await courseOrganisateurService.modifyCourse(
@@ -2176,7 +2299,6 @@ export default {
                         `/organisateur/evenements/${this.courseData.event.id}/courses`,
                     );
                 else this.$router.push(`/organisateur/evenements`);
-                
             }, 2000);
         },
 
@@ -2242,10 +2364,7 @@ export default {
                 await questionOrganisateurService.getAllQuestions();
             this.questionModels = response.data;
         } catch (e) {
-            console.error(
-                "Erreur lors de la récupération des questions: ",
-                e,
-            );
+            console.error("Erreur lors de la récupération des questions: ", e);
         }
         try {
             const response =
