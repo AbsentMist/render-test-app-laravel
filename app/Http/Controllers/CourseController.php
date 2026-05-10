@@ -80,6 +80,7 @@ class CourseController extends Controller
                     'dossards_restants' => $course->max_inscription
                         ? ($course->max_inscription - $course->inscriptions_count)
                         : 'Illimité',
+                        'max_nb_personne' => $course->max_nb_personne,
                 ];
             });
 

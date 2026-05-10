@@ -89,6 +89,7 @@
                                 ajouterParticipantSupplementaire
                             "
                             @update:nomEquipe="inscription.nom_equipe = $event"
+                            :maxPersonnes="course.max_nb_personne"
                         />
 
                         <EtapeOptions
@@ -521,15 +522,8 @@ export default {
                     const membres =
                         this.inscription.groupeEphemere?.participants?.length ??
                         0;
-                    if (this.inscription.type?.id === "relais")
-                        return nom && membres >= 2 && membres <= 2;
-                    const match =
-                        this.inscription.type?.nom?.match(/\((\d+)-(\d+)\)/);
-                    if (match) {
-                        const min = parseInt(match[1]);
-                        const max = parseInt(match[2]);
-                        return nom && membres >= min && membres <= max;
-                    }
+                    const nbRequis = this.course.max_nb_personne;
+                    if (nbRequis) return nom && membres === nbRequis;
                     return nom && membres >= 2;
                 }
                 return this.inscription.participant.length > 0;
@@ -756,6 +750,11 @@ export default {
         },
     },
     mounted() {
+        console.log("max_nb_personne:", this.course.max_nb_personne);
+        this.etape = this.etapesActives[0];
+        this.modalAffichage = this.course.avertissement
+            ? modals.AVERTISSEMENT
+            : modals.INSCRIPTION;
         this.etape = this.etapesActives[0];
         this.modalAffichage = this.course.avertissement
             ? modals.AVERTISSEMENT

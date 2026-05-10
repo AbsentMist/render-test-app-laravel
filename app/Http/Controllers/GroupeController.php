@@ -147,10 +147,20 @@ class GroupeController extends Controller
         
         //Vérifie que les inscriptions sont toujours ouvertes
         if ($groupe->id_course && !$groupe->course->isRegistrationOpen()) {
-        return response()->json([
-            'message' => 'Impossible d\'ajouter un membre, les inscriptions pour cette course sont fermées.'
-        ], 403);
-    }
+            return response()->json([
+                'message' => 'Impossible d\'ajouter un membre, les inscriptions pour cette course sont fermées.'
+            ], 403);
+        }
+
+        // Vérifie que le groupe ne dépasse pas le nombre maximum de participants fixé par la course
+        if ($groupe->id_course && $groupe->course->max_nb_personne) {
+            $nbActuels = $groupe->participants()->count();
+            if ($nbActuels >= $groupe->course->max_nb_personne) {
+                return response()->json([
+                    'message' => "Le groupe est complet. Cette course requiert exactement {$groupe->course->max_nb_personne} participant(s)."
+                ], 422);
+            }
+        }
 
         if ($groupe->participants()->where('id_participant', $validatedData['id_participant'])->exists()) {
             return response()->json([

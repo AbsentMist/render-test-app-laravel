@@ -1,34 +1,48 @@
 <template>
     <div class="flex flex-col gap-4 mt-4">
-
         <!-- ============================================================
              MODE GROUPE OU RELAIS : interface unifiée
              ============================================================ -->
         <template v-if="estGroupe || estRelais">
-
             <h2 class="text-base font-semibold text-heading">
-                {{ estRelais ? 'Constituez votre équipe de relais' : 'Constituez votre groupe' }}
+                {{
+                    estRelais
+                        ? "Constituez votre équipe de relais"
+                        : "Constituez votre groupe"
+                }}
             </h2>
 
             <!-- Nom du groupe/équipe -->
             <div class="flex flex-col gap-1">
                 <label class="text-sm font-medium text-gray-700">
-                    {{ estRelais ? "Nom de l'équipe" : 'Nom du groupe' }}
+                    {{ estRelais ? "Nom de l'équipe" : "Nom du groupe" }}
                 </label>
                 <input
                     v-model="groupeData.nom"
                     type="text"
-                    :placeholder="estRelais ? 'Ex : Les Rapides, Team HEG...' : 'Ex : Les Gazelles, Team HEG...'"
+                    :placeholder="
+                        estRelais
+                            ? 'Ex : Les Rapides, Team HEG...'
+                            : 'Ex : Les Gazelles, Team HEG...'
+                    "
                     class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-white"
                     @input="emitGroupe"
                 />
-                <p v-if="!groupeData.nom.trim()" class="text-xs text-orange-500 mt-1">
+                <p
+                    v-if="!groupeData.nom.trim()"
+                    class="text-xs text-orange-500 mt-1"
+                >
                     Un nom est requis pour continuer.
                 </p>
             </div>
 
             <!-- Grille de sélection des participants -->
-            <div v-if="chargement" class="text-sm text-gray-400 text-center py-2">Chargement...</div>
+            <div
+                v-if="chargement"
+                class="text-sm text-gray-400 text-center py-2"
+            >
+                Chargement...
+            </div>
 
             <div v-else class="grid grid-cols-2 gap-3">
                 <button
@@ -38,79 +52,138 @@
                     @click="toggleMembreGroupe(participant)"
                     @mouseenter="hoveredId = participant.id"
                     @mouseleave="hoveredId = null"
+                    :disabled="estPlein && !estDansGroupe(participant.id)"
                     :class="[
-                        'flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-left bg-white',
+                        'flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-left',
                         estDansGroupe(participant.id)
-                            ? 'border-tertiary text-tertiary-900'
-                            : 'border-gray-200 text-primary hover:border-tertiary hover:text-tertiary-900'
+                            ? 'border-tertiary text-tertiary-900 bg-white'
+                            : estPlein
+                              ? 'border-gray-100 text-gray-300 bg-gray-50 cursor-not-allowed'
+                              : 'border-gray-200 text-primary hover:border-tertiary hover:text-tertiary-900 bg-white',
                     ]"
                 >
                     <Icon
                         icon="mdi:account-outline"
                         class="w-5 h-5 shrink-0 transition-colors"
-                        :class="estDansGroupe(participant.id) || hoveredId === participant.id ? 'text-tertiary-900' : 'text-gray-400'"
+                        :class="
+                            estDansGroupe(participant.id)
+                                ? 'text-tertiary-900'
+                                : estPlein
+                                  ? 'text-gray-300'
+                                  : hoveredId === participant.id
+                                    ? 'text-tertiary-900'
+                                    : 'text-gray-400'
+                        "
                     />
                     <span>{{ participant.prenom }} {{ participant.nom }}</span>
-                    <!-- Badge numéro -->
-                    <span v-if="estDansGroupe(participant.id)"
-                        class="ml-auto text-xs bg-tertiary text-primary font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">
+                    <!-- Badge numéro si sélectionné -->
+                    <span
+                        v-if="estDansGroupe(participant.id)"
+                        class="ml-auto text-xs bg-tertiary text-primary font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0"
+                    >
                         {{ numeroMembre(participant.id) }}
                     </span>
+                    <!-- Icône check si sélectionné -->
+                    <Icon
+                        v-else-if="!estPlein"
+                        icon="mdi:plus"
+                        class="ml-auto w-4 h-4 shrink-0 text-gray-300"
+                    />
                 </button>
 
-                <!-- Bouton nouvelle personne -->
+                <!-- Bouton nouvelle personne (désactivé si groupe complet) -->
                 <button
                     type="button"
-                    @click="ouvrirFormulaire"
+                    @click="!estPlein && ouvrirFormulaire()"
                     @mouseenter="hoveredNouveau = true"
                     @mouseleave="hoveredNouveau = false"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 text-sm font-medium text-gray-500 hover:border-tertiary hover:text-tertiary-900 transition-all text-left bg-white"
+                    :disabled="estPlein"
+                    :class="[
+                        'flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed text-sm font-medium transition-all text-left',
+                        estPlein
+                            ? 'border-gray-100 text-gray-300 bg-gray-50 cursor-not-allowed'
+                            : 'border-gray-300 text-gray-500 hover:border-tertiary hover:text-tertiary-900 bg-white',
+                    ]"
                 >
                     <Icon
                         icon="mdi:account-plus-outline"
                         class="w-5 h-5 shrink-0 transition-colors"
-                        :class="hoveredNouveau ? 'text-tertiary-900' : 'text-gray-400'"
+                        :class="
+                            estPlein
+                                ? 'text-gray-300'
+                                : hoveredNouveau
+                                  ? 'text-tertiary-900'
+                                  : 'text-gray-400'
+                        "
                     />
                     <span>Nouvelle personne</span>
                 </button>
             </div>
 
             <!-- Statut membres -->
-            <div class="flex items-start gap-2 text-xs rounded-xl px-3 py-2"
-                :class="messageStatutGroupe.type === 'ok' ? 'bg-green-50 text-green-600' : messageStatutGroupe.type === 'erreur' ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'">
-                <Icon :icon="messageStatutGroupe.type === 'ok' ? 'mdi:check-circle-outline' : 'mdi:information-outline'" class="w-4 h-4 shrink-0 mt-0.5" />
+            <div
+                class="flex items-start gap-2 text-xs rounded-xl px-3 py-2"
+                :class="
+                    messageStatutGroupe.type === 'ok'
+                        ? 'bg-green-50 text-green-600'
+                        : messageStatutGroupe.type === 'erreur'
+                          ? 'bg-red-50 text-red-500'
+                          : 'bg-gray-50 text-gray-400'
+                "
+            >
+                <Icon
+                    :icon="
+                        messageStatutGroupe.type === 'ok'
+                            ? 'mdi:check-circle-outline'
+                            : 'mdi:information-outline'
+                    "
+                    class="w-4 h-4 shrink-0 mt-0.5"
+                />
                 <p>{{ messageStatutGroupe.texte }}</p>
             </div>
 
             <!-- Note éphémère -->
-            <div class="flex items-start gap-2 text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2">
-                <Icon icon="mdi:information-outline" class="w-4 h-4 shrink-0 mt-0.5" />
-                <p>Ce groupe est créé uniquement pour cette inscription. Pour une prochaine course, vous devrez le recréer.</p>
+            <div
+                class="flex items-start gap-2 text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2"
+            >
+                <Icon
+                    icon="mdi:information-outline"
+                    class="w-4 h-4 shrink-0 mt-0.5"
+                />
+                <p>
+                    Ce groupe est créé uniquement pour cette inscription. Pour
+                    une prochaine course, vous devrez le recréer.
+                </p>
             </div>
-
         </template>
 
         <!-- ============================================================
              MODE CHALLENGE : type organisation + dropdown + participant
              ============================================================ -->
         <template v-else-if="estChallenge">
-
             <h2 class="text-base font-semibold text-heading">
                 Inscrivez-vous au Challenge
             </h2>
 
             <!-- Étudiant ou Entreprise -->
             <div class="flex flex-col gap-1">
-                <label class="text-sm font-medium text-gray-700">Type de participation</label>
+                <label class="text-sm font-medium text-gray-700"
+                    >Type de participation</label
+                >
                 <div class="flex gap-3">
                     <button
                         type="button"
-                        @click="challengeData.typeOrganisation = 'Groupe'; challengeData.orgSelectionnee = null; challengeData.orgLibre = ''; chargerOrganisations()"
+                        @click="
+                            challengeData.typeOrganisation = 'Groupe';
+                            challengeData.orgSelectionnee = null;
+                            challengeData.orgLibre = '';
+                            chargerOrganisations();
+                        "
                         :class="[
                             'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all',
                             challengeData.typeOrganisation === 'Groupe'
                                 ? 'border-tertiary bg-tertiary text-primary'
-                                : 'border-gray-200 bg-white text-primary hover:border-tertiary'
+                                : 'border-gray-200 bg-white text-primary hover:border-tertiary',
                         ]"
                     >
                         <Icon icon="mdi:school-outline" class="w-5 h-5" />
@@ -118,28 +191,46 @@
                     </button>
                     <button
                         type="button"
-                        @click="challengeData.typeOrganisation = 'Entreprise'; challengeData.orgSelectionnee = null; challengeData.orgLibre = ''; chargerOrganisations()"
+                        @click="
+                            challengeData.typeOrganisation = 'Entreprise';
+                            challengeData.orgSelectionnee = null;
+                            challengeData.orgLibre = '';
+                            chargerOrganisations();
+                        "
                         :class="[
                             'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all',
                             challengeData.typeOrganisation === 'Entreprise'
                                 ? 'border-tertiary bg-tertiary text-primary'
-                                : 'border-gray-200 bg-white text-primary hover:border-tertiary'
+                                : 'border-gray-200 bg-white text-primary hover:border-tertiary',
                         ]"
                     >
-                        <Icon icon="mdi:office-building-outline" class="w-5 h-5" />
+                        <Icon
+                            icon="mdi:office-building-outline"
+                            class="w-5 h-5"
+                        />
                         Entreprise
                     </button>
                 </div>
             </div>
 
             <!-- Liste des organisations pré-définies -->
-            <div v-if="challengeData.typeOrganisation" class="flex flex-col gap-2">
+            <div
+                v-if="challengeData.typeOrganisation"
+                class="flex flex-col gap-2"
+            >
                 <label class="text-sm font-medium text-gray-700">
-                    {{ challengeData.typeOrganisation === 'Groupe' ? "Votre université / école" : "Votre entreprise" }}
+                    {{
+                        challengeData.typeOrganisation === "Groupe"
+                            ? "Votre université / école"
+                            : "Votre entreprise"
+                    }}
                 </label>
 
                 <!-- Chargement -->
-                <div v-if="challengeData.chargementOrgs" class="text-sm text-gray-400 text-center py-2">
+                <div
+                    v-if="challengeData.chargementOrgs"
+                    class="text-sm text-gray-400 text-center py-2"
+                >
                     Chargement...
                 </div>
 
@@ -154,52 +245,99 @@
                             'flex items-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-left',
                             challengeData.orgSelectionnee?.id === org.id
                                 ? 'border-tertiary bg-tertiary text-primary'
-                                : 'border-gray-200 bg-white text-gray-700 hover:border-tertiary'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-tertiary',
                         ]"
                     >
-                        <Icon icon="mdi:office-building-outline" class="w-4 h-4 shrink-0" v-if="org.type === 'Entreprise'" />
-                        <Icon icon="mdi:school-outline" class="w-4 h-4 shrink-0" v-else />
+                        <Icon
+                            icon="mdi:office-building-outline"
+                            class="w-4 h-4 shrink-0"
+                            v-if="org.type === 'Entreprise'"
+                        />
+                        <Icon
+                            icon="mdi:school-outline"
+                            class="w-4 h-4 shrink-0"
+                            v-else
+                        />
                         {{ org.nom }}
                     </button>
 
                     <!-- Bouton "Mon organisation n'est pas dans la liste" -->
                     <button
                         type="button"
-                        @click="challengeData.modeLibre = !challengeData.modeLibre; challengeData.orgSelectionnee = null"
+                        @click="
+                            challengeData.modeLibre = !challengeData.modeLibre;
+                            challengeData.orgSelectionnee = null;
+                        "
                         class="flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 text-sm text-gray-400 hover:border-orange-300 hover:text-orange-500 transition-all text-left"
                     >
-                        <Icon icon="mdi:help-circle-outline" class="w-4 h-4 shrink-0" />
+                        <Icon
+                            icon="mdi:help-circle-outline"
+                            class="w-4 h-4 shrink-0"
+                        />
                         Pas dans la liste
                     </button>
                 </div>
 
                 <!-- Aucune organisation définie -->
-                <p v-if="!challengeData.chargementOrgs && organisationsFiltrees.length === 0 && !challengeData.modeLibre"
-                    class="text-xs text-gray-400 italic">
-                    Aucune organisation définie pour cette course. Entrez votre nom ci-dessous.
+                <p
+                    v-if="
+                        !challengeData.chargementOrgs &&
+                        organisationsFiltrees.length === 0 &&
+                        !challengeData.modeLibre
+                    "
+                    class="text-xs text-gray-400 italic"
+                >
+                    Aucune organisation définie pour cette course. Entrez votre
+                    nom ci-dessous.
                 </p>
 
                 <!-- Fallback : saisie libre avec avertissement -->
-                <div v-if="challengeData.modeLibre || organisationsFiltrees.length === 0" class="flex flex-col gap-2 mt-1">
+                <div
+                    v-if="
+                        challengeData.modeLibre ||
+                        organisationsFiltrees.length === 0
+                    "
+                    class="flex flex-col gap-2 mt-1"
+                >
                     <input
                         v-model="challengeData.orgLibre"
                         type="text"
-                        :placeholder="challengeData.typeOrganisation === 'Groupe' ? 'Ex : UNIGE, HEG, HES-SO...' : 'Ex : Nestlé, CERN, SBB...'"
+                        :placeholder="
+                            challengeData.typeOrganisation === 'Groupe'
+                                ? 'Ex : UNIGE, HEG, HES-SO...'
+                                : 'Ex : Nestlé, CERN, SBB...'
+                        "
                         class="w-full border border-orange-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 bg-white"
                         @input="emitChallenge"
                     />
-                    <div class="flex items-start gap-2 text-xs text-orange-600 bg-orange-50 rounded-xl px-3 py-2">
-                        <Icon icon="mdi:alert-circle-outline" class="w-4 h-4 shrink-0 mt-0.5" />
-                        <p>Vérifiez bien l'orthographe. Un nom différent créera un groupe séparé. En cas de doute, contactez l'organisateur.</p>
+                    <div
+                        class="flex items-start gap-2 text-xs text-orange-600 bg-orange-50 rounded-xl px-3 py-2"
+                    >
+                        <Icon
+                            icon="mdi:alert-circle-outline"
+                            class="w-4 h-4 shrink-0 mt-0.5"
+                        />
+                        <p>
+                            Vérifiez bien l'orthographe. Un nom différent créera
+                            un groupe séparé. En cas de doute, contactez
+                            l'organisateur.
+                        </p>
                     </div>
                 </div>
             </div>
 
             <!-- Sélection du participant (1 seul, affiché seulement si org choisie) -->
             <div v-if="nomOrganisationChallenge" class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-gray-700">Participant</label>
+                <label class="text-sm font-medium text-gray-700"
+                    >Participant</label
+                >
 
-                <div v-if="chargement" class="text-sm text-gray-400 text-center py-2">Chargement...</div>
+                <div
+                    v-if="chargement"
+                    class="text-sm text-gray-400 text-center py-2"
+                >
+                    Chargement...
+                </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <button
@@ -213,12 +351,23 @@
                             'flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-left bg-white',
                             estSelectionne(participant.id)
                                 ? 'border-tertiary text-tertiary-900'
-                                : 'border-gray-200 text-primary hover:border-tertiary hover:text-tertiary-900'
+                                : 'border-gray-200 text-primary hover:border-tertiary hover:text-tertiary-900',
                         ]"
                     >
-                        <Icon icon="mdi:account-outline" class="w-5 h-5 shrink-0"
-                            :class="estSelectionne(participant.id) || hoveredId === participant.id ? 'text-tertiary-900' : 'text-gray-400'" />
-                        <span>{{ participant.prenom }} {{ participant.nom }}</span>
+                        <Icon
+                            icon="mdi:account-outline"
+                            class="w-5 h-5 shrink-0"
+                            :class="
+                                estSelectionne(participant.id) ||
+                                hoveredId === participant.id
+                                    ? 'text-tertiary-900'
+                                    : 'text-gray-400'
+                            "
+                        />
+                        <span
+                            >{{ participant.prenom }}
+                            {{ participant.nom }}</span
+                        >
                     </button>
 
                     <button
@@ -228,19 +377,33 @@
                         @mouseleave="hoveredNouveau = false"
                         class="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 text-sm font-medium text-gray-500 hover:border-tertiary hover:text-tertiary-900 transition-all text-left bg-white"
                     >
-                        <Icon icon="mdi:account-plus-outline" class="w-5 h-5 shrink-0"
-                            :class="hoveredNouveau ? 'text-tertiary-900' : 'text-gray-400'" />
+                        <Icon
+                            icon="mdi:account-plus-outline"
+                            class="w-5 h-5 shrink-0"
+                            :class="
+                                hoveredNouveau
+                                    ? 'text-tertiary-900'
+                                    : 'text-gray-400'
+                            "
+                        />
                         <span>Nouvelle personne</span>
                     </button>
                 </div>
             </div>
 
             <!-- Info -->
-            <div class="flex items-start gap-2 text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2">
-                <Icon icon="mdi:information-outline" class="w-4 h-4 shrink-0 mt-0.5" />
-                <p>Tous les participants inscrits sous le même nom seront regroupés dans le classement challenge.</p>
+            <div
+                class="flex items-start gap-2 text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2"
+            >
+                <Icon
+                    icon="mdi:information-outline"
+                    class="w-4 h-4 shrink-0 mt-0.5"
+                />
+                <p>
+                    Tous les participants inscrits sous le même nom seront
+                    regroupés dans le classement challenge.
+                </p>
             </div>
-
         </template>
 
         <!-- ============================================================
@@ -251,7 +414,12 @@
                 Sélectionnez une personne à inscrire
             </h2>
 
-            <div v-if="chargement" class="text-sm text-gray-400 text-center py-2">Chargement...</div>
+            <div
+                v-if="chargement"
+                class="text-sm text-gray-400 text-center py-2"
+            >
+                Chargement...
+            </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <button
@@ -265,13 +433,18 @@
                         'flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-left bg-white',
                         estSelectionne(participant.id)
                             ? 'border-tertiary text-tertiary-900'
-                            : 'border-gray-200 text-primary hover:border-tertiary hover:text-tertiary-900'
+                            : 'border-gray-200 text-primary hover:border-tertiary hover:text-tertiary-900',
                     ]"
                 >
                     <Icon
                         icon="mdi:account-outline"
                         class="w-5 h-5 shrink-0 transition-colors"
-                        :class="estSelectionne(participant.id) || hoveredId === participant.id ? 'text-tertiary-900' : 'text-gray-400'"
+                        :class="
+                            estSelectionne(participant.id) ||
+                            hoveredId === participant.id
+                                ? 'text-tertiary-900'
+                                : 'text-gray-400'
+                        "
                     />
                     <span>{{ participant.prenom }} {{ participant.nom }}</span>
                 </button>
@@ -286,84 +459,191 @@
                     <Icon
                         icon="mdi:account-plus-outline"
                         class="w-5 h-5 shrink-0 transition-colors"
-                        :class="hoveredNouveau ? 'text-tertiary-900' : 'text-gray-400'"
+                        :class="
+                            hoveredNouveau
+                                ? 'text-tertiary-900'
+                                : 'text-gray-400'
+                        "
                     />
                     <span>Nouvelle personne</span>
                 </button>
             </div>
 
-            <p class="text-sm text-gray-400 text-center">La personne que vous recherchez n'existe pas ?</p>
+            <p class="text-sm text-gray-400 text-center">
+                La personne que vous recherchez n'existe pas ?
+            </p>
         </template>
 
         <!-- ============================================================
              SOUS-POPUP : Recherche / Création participant (partagée)
              ============================================================ -->
         <Teleport to="body">
-            <div v-if="formulaireOuvert" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/30" @click.self="fermerFormulaire">
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col overflow-hidden max-h-[90vh]">
-
-                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                        <h3 class="text-base font-semibold text-heading">Rechercher une personne</h3>
-                        <button type="button" @click="fermerFormulaire" class="text-gray-400 hover:text-gray-600">
+            <div
+                v-if="formulaireOuvert"
+                class="fixed inset-0 z-[60] flex items-center justify-center bg-black/30"
+                @click.self="fermerFormulaire"
+            >
+                <div
+                    class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col overflow-hidden max-h-[90vh]"
+                >
+                    <div
+                        class="flex items-center justify-between px-6 py-4 border-b border-gray-100"
+                    >
+                        <h3 class="text-base font-semibold text-heading">
+                            Rechercher une personne
+                        </h3>
+                        <button
+                            type="button"
+                            @click="fermerFormulaire"
+                            class="text-gray-400 hover:text-gray-600"
+                        >
                             <Icon icon="mdi:close" class="w-5 h-5" />
                         </button>
                     </div>
 
                     <div class="overflow-y-auto px-6 py-5 flex flex-col gap-4">
-
                         <div class="flex flex-col gap-2">
-                            <label class="text-sm font-medium text-gray-700">Adresse email</label>
+                            <label class="text-sm font-medium text-gray-700"
+                                >Adresse email</label
+                            >
                             <div class="flex gap-2">
-                                <input v-model="emailRecherche" type="email" placeholder="email@exemple.com"
+                                <input
+                                    v-model="emailRecherche"
+                                    type="email"
+                                    placeholder="email@exemple.com"
                                     class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40"
-                                    @keyup.enter="lancerRecherche" />
-                                <button type="button" @click="lancerRecherche" class="btn-tertiary text-sm px-3">Rechercher</button>
+                                    @keyup.enter="lancerRecherche"
+                                />
+                                <button
+                                    type="button"
+                                    @click="lancerRecherche"
+                                    class="btn-tertiary text-sm px-3"
+                                >
+                                    Rechercher
+                                </button>
                             </div>
-                            <div v-if="participantTrouve" class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                            <div
+                                v-if="participantTrouve"
+                                class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3"
+                            >
                                 <div class="flex items-center gap-3">
-                                    <Icon icon="mdi:account-check-outline" class="w-5 h-5 text-tertiary-900" />
-                                    <span class="text-sm font-medium">{{ participantTrouve.prenom }} {{ participantTrouve.nom }}</span>
+                                    <Icon
+                                        icon="mdi:account-check-outline"
+                                        class="w-5 h-5 text-tertiary-900"
+                                    />
+                                    <span class="text-sm font-medium"
+                                        >{{ participantTrouve.prenom }}
+                                        {{ participantTrouve.nom }}</span
+                                    >
                                 </div>
-                                <button type="button" @click="selectionnerTrouve" class="btn-tertiary text-xs px-3 py-1">Sélectionner</button>
+                                <button
+                                    type="button"
+                                    @click="selectionnerTrouve"
+                                    class="btn-tertiary text-xs px-3 py-1"
+                                >
+                                    Sélectionner
+                                </button>
                             </div>
-                            <p v-if="erreurRecherche" class="flex items-center gap-2 text-xs text-orange-600">
-                                <Icon icon="mdi:information-outline" class="w-4 h-4 shrink-0" />
+                            <p
+                                v-if="erreurRecherche"
+                                class="flex items-center gap-2 text-xs text-orange-600"
+                            >
+                                <Icon
+                                    icon="mdi:information-outline"
+                                    class="w-4 h-4 shrink-0"
+                                />
                                 {{ erreurRecherche }}
                             </p>
                         </div>
 
                         <div class="flex flex-col gap-3">
-                            <h4 class="text-sm font-semibold text-heading border-t border-gray-100 pt-3">Nouvelle personne</h4>
+                            <h4
+                                class="text-sm font-semibold text-heading border-t border-gray-100 pt-3"
+                            >
+                                Nouvelle personne
+                            </h4>
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="flex flex-col gap-1">
-                                    <label class="text-xs font-medium text-gray-600">Nom</label>
-                                    <input v-model="form.nom" type="text" placeholder="Nom" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50" />
+                                    <label
+                                        class="text-xs font-medium text-gray-600"
+                                        >Nom</label
+                                    >
+                                    <input
+                                        v-model="form.nom"
+                                        type="text"
+                                        placeholder="Nom"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+                                    />
                                 </div>
                                 <div class="flex flex-col gap-1">
-                                    <label class="text-xs font-medium text-gray-600">Prénom</label>
-                                    <input v-model="form.prenom" type="text" placeholder="Prénom" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50" />
+                                    <label
+                                        class="text-xs font-medium text-gray-600"
+                                        >Prénom</label
+                                    >
+                                    <input
+                                        v-model="form.prenom"
+                                        type="text"
+                                        placeholder="Prénom"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+                                    />
                                 </div>
                             </div>
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium text-gray-600">Date de naissance (JJ/MM/AAAA)</label>
-                                <input v-model="form.date_naissance" type="text" placeholder="JJ/MM/AAAA" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50" />
+                                <label class="text-xs font-medium text-gray-600"
+                                    >Date de naissance (JJ/MM/AAAA)</label
+                                >
+                                <input
+                                    v-model="form.date_naissance"
+                                    type="text"
+                                    placeholder="JJ/MM/AAAA"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+                                />
                             </div>
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium text-gray-600">Adresse</label>
-                                <input v-model="form.adresse" type="text" placeholder="Rue et numéro" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50" />
+                                <label class="text-xs font-medium text-gray-600"
+                                    >Adresse</label
+                                >
+                                <input
+                                    v-model="form.adresse"
+                                    type="text"
+                                    placeholder="Rue et numéro"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+                                />
                             </div>
                             <div class="grid grid-cols-3 gap-3">
                                 <div class="flex flex-col gap-1">
-                                    <label class="text-xs font-medium text-gray-600">NPA</label>
-                                    <input v-model="form.code_postal" type="text" placeholder="1000" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50" />
+                                    <label
+                                        class="text-xs font-medium text-gray-600"
+                                        >NPA</label
+                                    >
+                                    <input
+                                        v-model="form.code_postal"
+                                        type="text"
+                                        placeholder="1000"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+                                    />
                                 </div>
                                 <div class="flex flex-col gap-1">
-                                    <label class="text-xs font-medium text-gray-600">Ville</label>
-                                    <input v-model="form.ville" type="text" placeholder="Lausanne" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50" />
+                                    <label
+                                        class="text-xs font-medium text-gray-600"
+                                        >Ville</label
+                                    >
+                                    <input
+                                        v-model="form.ville"
+                                        type="text"
+                                        placeholder="Lausanne"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+                                    />
                                 </div>
                                 <div class="flex flex-col gap-1">
-                                    <label class="text-xs font-medium text-gray-600">Pays</label>
-                                    <select v-model="form.pays" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50">
+                                    <label
+                                        class="text-xs font-medium text-gray-600"
+                                        >Pays</label
+                                    >
+                                    <select
+                                        v-model="form.pays"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+                                    >
                                         <option value="Suisse">Suisse</option>
                                         <option value="France">France</option>
                                         <option value="Autre">Autre</option>
@@ -371,24 +651,54 @@
                                 </div>
                             </div>
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium text-gray-600">Téléphone</label>
-                                <input v-model="form.telephone" type="text" placeholder="+41 79 000 00 00" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50" />
+                                <label class="text-xs font-medium text-gray-600"
+                                    >Téléphone</label
+                                >
+                                <input
+                                    v-model="form.telephone"
+                                    type="text"
+                                    placeholder="+41 79 000 00 00"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+                                />
                             </div>
                             <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium text-gray-600">Email</label>
-                                <input v-model="form.email" type="email" placeholder="email@exemple.com" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50" />
+                                <label class="text-xs font-medium text-gray-600"
+                                    >Email</label
+                                >
+                                <input
+                                    v-model="form.email"
+                                    type="email"
+                                    placeholder="email@exemple.com"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+                                />
                             </div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="flex flex-col gap-1">
-                                    <label class="text-xs font-medium text-gray-600">Taille t-shirt</label>
-                                    <select v-model="form.taille_tshirt" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50">
-                                        <option value="XS">XS</option><option value="S">S</option><option value="M">M</option>
-                                        <option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option>
+                                    <label
+                                        class="text-xs font-medium text-gray-600"
+                                        >Taille t-shirt</label
+                                    >
+                                    <select
+                                        v-model="form.taille_tshirt"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+                                    >
+                                        <option value="XS">XS</option>
+                                        <option value="S">S</option>
+                                        <option value="M">M</option>
+                                        <option value="L">L</option>
+                                        <option value="XL">XL</option>
+                                        <option value="XXL">XXL</option>
                                     </select>
                                 </div>
                                 <div class="flex flex-col gap-1">
-                                    <label class="text-xs font-medium text-gray-600">Genre</label>
-                                    <select v-model="form.sexe" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50">
+                                    <label
+                                        class="text-xs font-medium text-gray-600"
+                                        >Genre</label
+                                    >
+                                    <select
+                                        v-model="form.sexe"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
+                                    >
                                         <option value="M">Homme</option>
                                         <option value="F">Femme</option>
                                         <option value="A">Autre</option>
@@ -398,9 +708,20 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-end px-6 py-4 border-t border-gray-100">
-                        <button type="button" @click="valider" :disabled="!formulaireValide"
-                            :class="['btn-tertiary', !formulaireValide ? 'opacity-50 cursor-not-allowed' : '']">
+                    <div
+                        class="flex justify-end px-6 py-4 border-t border-gray-100"
+                    >
+                        <button
+                            type="button"
+                            @click="valider"
+                            :disabled="!formulaireValide"
+                            :class="[
+                                'btn-tertiary',
+                                !formulaireValide
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : '',
+                            ]"
+                        >
                             Ajouter la personne
                         </button>
                     </div>
@@ -416,49 +737,50 @@
  * @description Étape de sélection et de création de participants pour composer une inscription.
  * @remarks Gère les cas individuel, groupe/relais et challenge avec émission des données structurées vers le parent.
  */
-import { Icon } from '@iconify/vue';
-import api from '../services/api';
-import participantService from '../services/participantService';
-import challengeOrganisationService from '../services/challengeOrganisationService';
+import { Icon } from "@iconify/vue";
+import api from "../services/api";
+import participantService from "../services/participantService";
+import challengeOrganisationService from "../services/challengeOrganisationService";
 const formVide = () => ({
-    nom: '', prenom: '', date_naissance: '', adresse: '',
-    code_postal: '', ville: '', pays: 'Suisse',
-    telephone: '', email: '', taille_tshirt: 'M', sexe: 'M',
+    nom: "",
+    prenom: "",
+    date_naissance: "",
+    adresse: "",
+    code_postal: "",
+    ville: "",
+    pays: "Suisse",
+    telephone: "",
+    email: "",
+    taille_tshirt: "M",
+    sexe: "M",
 });
 
 export default {
-    name: 'EtapeParticipant',
+    name: "EtapeParticipant",
     components: { Icon },
     props: {
-        participants:    { type: Array,   default: () => [] },
-        chargement:      { type: Boolean, default: false },
-        typeSelectionne: { type: Object,  default: null },
-        modelValue:      { type: Array,   default: () => [] },
-        groupeValue:     { type: Object,  default: null },
+        participants: { type: Array, default: () => [] },
+        chargement: { type: Boolean, default: false },
+        typeSelectionne: { type: Object, default: null },
+        modelValue: { type: Array, default: () => [] },
+        groupeValue: { type: Object, default: null },
+        courseId: { type: [Number, String], default: null },
+        maxPersonnes: { type: Number, default: null },
     },
-    emits: ['update:modelValue', 'update:groupeValue', 'creer-participant'],
-    props: {
-        participants:    { type: Array,   default: () => [] },
-        chargement:      { type: Boolean, default: false },
-        typeSelectionne: { type: Object,  default: null },
-        modelValue:      { type: Array,   default: () => [] },
-        groupeValue:     { type: Object,  default: null },
-        courseId:        { type: [Number, String], default: null },
-    },
-    emits: ['update:modelValue', 'update:groupeValue', 'creer-participant'],
+    emits: ["update:modelValue", "update:groupeValue", "creer-participant"],
     data() {
         return {
-            groupeData: { nom: '', participants: [] },
+            groupeData: { nom: "", participants: [] },
             challengeData: {
                 typeOrganisation: null,
-                orgSelectionnee:  null,
-                orgLibre:         '',
-                modeLibre:        false,
-                chargementOrgs:   false,
+                orgSelectionnee: null,
+                orgLibre: "",
+                modeLibre: false,
+                chargementOrgs: false,
             },
             organisationsChallenge: [],
             formulaireOuvert: false,
-            emailRecherche: '',
+            emailRecherche: "",
             participantTrouve: null,
             erreurRecherche: null,
             hoveredId: null,
@@ -467,10 +789,18 @@ export default {
         };
     },
     computed: {
-        estRelais()    { return this.typeSelectionne?.id === 'relais'; },
-        estGroupe()    { return this.typeSelectionne?.id === 'groupe'; },
-        estChallenge() { return this.typeSelectionne?.id === 'challenge'; },
-        tousLesParticipants() { return this.participants; },
+        estRelais() {
+            return this.typeSelectionne?.id === "relais";
+        },
+        estGroupe() {
+            return this.typeSelectionne?.id === "groupe";
+        },
+        estChallenge() {
+            return this.typeSelectionne?.id === "challenge";
+        },
+        tousLesParticipants() {
+            return this.participants;
+        },
 
         /**
          * Organisations challenge filtrées selon le type sélectionné.
@@ -479,7 +809,7 @@ export default {
         organisationsFiltrees() {
             if (!this.challengeData.typeOrganisation) return [];
             return this.organisationsChallenge.filter(
-                o => o.type === this.challengeData.typeOrganisation
+                (o) => o.type === this.challengeData.typeOrganisation,
             );
         },
 
@@ -488,42 +818,97 @@ export default {
          * @returns {string}
          */
         nomOrganisationChallenge() {
-            if (this.challengeData.orgSelectionnee) return this.challengeData.orgSelectionnee.nom;
-            if (this.challengeData.modeLibre || this.organisationsFiltrees.length === 0) return this.challengeData.orgLibre.trim();
-            return '';
+            if (this.challengeData.orgSelectionnee)
+                return this.challengeData.orgSelectionnee.nom;
+            if (
+                this.challengeData.modeLibre ||
+                this.organisationsFiltrees.length === 0
+            )
+                return this.challengeData.orgLibre.trim();
+            return "";
         },
 
         limiteGroupe() {
+            if (this.maxPersonnes)
+                return { min: this.maxPersonnes, max: this.maxPersonnes };
             if (this.estRelais) return { min: 2, max: 2 };
             const match = this.typeSelectionne?.nom?.match(/\((\d+)-(\d+)\)/);
-            if (match) return { min: parseInt(match[1]), max: parseInt(match[2]) };
+            if (match)
+                return { min: parseInt(match[1]), max: parseInt(match[2]) };
             return null;
         },
 
+        /**
+         * Indique si le groupe a atteint son nombre maximum de participants.
+         * @returns {boolean}
+         */
+        estPlein() {
+            const max = this.limiteGroupe?.max;
+            if (!max) return false;
+            return this.groupeData.participants.length >= max;
+        },
+
         messageStatutGroupe() {
-    const nb = this.groupeData.participants.length;
-    const limite = this.limiteGroupe;
-    if (!limite) {
-        if (nb === 0) return { type: 'info', texte: 'Sélectionnez au moins 2 membres.' };
-        if (nb === 1) return { type: 'erreur', texte: 'Il faut au minimum 2 membres.' };
-        return { type: 'ok', texte: `${nb} membre(s) sélectionné(s).` };
-    }
-    if (nb < limite.min) {
-        return { type: 'erreur', texte: `Il faut au minimum ${limite.min} membre(s). (${nb}/${limite.max})` };
-    }
-    if (nb > limite.max) {
-        return { type: 'erreur', texte: `Maximum ${limite.max} membre(s). (${nb}/${limite.max})` };
-    }
-    return { type: 'ok', texte: `${nb}/${limite.max} membre(s) sélectionné(s). ✓` };
-},
+            const nb = this.groupeData.participants.length;
+            const limite = this.limiteGroupe;
+            if (!limite) {
+                if (nb === 0)
+                    return {
+                        type: "info",
+                        texte: "Sélectionnez au moins 2 membres.",
+                    };
+                if (nb === 1)
+                    return {
+                        type: "erreur",
+                        texte: "Il faut au minimum 2 membres.",
+                    };
+                return { type: "ok", texte: `${nb} membre(s) sélectionné(s).` };
+            }
+            // Nombre fixe requis (min === max)
+            if (limite.min === limite.max) {
+                if (nb < limite.min) {
+                    return {
+                        type: "erreur",
+                        texte: `${nb}/${limite.max} participant(s) — il faut exactement ${limite.max} membres pour continuer.`,
+                    };
+                }
+                return {
+                    type: "ok",
+                    texte: `${nb}/${limite.max} participant(s) sélectionné(s). ✓`,
+                };
+            }
+            // Plage min-max
+            if (nb < limite.min) {
+                return {
+                    type: "erreur",
+                    texte: `Il faut au minimum ${limite.min} membre(s). (${nb}/${limite.max})`,
+                };
+            }
+            if (nb > limite.max) {
+                return {
+                    type: "erreur",
+                    texte: `Maximum ${limite.max} membre(s). (${nb}/${limite.max})`,
+                };
+            }
+            return {
+                type: "ok",
+                texte: `${nb}/${limite.max} membre(s) sélectionné(s). ✓`,
+            };
+        },
 
         selectionnes: {
-            get() { return this.modelValue ?? []; },
-            set(val) { this.$emit('update:modelValue', val); }
+            get() {
+                return this.modelValue ?? [];
+            },
+            set(val) {
+                this.$emit("update:modelValue", val);
+            },
         },
 
         formulaireValide() {
-            return this.form.nom.trim() !== '' && this.form.prenom.trim() !== '';
+            return (
+                this.form.nom.trim() !== "" && this.form.prenom.trim() !== ""
+            );
         },
     },
     methods: {
@@ -532,9 +917,9 @@ export default {
          * @returns {void}
          */
         emitGroupe() {
-            this.$emit('update:groupeValue', {
+            this.$emit("update:groupeValue", {
                 ...this.groupeData,
-                participants: [...this.groupeData.participants]
+                participants: [...this.groupeData.participants],
             });
         },
         /**
@@ -543,16 +928,18 @@ export default {
          * @returns {void}
          */
         emitChallenge(participant = null) {
-    const nom = this.nomOrganisationChallenge;
-    const participants = participant ? [participant] : [...this.selectionnes];
-    if (this.challengeData.typeOrganisation && nom) {
-        this.$emit('update:groupeValue', {
-            nom,
-            type_groupe: this.challengeData.typeOrganisation,
-            participants,
-        });
-    }
-},
+            const nom = this.nomOrganisationChallenge;
+            const participants = participant
+                ? [participant]
+                : [...this.selectionnes];
+            if (this.challengeData.typeOrganisation && nom) {
+                this.$emit("update:groupeValue", {
+                    nom,
+                    type_groupe: this.challengeData.typeOrganisation,
+                    participants,
+                });
+            }
+        },
         /**
          * Sélectionne une organisation challenge existante.
          * @param {object} org
@@ -560,8 +947,8 @@ export default {
          */
         selectionnerOrg(org) {
             this.challengeData.orgSelectionnee = org;
-            this.challengeData.modeLibre       = false;
-            this.challengeData.orgLibre        = '';
+            this.challengeData.modeLibre = false;
+            this.challengeData.orgLibre = "";
             this.emitChallenge();
         },
         /**
@@ -570,10 +957,10 @@ export default {
          * @returns {void}
          */
         toggleSelectionnerChallenge(participant) {
-    this.selectionnes = [participant];
-    this.$emit('update:modelValue', [participant]);
-    this.emitChallenge(participant);
-},
+            this.selectionnes = [participant];
+            this.$emit("update:modelValue", [participant]);
+            this.emitChallenge(participant);
+        },
         /**
          * Charge les organisations challenge disponibles pour la course.
          * @returns {Promise<void>}
@@ -582,10 +969,13 @@ export default {
             if (!this.courseId) return;
             this.challengeData.chargementOrgs = true;
             try {
-                const resp = await challengeOrganisationService.getOrganisations(this.courseId);
+                const resp =
+                    await challengeOrganisationService.getOrganisations(
+                        this.courseId,
+                    );
                 this.organisationsChallenge = resp.data;
             } catch (e) {
-                console.error('Erreur chargement organisations challenge:', e);
+                console.error("Erreur chargement organisations challenge:", e);
             } finally {
                 this.challengeData.chargementOrgs = false;
             }
@@ -595,14 +985,18 @@ export default {
          * @param {number} id
          * @returns {boolean}
          */
-        estDansGroupe(id) { return this.groupeData.participants.some(p => p.id === id); },
+        estDansGroupe(id) {
+            return this.groupeData.participants.some((p) => p.id === id);
+        },
         /**
          * Retourne la position d'un participant dans le groupe local.
          * @param {number} id
          * @returns {number|null}
          */
         numeroMembre(id) {
-            const idx = this.groupeData.participants.findIndex(p => p.id === id);
+            const idx = this.groupeData.participants.findIndex(
+                (p) => p.id === id,
+            );
             return idx >= 0 ? idx + 1 : null;
         },
         /**
@@ -611,7 +1005,9 @@ export default {
          * @returns {void}
          */
         toggleMembreGroupe(participant) {
-            const idx = this.groupeData.participants.findIndex(p => p.id === participant.id);
+            const idx = this.groupeData.participants.findIndex(
+                (p) => p.id === participant.id,
+            );
             if (idx >= 0) {
                 this.groupeData.participants.splice(idx, 1);
             } else {
@@ -627,16 +1023,22 @@ export default {
          * @param {number} id
          * @returns {boolean}
          */
-        estSelectionne(id) { return this.selectionnes.some(p => p.id === id); },
+        estSelectionne(id) {
+            return this.selectionnes.some((p) => p.id === id);
+        },
         /**
          * Sélectionne ou désélectionne un participant pour le mode individuel.
          * @param {object} participant
          * @returns {void}
          */
         toggleSelectionner(participant) {
-            const idx = this.selectionnes.findIndex(p => p.id === participant.id);
+            const idx = this.selectionnes.findIndex(
+                (p) => p.id === participant.id,
+            );
             if (idx >= 0) {
-                const n = [...this.selectionnes]; n.splice(idx, 1); this.selectionnes = n;
+                const n = [...this.selectionnes];
+                n.splice(idx, 1);
+                this.selectionnes = n;
             } else {
                 if (this.selectionnes.length < 1) {
                     this.selectionnes = [...this.selectionnes, participant];
@@ -647,14 +1049,16 @@ export default {
          * Ouvre la modale de création/recherche de participant.
          * @returns {void}
          */
-        ouvrirFormulaire() { this.formulaireOuvert = true; },
+        ouvrirFormulaire() {
+            this.formulaireOuvert = true;
+        },
         /**
          * Ferme la modale et réinitialise le formulaire.
          * @returns {void}
          */
         fermerFormulaire() {
             this.formulaireOuvert = false;
-            this.emailRecherche = '';
+            this.emailRecherche = "";
             this.participantTrouve = null;
             this.erreurRecherche = null;
             this.form = formVide();
@@ -668,10 +1072,14 @@ export default {
             this.participantTrouve = null;
             this.erreurRecherche = null;
             try {
-                const response = await api.get('/participant/rechercher-participant', { params: { email: this.emailRecherche } });
+                const response = await api.get(
+                    "/participant/rechercher-participant",
+                    { params: { email: this.emailRecherche } },
+                );
                 this.participantTrouve = response.data;
             } catch {
-                this.erreurRecherche = 'Aucun participant trouvé avec cette adresse email.';
+                this.erreurRecherche =
+                    "Aucun participant trouvé avec cette adresse email.";
             }
         },
         /**
@@ -680,15 +1088,21 @@ export default {
          */
         selectionnerTrouve() {
             if (this.estGroupe || this.estRelais) {
-                if (!this.groupeData.participants.some(p => p.id === this.participantTrouve.id)) {
+                if (
+                    !this.groupeData.participants.some(
+                        (p) => p.id === this.participantTrouve.id,
+                    )
+                ) {
                     const max = this.limiteGroupe?.max ?? Infinity;
                     if (this.groupeData.participants.length < max) {
-                        this.groupeData.participants.push(this.participantTrouve);
+                        this.groupeData.participants.push(
+                            this.participantTrouve,
+                        );
                         this.emitGroupe();
                     }
                 }
             } else {
-                this.$emit('creer-participant', this.participantTrouve);
+                this.$emit("creer-participant", this.participantTrouve);
                 this.toggleSelectionner(this.participantTrouve);
             }
             this.fermerFormulaire();
@@ -698,59 +1112,73 @@ export default {
          * @returns {Promise<void>}
          */
         async valider() {
-    if (!this.formulaireValide) return;
+            if (!this.formulaireValide) return;
 
-    let nouveau;
-    try {
-        const response = await participantService.creerParticipant(this.form);
-        nouveau = response.data;
-    } catch (e) {
-        console.warn('Participant non sauvegardé en DB, création locale :', e);
-        nouveau = { ...this.form, id: Date.now() };
-    }
+            let nouveau;
+            try {
+                const response = await participantService.creerParticipant(
+                    this.form,
+                );
+                nouveau = response.data;
+            } catch (e) {
+                console.warn(
+                    "Participant non sauvegardé en DB, création locale :",
+                    e,
+                );
+                nouveau = { ...this.form, id: Date.now() };
+            }
 
-    if (this.estGroupe || this.estRelais) {
-        const max = this.limiteGroupe?.max ?? Infinity;
-        if (this.groupeData.participants.length < max) {
-            this.groupeData.participants.push(nouveau);
-            this.emitGroupe();
-        }
-    } else {
-        this.$emit('creer-participant', nouveau);
-        this.toggleSelectionner(nouveau);
-    }
-    this.fermerFormulaire();
-},
+            if (this.estGroupe || this.estRelais) {
+                const max = this.limiteGroupe?.max ?? Infinity;
+                if (this.groupeData.participants.length < max) {
+                    this.groupeData.participants.push(nouveau);
+                    this.emitGroupe();
+                }
+            } else {
+                this.$emit("creer-participant", nouveau);
+                this.toggleSelectionner(nouveau);
+            }
+            this.fermerFormulaire();
+        },
     },
     watch: {
         typeSelectionne: {
             immediate: true,
             handler(newType, oldType) {
-                if ((newType?.id === 'groupe' || newType?.id === 'relais') &&
-                    oldType?.id !== 'groupe' && oldType?.id !== 'relais') {
-                    this.groupeData = { nom: '', participants: [...this.participants] };
+                if (
+                    (newType?.id === "groupe" || newType?.id === "relais") &&
+                    oldType?.id !== "groupe" &&
+                    oldType?.id !== "relais"
+                ) {
+                    this.groupeData = {
+                        nom: "",
+                        participants: [...this.participants],
+                    };
                     this.emitGroupe();
                 }
-                if ((oldType?.id === 'groupe' || oldType?.id === 'relais') &&
-                    newType?.id !== 'groupe' && newType?.id !== 'relais') {
-                    this.groupeData = { nom: '', participants: [] };
-                    this.$emit('update:groupeValue', null);
+                if (
+                    (oldType?.id === "groupe" || oldType?.id === "relais") &&
+                    newType?.id !== "groupe" &&
+                    newType?.id !== "relais"
+                ) {
+                    this.groupeData = { nom: "", participants: [] };
+                    this.$emit("update:groupeValue", null);
                 }
                 // Reset challenge data si on change de type
-                if (newType?.id !== 'challenge') {
+                if (newType?.id !== "challenge") {
                     this.challengeData = {
                         typeOrganisation: null,
-                        orgSelectionnee:  null,
-                        orgLibre:         '',
-                        modeLibre:        false,
-                        chargementOrgs:   false,
+                        orgSelectionnee: null,
+                        orgLibre: "",
+                        modeLibre: false,
+                        chargementOrgs: false,
                     };
                     this.organisationsChallenge = [];
                 }
-                if (newType?.id === 'challenge') {
-                    this.$emit('update:groupeValue', null);
+                if (newType?.id === "challenge") {
+                    this.$emit("update:groupeValue", null);
                 }
-            }
+            },
         },
     },
 };
