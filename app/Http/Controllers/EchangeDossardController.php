@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Inscription;
 use App\Models\Dossard;
+use App\Models\Groupe;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -143,7 +144,7 @@ class EchangeDossardController extends Controller
      * B accepte l'échange :
      * - Son inscription passe à 'Validé'
      * - Le dossard de A est transféré vers B
-     * - L'inscription de A passe à 'Echangé'
+     * - L'inscription de A passe à 'Échangé'
      */
     public function accepter($id)
     {
@@ -179,7 +180,16 @@ class EchangeDossardController extends Controller
 
         // Mise à jour des statuts
         $inscriptionB->update(['status_paiement' => 'Validé']);
-        $inscriptionA->update(['status_paiement' => 'Echangé']);
+        $inscriptionA->update(['status_paiement' => 'Validé']);
+
+        // Retirer A du groupe après cession — B le remplace, le nombre de membres reste le même
+        $idGroupe = $inscriptionA->id_groupe;
+        if ($idGroupe) {
+            $groupe = Groupe::find($idGroupe);
+            if ($groupe && $groupe->type !== 'Entreprise') {
+                $groupe->participants()->detach($inscriptionA->id_participant);
+            }
+        }
 
         // TODO (Steven - tâche 2,3) : envoyer mail de confirmation à A et B
 
