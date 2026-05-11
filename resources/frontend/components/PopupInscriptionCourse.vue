@@ -90,7 +90,6 @@
                             "
                             @update:nomEquipe="inscription.nom_equipe = $event"
                             :maxPersonnes="course.max_nb_personne"
-                            :ageMinimum="course.age_minimum"
                         />
 
                         <EtapeOptions
@@ -120,6 +119,7 @@
                             "
                             :idCourse="course.id"
                             :tarif="parseFloat(course.tarif) || 0"
+                            :typeInscription="inscription.type?.id"
                             @rabais-applique="onRabaisApplique"
                             @rabais-retire="onRabaisRetire"
                             @dossard-valide="onDossardValide"
@@ -752,7 +752,6 @@ export default {
     },
     mounted() {
         console.log("max_nb_personne:", this.course.max_nb_personne);
-        console.log("age_minimum:", this.course.age_minimum);
         this.etape = this.etapesActives[0];
         this.modalAffichage = this.course.avertissement
             ? modals.AVERTISSEMENT
