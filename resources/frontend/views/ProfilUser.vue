@@ -359,12 +359,12 @@
                     >
                         Nationalité <span class="text-accent">*</span>
                     </label>
-                    <input
+                    <SelectNationalite
                         v-model="form.nationalite"
-                        type="text"
-                        class="input-field w-full"
-                        :class="{ 'border-accent': errors.nationalite }"
-                        placeholder="Suisse"
+                        :inputClass="
+                            'input-field w-full pr-8' +
+                            (errors.nationalite ? ' border-accent' : '')
+                        "
                     />
                     <p
                         v-if="errors.nationalite"
@@ -756,6 +756,16 @@
                     </div>
                 </div>
 
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-medium text-gray-600"
+                        >Nationalité</label
+                    >
+                    <SelectNationalite
+                        v-model="formEdition.nationalite"
+                        inputClass="input-field w-full pr-8"
+                    />
+                </div>
+
                 <p
                     v-if="erreurEdition"
                     class="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2"
@@ -839,6 +849,7 @@ import { onBeforeUnmount, onMounted, reactive, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import profilService from "../services/profilService";
+import SelectNationalite from "../components/SelectNationalite.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -1377,6 +1388,7 @@ const formEdition = reactive({
     telephone: "",
     taille_tshirt: "M",
     sexe: "M",
+    nationalite: "Suisse",
 });
 
 // Sous-profils = participants liés au compte mais différents du participant principal
@@ -1407,6 +1419,7 @@ function ouvrirEditionParticipant(p) {
         telephone: p.telephone ?? "",
         taille_tshirt: p.taille_tshirt ?? "M",
         sexe: p.sexe ?? "M",
+        nationalite: p.nationalite ?? "Suisse",
     });
 }
 

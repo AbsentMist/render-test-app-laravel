@@ -365,6 +365,7 @@ public function mesParticipants(Request $request)
             'telephone'      => 'nullable|string|max:20|unique:Participant,telephone,' . $participant->id,
             'taille_tshirt'  => 'nullable|string|max:10',
             'sexe'           => 'nullable|string|max:10',
+            'nationalite'    => 'nullable|string|max:100',
         ]);
 
         $participant->update([
@@ -374,6 +375,7 @@ public function mesParticipants(Request $request)
             'telephone'      => $request->telephone ?? null,
             'taille_tshirt'  => $request->taille_tshirt ?? $participant->taille_tshirt,
             'sexe'           => $request->sexe ?? $participant->sexe,
+            'nationalite'    => $request->nationalite ?? $participant->nationalite,
         ]);
 
         return response()->json($participant, 200);

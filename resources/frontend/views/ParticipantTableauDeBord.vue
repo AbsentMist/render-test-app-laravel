@@ -73,7 +73,7 @@
                     </div>
 
                     <div
-                        class="bg-white border border-gray-100 border-t-0 rounded-b-xl p-6 shadow-sm flex flex-col h-full"
+                        class="bg-white border border-gray-100 border-t-0 rounded-b-xl p-6 shadow-sm flex flex-col"
                     >
                         <div
                             v-if="chargement"
@@ -91,7 +91,7 @@
                             />
                         </div>
 
-                        <div class="mt-auto pt-6 flex justify-end">
+                        <div class="mt-4 pt-4 flex justify-end">
                             <button
                                 @click="goToAllEvenements"
                                 class="bg-[#cddc39] hover:bg-[#c0cf33] text-white font-medium px-6 py-2 rounded-lg transition-colors shadow-sm"
@@ -153,7 +153,7 @@
                         </div>
                         <ul class="space-y-3">
                             <li
-                                v-for="participant in participants"
+                                v-for="participant in participants.slice(0, 5)"
                                 :key="participant.id"
                                 @click="allerVersParticipant(participant)"
                                 class="flex items-center gap-3 text-sm font-semibold text-gray-800 cursor-pointer hover:text-primary transition-colors group"
@@ -187,6 +187,28 @@
                                 >
                             </li>
                         </ul>
+                        <button
+                            v-if="participants.length > 5"
+                            @click="allerVersProfilAncre('#mes-participants')"
+                            class="mt-3 flex items-center gap-1 text-xs text-gray-400 hover:text-tertiary-900 transition-colors"
+                        >
+                            Voir tous les participants ({{
+                                participants.length
+                            }})
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5l7 7-7 7"
+                                />
+                            </svg>
+                        </button>
                     </div>
 
                     <div
@@ -240,7 +262,7 @@
                         </div>
                         <ul v-else class="space-y-3">
                             <li
-                                v-for="groupe in groupes"
+                                v-for="groupe in groupes.slice(0, 5)"
                                 :key="groupe.id"
                                 class="flex items-center justify-between text-sm font-semibold text-gray-800"
                             >
@@ -264,6 +286,26 @@
                                 Aucun groupe
                             </li>
                         </ul>
+                        <button
+                            v-if="groupes.length > 5"
+                            @click="router.push('/mes-groupes')"
+                            class="mt-3 flex items-center gap-1 text-xs text-gray-400 hover:text-tertiary-900 transition-colors"
+                        >
+                            Voir tous les groupes ({{ groupes.length }})
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5l7 7-7 7"
+                                />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
