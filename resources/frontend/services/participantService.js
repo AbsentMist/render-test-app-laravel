@@ -11,6 +11,16 @@ const participantService = {
     creerParticipant(data) {
         return api.post('/participant/participants', data);
     },
+
+    // Modifie un sous-profil lié au compte connecté
+    majParticipant(id, data) {
+        return api.put(`/participant/participants/${id}`, data);
+    },
+
+    // Supprime un sous-profil lié au compte connecté
+    supprimerParticipant(id) {
+        return api.delete(`/participant/participants/${id}`);
+    },
 };
 
 export default participantService;
