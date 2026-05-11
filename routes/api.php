@@ -26,14 +26,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CodeRabaisController;
 use App\Http\Controllers\CodeDossardController;
 use App\Http\Controllers\ResultatController;
-use App\Http\Controllers\MembershipController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login',    [AuthController::class, 'login']);
-
-    // Demande de membership (public)
-    Route::post('/membership/demander', [MembershipController::class, 'soumettreDemande']);
 
     // ===== Routes protégées (nécessite d'être connecté) =====
     Route::middleware('auth:sanctum')->group(function () {
@@ -84,6 +80,8 @@ use App\Http\Controllers\MembershipController;
             // Gestion des participants liés au compte
             Route::get('/participants', [AuthController::class, 'mesParticipants']);
             Route::post('/participants', [AuthController::class, 'creerParticipant']);
+            Route::put('/participants/{id}', [AuthController::class, 'majParticipant']);
+            Route::delete('/participants/{id}', [AuthController::class, 'supprimerParticipant']);
             
             //Gestion du code participant
             Route::post('/groupes/verifier-code', [GroupeController::class, 'verifierCodeEntreprise']);
@@ -141,20 +139,10 @@ use App\Http\Controllers\MembershipController;
 
             //mes résultats
             Route::get('/resultats', [ResultatController::class, 'mesResultats']);
-
-            // membership participant
-            Route::get('/membership/ma-demande', [MembershipController::class, 'maDemande']);
-            Route::get('/membership/verifier-email', [MembershipController::class, 'verifierEmail']);
         });
 
         // Gestion du rôle Administrateur par Middleware
         Route::middleware('is_admin')->prefix('organisateur')->group(function () {
-            
-            // Gestion des demandes de membership
-            Route::get('/membership/demandes', [MembershipController::class, 'listerDemandes']);
-            Route::get('/membership/demandes/en-attente', [MembershipController::class, 'listerDemandesEnAttente']);
-            Route::post('/membership/demandes/{id}/approuver', [MembershipController::class, 'approuverDemande']);
-            Route::post('/membership/demandes/{id}/refuser', [MembershipController::class, 'refuserDemande']);
             // Routes pour la gestion des événements (CRUD)
             Route::get('/evenements', [EvenementController::class, 'indexAdmin']);
             Route::get('/evenements/{id}', [EvenementController::class, 'show']);
@@ -276,5 +264,6 @@ use App\Http\Controllers\MembershipController;
             Route::get('/courses/{id_course}/resultats',          [ResultatController::class, 'indexParCourse']);
             Route::post('/courses/{id_course}/resultats/import',  [ResultatController::class, 'import']);
             Route::delete('/courses/{id_course}/resultats',       [ResultatController::class, 'destroy']);
+ 
         });
     });

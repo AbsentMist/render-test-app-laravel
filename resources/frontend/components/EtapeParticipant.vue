@@ -680,6 +680,7 @@
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40 bg-gray-50"
                                 />
                             </div>
+
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="flex flex-col gap-1">
                                     <label
@@ -712,6 +713,33 @@
                                         <option value="A">Autre</option>
                                     </select>
                                 </div>
+                            </div>
+
+                            <!-- Case responsabilité légale pour les mineurs -->
+                            <div
+                                v-if="
+                                    estMineur &&
+                                    !estSousAgeMinimum &&
+                                    form.nom &&
+                                    form.prenom
+                                "
+                                class="flex items-start gap-3 px-3 py-3 rounded-lg bg-amber-50 border border-amber-100"
+                            >
+                                <input
+                                    type="checkbox"
+                                    id="responsabilite"
+                                    v-model="accepteResponsabilite"
+                                    class="mt-0.5 w-4 h-4 shrink-0 accent-amber-500"
+                                />
+                                <label
+                                    for="responsabilite"
+                                    class="text-xs text-amber-700 cursor-pointer leading-relaxed"
+                                >
+                                    En ajoutant ce participant mineur, je
+                                    certifie en être le représentant légal et
+                                    m'engage à respecter les conditions de
+                                    participation en son nom.
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -810,6 +838,7 @@ export default {
             participantTrouve: null,
             erreurRecherche: null,
             erreurFormulaire: null,
+            accepteResponsabilite: false,
             hoveredId: null,
             hoveredNouveau: false,
             form: formVide(),
@@ -826,7 +855,13 @@ export default {
             return this.typeSelectionne?.id === "challenge";
         },
         tousLesParticipants() {
-            return this.participants;
+            if (!this.ageMinimum) return this.participants;
+            const limite = new Date();
+            limite.setFullYear(limite.getFullYear() - this.ageMinimum);
+            return this.participants.filter((p) => {
+                if (!p.date_naissance) return true; // si pas de date, on laisse passer
+                return new Date(p.date_naissance) <= limite;
+            });
         },
 
         /**
@@ -915,6 +950,8 @@ export default {
                 !!this.form.date_naissance;
             if (!baseValide) return false;
             if (this.estSousAgeMinimum) return false;
+            // Case responsabilité obligatoire pour les mineurs
+            if (this.estMineur && !this.accepteResponsabilite) return false;
             // Champs obligatoires uniquement pour les adultes
             if (!this.estMineur) {
                 if (!this.form.email?.trim()) return false;
@@ -1096,6 +1133,7 @@ export default {
             this.participantTrouve = null;
             this.erreurRecherche = null;
             this.erreurFormulaire = null;
+            this.accepteResponsabilite = false;
             this.form = formVide();
         },
         /**

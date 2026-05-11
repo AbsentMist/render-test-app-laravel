@@ -7,7 +7,6 @@ use App\Models\Participant;
 use App\Models\Groupe;
 use App\Models\Inscription;
 use App\Models\Message;
-use App\Models\DemandeMembership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -346,6 +345,69 @@ public function mesParticipants(Request $request)
         return response()->json($participant, 201);
     }
 
+    // Modifier un sous-profil participant lié au compte connecté
+    public function majParticipant(Request $request, $id)
+    {
+        $user = $request->user();
+        $participant = Participant::where('id', $id)
+            ->where('id_user', $user->id)
+            ->firstOrFail();
+
+        // Empêche de modifier son propre profil principal via cette route
+        if ($participant->id === $user->participant?->id) {
+            return response()->json(['message' => 'Utilisez la page profil pour modifier votre profil principal.'], 403);
+        }
+
+        $request->validate([
+            'nom'            => 'required|string|max:100',
+            'prenom'         => 'required|string|max:100',
+            'date_naissance' => 'nullable|string|max:20',
+            'telephone'      => 'nullable|string|max:20|unique:Participant,telephone,' . $participant->id,
+            'taille_tshirt'  => 'nullable|string|max:10',
+            'sexe'           => 'nullable|string|max:10',
+        ]);
+
+        $participant->update([
+            'nom'            => $request->nom,
+            'prenom'         => $request->prenom,
+            'date_naissance' => $request->date_naissance,
+            'telephone'      => $request->telephone ?? null,
+            'taille_tshirt'  => $request->taille_tshirt ?? $participant->taille_tshirt,
+            'sexe'           => $request->sexe ?? $participant->sexe,
+        ]);
+
+        return response()->json($participant, 200);
+    }
+
+    // Supprimer un sous-profil participant lié au compte connecté
+    public function supprimerParticipant(Request $request, $id)
+    {
+        $user = $request->user();
+        $participant = Participant::where('id', $id)
+            ->where('id_user', $user->id)
+            ->firstOrFail();
+
+        // Empêche de supprimer son propre profil principal
+        if ($participant->id === $user->participant?->id) {
+            return response()->json(['message' => 'Vous ne pouvez pas supprimer votre profil principal.'], 403);
+        }
+
+        // Vérifier s'il a des inscriptions actives à venir
+        $inscriptionsActives = \App\Models\Inscription::where('id_participant', $participant->id)
+            ->whereIn('status_paiement', ['Validé', 'En attente'])
+            ->count();
+
+        if ($inscriptionsActives > 0) {
+            return response()->json([
+                'message' => "Ce participant a {$inscriptionsActives} inscription(s) active(s). Annulez-les avant de supprimer ce profil."
+            ], 422);
+        }
+
+        $participant->delete();
+
+        return response()->json(['message' => 'Participant supprimé avec succès.'], 200);
+    }
+
     public function mesNotificationsInfo(Request $request)
     {
         $messages = Message::orderByDesc('id')->get()->map(function (Message $message) use ($request) {
@@ -355,29 +417,15 @@ public function mesParticipants(Request $request)
                 return null;
             }
 
-            if (($payload['type'] ?? null) === 'new_membership_request') {
-                $demande = DemandeMembership::find($payload['demande_id'] ?? null);
-
-                if (!$demande || $demande->status !== 'En attente') {
-                    return null;
-                }
-            }
-
             $payload['title'] = match ($payload['type'] ?? null) {
                 'exchange_refused' => 'Demande échange dossard refusée',
                 'group_invitation_refused' => 'Invitation à un groupe refusée',
-                'new_membership_request' => 'Nouvelle demande de membership',
-                'membership_approved_info' => 'Demande membership approuvée',
-                'membership_refused_info' => 'Demande membership refusée',
                 default => 'Information',
             };
 
             $payload['content'] = match ($payload['type'] ?? null) {
                 'exchange_refused' => $this->buildExchangeRefusedNotification($payload),
                 'group_invitation_refused' => $this->buildGroupRefusedNotification($payload),
-                'new_membership_request' => $this->buildMembershipRequestNotification($payload),
-                'membership_approved_info' => $this->buildMembershipApprovedNotification($payload),
-                'membership_refused_info' => $this->buildMembershipRefusedNotification($payload),
                 default => 'Notification.',
             };
 
@@ -427,33 +475,5 @@ public function mesParticipants(Request $request)
 
         return sprintf('%s %s a refusé votre invitation au groupe %s.', $prenom, $nom, $groupe?->nom ?? '—');
     }
-
-
-    private function buildMembershipApprovedNotification(array $payload): string
-    {
-        $prenom = $payload['prenom'] ?? 'Un participant';
-        $nom = $payload['nom'] ?? '';
-        $adminEmail = $payload['admin_decideur_email'] ?? 'Un administrateur';
-
-        return sprintf('La demande de membership de %s %s a été approuvée par %s.', $prenom, $nom, $adminEmail);
-    }
-
-    private function buildMembershipRequestNotification(array $payload): string
-    {
-        $prenom = $payload['prenom'] ?? 'Un participant';
-        $nom = $payload['nom'] ?? '';
-        $email = $payload['email'] ?? 'email inconnu';
-
-        return sprintf('%s %s (%s) a soumis une demande de membership.', $prenom, $nom, $email);
-    }
-
-    private function buildMembershipRefusedNotification(array $payload): string
-    {
-        $prenom = $payload['prenom'] ?? 'Un participant';
-        $nom = $payload['nom'] ?? '';
-        $adminEmail = $payload['admin_decideur_email'] ?? 'Un administrateur';
-
-        return sprintf('La demande de membership de %s %s a été refusée par %s.', $prenom, $nom, $adminEmail);
-    }
-
+    
 }
