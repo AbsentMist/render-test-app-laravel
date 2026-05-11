@@ -297,13 +297,48 @@
                             >Date de naissance :
                             <span class="text-accent">*</span></label
                         >
-                        <input
-                            v-model="form.dateNaissance"
-                            type="date"
-                            :max="maxDateNaissance"
-                            class="input-field w-full"
-                            :class="{ 'border-accent': errors.dateNaissance }"
-                        />
+                        <div class="relative">
+                            <input
+                                v-model="form.dateNaissance"
+                                type="text"
+                                placeholder="JJ/MM/AAAA"
+                                maxlength="10"
+                                class="input-field w-full pr-10"
+                                :class="{
+                                    'border-accent': errors.dateNaissance,
+                                }"
+                                @input="formaterDate"
+                            />
+                            <!-- Icône calendrier -->
+                            <button
+                                type="button"
+                                @click="datePickerRef.showPicker()"
+                                class="absolute inset-y-0 right-3 flex items-center text-primary-300 hover:text-primary"
+                            >
+                                <svg
+                                    class="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.5"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    />
+                                </svg>
+                            </button>
+
+                            <!-- Calendrier natif caché -->
+                            <input
+                                ref="datePickerRef"
+                                type="date"
+                                class="absolute opacity-0 w-0 h-0 top-0 right-0"
+                                :max="new Date().toISOString().split('T')[0]"
+                                @change="dateDepuisCalendrier"
+                            />
+                        </div>
                         <p
                             v-if="errors.dateNaissance"
                             class="text-accent text-label mt-1"
@@ -349,51 +384,13 @@
                         >Votre nationalité :
                         <span class="text-accent">*</span></label
                     >
-                    <div class="relative" ref="nationaliteRef">
-                        <input
-                            v-model="nationaliteSearch"
-                            type="text"
-                            readonly="readonly"
-                            placeholder="Rechercher un pays..."
-                            class="input-field w-full pr-8"
-                            :class="{ 'border-accent': errors.nationalite }"
-                            @focus="showCountryDropdown = true"
-                            @input="showCountryDropdown = true"
-                        />
-                        <span
-                            class="absolute inset-y-0 right-3 flex items-center text-primary-300 pointer-events-none"
-                        >
-                            <svg
-                                class="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M19 9l-7 7-7-7"
-                                />
-                            </svg>
-                        </span>
-                        <div
-                            v-if="
-                                showCountryDropdown &&
-                                filteredCountries.length > 0
-                            "
-                            class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto"
-                        >
-                            <button
-                                v-for="country in filteredCountries"
-                                :key="country"
-                                @mousedown.prevent="selectCountry(country)"
-                                class="w-full text-left px-4 py-2 text-body hover:bg-secondary-600 transition-colors"
-                            >
-                                {{ country }}
-                            </button>
-                        </div>
-                    </div>
+                    <SelectNationalite
+                        v-model="form.nationalite"
+                        :inputClass="
+                            'input-field w-full pr-8' +
+                            (errors.nationalite ? ' border-accent' : '')
+                        "
+                    />
                     <p
                         v-if="errors.nationalite"
                         class="text-accent text-label mt-1"
@@ -641,6 +638,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import IndicateurEtapes from "../components/IndicateurEtapes.vue";
+import SelectNationalite from "../components/SelectNationalite.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -648,9 +646,6 @@ const currentStep = ref(1);
 const steps = ["Identifiants", "Profil", "Coordonnées"];
 const fileInput = ref(null);
 const photoPreview = ref(null);
-const nationaliteRef = ref(null);
-const showCountryDropdown = ref(false);
-const nationaliteSearch = ref("");
 const errors = reactive({});
 const showCalendrier = ref(false);
 const datePickerRef = ref(null);
@@ -684,171 +679,6 @@ const form = reactive({
     photo: null,
 });
 
-const countries = [
-    "Afghanistan",
-    "Afrique du Sud",
-    "Albanie",
-    "Algérie",
-    "Allemagne",
-    "Andorre",
-    "Angola",
-    "Arabie Saoudite",
-    "Argentine",
-    "Arménie",
-    "Australie",
-    "Autriche",
-    "Azerbaïdjan",
-    "Bahreïn",
-    "Bangladesh",
-    "Belgique",
-    "Bénin",
-    "Biélorussie",
-    "Bolivie",
-    "Bosnie-Herzégovine",
-    "Botswana",
-    "Brésil",
-    "Bulgarie",
-    "Burkina Faso",
-    "Burundi",
-    "Cambodge",
-    "Cameroun",
-    "Canada",
-    "Chili",
-    "Chine",
-    "Chypre",
-    "Colombie",
-    "Congo",
-    "Corée du Nord",
-    "Corée du Sud",
-    "Costa Rica",
-    "Côte d'Ivoire",
-    "Croatie",
-    "Cuba",
-    "Danemark",
-    "Djibouti",
-    "Égypte",
-    "Émirats Arabes Unis",
-    "Équateur",
-    "Érythrée",
-    "Espagne",
-    "Estonie",
-    "États-Unis",
-    "Éthiopie",
-    "Finlande",
-    "France",
-    "Gabon",
-    "Gambie",
-    "Géorgie",
-    "Ghana",
-    "Grèce",
-    "Guatemala",
-    "Guinée",
-    "Haïti",
-    "Honduras",
-    "Hongrie",
-    "Inde",
-    "Indonésie",
-    "Irak",
-    "Iran",
-    "Irlande",
-    "Islande",
-    "Israël",
-    "Italie",
-    "Jamaïque",
-    "Japon",
-    "Jordanie",
-    "Kazakhstan",
-    "Kenya",
-    "Kirghizistan",
-    "Kosovo",
-    "Koweït",
-    "Laos",
-    "Liban",
-    "Libye",
-    "Liechtenstein",
-    "Lituanie",
-    "Luxembourg",
-    "Macédoine du Nord",
-    "Madagascar",
-    "Malaisie",
-    "Mali",
-    "Malte",
-    "Maroc",
-    "Mauritanie",
-    "Mexique",
-    "Moldavie",
-    "Monaco",
-    "Mongolie",
-    "Monténégro",
-    "Mozambique",
-    "Namibie",
-    "Népal",
-    "Nicaragua",
-    "Niger",
-    "Nigéria",
-    "Norvège",
-    "Nouvelle-Zélande",
-    "Oman",
-    "Ouganda",
-    "Ouzbékistan",
-    "Pakistan",
-    "Panama",
-    "Paraguay",
-    "Pays-Bas",
-    "Pérou",
-    "Philippines",
-    "Pologne",
-    "Portugal",
-    "Qatar",
-    "République Centrafricaine",
-    "République Démocratique du Congo",
-    "République Dominicaine",
-    "République Tchèque",
-    "Roumanie",
-    "Royaume-Uni",
-    "Russie",
-    "Rwanda",
-    "Salvador",
-    "Sénégal",
-    "Serbie",
-    "Sierra Leone",
-    "Singapour",
-    "Slovaquie",
-    "Slovénie",
-    "Somalie",
-    "Soudan",
-    "Sri Lanka",
-    "Suède",
-    "Suisse",
-    "Syrie",
-    "Tadjikistan",
-    "Tanzanie",
-    "Thaïlande",
-    "Togo",
-    "Tunisie",
-    "Turkménistan",
-    "Turquie",
-    "Ukraine",
-    "Uruguay",
-    "Venezuela",
-    "Vietnam",
-    "Yémen",
-    "Zambie",
-    "Zimbabwe",
-];
-
-const filteredCountries = computed(() => {
-    if (!nationaliteSearch.value) return countries;
-    const q = nationaliteSearch.value.toLowerCase();
-    return countries.filter((c) => c.toLowerCase().includes(q));
-});
-
-const maxDateNaissance = computed(() => {
-    const date = new Date();
-    date.setFullYear(date.getFullYear() - 18);
-    return date.toISOString().split("T")[0];
-});
-
 function formaterTelephone(event) {
     let valeur = event.target.value.replace(/\D/g, ""); // garde uniquement les chiffres
     if (valeur.length <= 3) {
@@ -874,23 +704,10 @@ function formaterTelephone(event) {
     }
 }
 
-function selectCountry(country) {
-    form.nationalite = country;
-    nationaliteSearch.value = country;
-    showCountryDropdown.value = false;
-}
-
-function handleClickOutside(e) {
-    if (nationaliteRef.value && !nationaliteRef.value.contains(e.target)) {
-        showCountryDropdown.value = false;
-    }
-}
 onMounted(() => {
-    document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("mousedown", handleAdresseClickOutside);
 });
 onBeforeUnmount(() => {
-    document.removeEventListener("mousedown", handleClickOutside);
     document.removeEventListener("mousedown", handleAdresseClickOutside);
 });
 
@@ -1035,12 +852,12 @@ function validateStep2() {
         errors.genre = "Veuillez sélectionner un genre.";
         valid = false;
     }
-    if (!form.dateNaissance) {
+    const dateRegex = /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+    if (!form.dateNaissance.trim()) {
         errors.dateNaissance = "La date de naissance est requise.";
         valid = false;
-    } else if (form.dateNaissance > new Date().toISOString().split("T")[0]) {
-        errors.dateNaissance =
-            "La date de naissance ne peut pas être dans le futur.";
+    } else if (!dateRegex.test(form.dateNaissance)) {
+        errors.dateNaissance = "Format attendu : JJ/MM/AAAA.";
         valid = false;
     }
     if (!form.telephone.trim()) {
@@ -1116,7 +933,7 @@ async function handleRegister() {
             password_confirmation: form.passwordConfirm,
             nom: form.nom,
             prenom: form.prenom,
-            date_naissance: form.dateNaissance,
+            date_naissance: form.dateNaissance.split("/").reverse().join("-"),
             telephone: form.telephone,
             nationalite: form.nationalite,
             adresse: `${form.adresse} ${form.numeroRue}`.trim(),
