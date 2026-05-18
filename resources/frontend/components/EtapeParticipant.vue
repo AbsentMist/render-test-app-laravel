@@ -14,10 +14,11 @@
 
             <!-- Nom du groupe/équipe -->
             <div class="flex flex-col gap-1">
-                <label class="text-sm font-medium text-gray-700">
+                <label for="nom-groupe" class="text-sm font-medium text-gray-700">
                     {{ estRelais ? "Nom de l'équipe" : "Nom du groupe" }}
                 </label>
                 <input
+                    id="nom-groupe"
                     v-model="groupeData.nom"
                     type="text"
                     :placeholder="
@@ -896,7 +897,7 @@ export default {
             if (this.estRelais) return { min: 2, max: 2 };
             const match = this.typeSelectionne?.nom?.match(/\((\d+)-(\d+)\)/);
             if (match)
-                return { min: parseInt(match[1]), max: parseInt(match[2]) };
+                return { min: Number.parseInt(match[1]), max: Number.parseInt(match[2]) };
             return null;
         },
 
@@ -1110,10 +1111,8 @@ export default {
                 const n = [...this.selectionnes];
                 n.splice(idx, 1);
                 this.selectionnes = n;
-            } else {
-                if (this.selectionnes.length < 1) {
-                    this.selectionnes = [...this.selectionnes, participant];
-                }
+            } else if (this.selectionnes.length < 1) {
+                this.selectionnes = [...this.selectionnes, participant];
             }
         },
         /**

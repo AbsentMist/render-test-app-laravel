@@ -277,8 +277,8 @@ export default {
             valeurB = `${b.course?.evenement?.nom ?? ''} ${b.course?.nom ?? ''}`.toLowerCase();
             break;
           case 'tarif':
-            valeurA = parseFloat(a.tarif ?? 0);
-            valeurB = parseFloat(b.tarif ?? 0);
+            valeurA = Number.parseFloat(a.tarif ?? 0);
+            valeurB = Number.parseFloat(b.tarif ?? 0);
             break;
           case 'status':
             valeurA = a.status_paiement ?? '';
@@ -429,15 +429,15 @@ export default {
           return;
         }
         const response = await inscriptionService.exportInscriptionsAdmin(format, this.filtres);
-        const url  = window.URL.createObjectURL(new Blob([response.data]));
+        const url  = globalThis.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href  = url;
         const extension = format === 'csv' ? 'csv' : 'xlsx';
         link.setAttribute('download', `inscriptions_${new Date().toISOString().slice(0, 10)}.${extension}`);
         document.body.appendChild(link);
         link.click();
-        link.parentNode.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        childNode.remove(link);
+        globalThis.URL.revokeObjectURL(url);
       } catch (error) {
         console.error("Erreur lors de l'export :", error);
         this.erreur = "Impossible d'exporter les inscriptions.";

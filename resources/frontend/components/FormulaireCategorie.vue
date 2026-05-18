@@ -306,19 +306,17 @@ export default {
                             await this.fetchDatas();
                         }
                     }
+                } else if (this.modalType === 'categorie') {
+                    const categorie = this.categories[this.modalIndex];
+                    if (categorie && nom !== categorie.nom) {
+                        await categorieOrganisateurService.modifyCategorie(categorie.id, { nom });
+                        this.categories[this.modalIndex].nom = nom;
+                    }
                 } else {
-                    if (this.modalType === 'categorie') {
-                        const categorie = this.categories[this.modalIndex];
-                        if (categorie && nom !== categorie.nom) {
-                            await categorieOrganisateurService.modifyCategorie(categorie.id, { nom });
-                            this.categories[this.modalIndex].nom = nom;
-                        }
-                    } else {
-                        const sousCategorie = this.sousCategories[this.modalIndex];
-                        if (sousCategorie && nom !== sousCategorie.nom) {
-                            await sousCategorieOrganisateurService.modifySousCategorie(sousCategorie.id, { nom });
-                            this.sousCategories[this.modalIndex].nom = nom;
-                        }
+                    const sousCategorie = this.sousCategories[this.modalIndex];
+                    if (sousCategorie && nom !== sousCategorie.nom) {
+                        await sousCategorieOrganisateurService.modifySousCategorie(sousCategorie.id, { nom });
+                        this.sousCategories[this.modalIndex].nom = nom;
                     }
                 }
                 this.closeModal();

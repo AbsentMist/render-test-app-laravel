@@ -143,7 +143,7 @@ function getDateDebutEvenement(evenement) {
   
   const dates = evenement.courses
     .map(c => c.debut_inscription)
-    .filter(d => d) 
+    .filter(Boolean) 
     .map(d => new Date(d).getTime())
   
   if (dates.length === 0) return '—'
@@ -161,7 +161,7 @@ function getDateFinEvenement(evenement) {
   
   const dates = evenement.courses
     .map(c => c.fin_inscription)
-    .filter(d => d)
+    .filter(Boolean)
     .map(d => new Date(d).getTime())
   
   if (dates.length === 0) return '—'
@@ -180,7 +180,8 @@ async function chargerEvenements() {
     const response = await api.get('/organisateur/evenements')
     evenements.value = response.data
   } catch (e) {
-    erreur.value = 'Impossible de charger les évènements.'
+    erreur.value = 'Impossible de charger les évènements.';
+    console.error("Erreur lors du chargement des évènements:", e);
   } finally {
     chargement.value = false
   }
@@ -216,6 +217,7 @@ async function supprimerEvenement() {
   } catch (e) {
     erreur.value = 'Impossible de supprimer cet évènement.'
     evenementASupprimer.value = null
+    console.error("Erreur lors de la suppression de l'évènement:", e);
   }
 }
 

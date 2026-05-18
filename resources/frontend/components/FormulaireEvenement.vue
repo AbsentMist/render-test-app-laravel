@@ -374,12 +374,10 @@ export default {
                     formData.append('logo', this.eventData.logo);
                 }
 
-                let response;
                 if (this.isEditMode) {
-                    formData.append('_method', 'PUT'); 
-                    response = await evenementOrganisateurService.modifyEvenement(this.eventId, formData);
+                    await evenementOrganisateurService.modifyEvenement(this.eventId, formData);
                 } else {
-                    response = await evenementOrganisateurService.createEvenement(formData);
+                    await evenementOrganisateurService.createEvenement(formData);
                 }
 
                 this.confirmPopup();

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class EvenementController extends Controller
 {
-    // GET (admin): 
+    // GET (admin):
     public function indexAdmin()
     {
         // 1. On remplace all() par with('courses')->get()
@@ -22,17 +22,17 @@ class EvenementController extends Controller
         return response()->json($evenements);
     }
 
-    // GET (participant): 
+    // GET (participant):
     public function indexParticipant()
     {
         
         $evenements = Evenement::where('is_actif', true)
             ->select(
-                'id', 
-                'nom', 
-                'logo', 
-                'site', 
-                'couleur_primaire', 
+                'id',
+                'nom',
+                'logo',
+                'site',
+                'couleur_primaire',
                 'couleur_secondaire'
             )
             ->get()
@@ -53,7 +53,7 @@ class EvenementController extends Controller
         // On stocke tout dans $validatedData
         $validatedData = $request->validate([
             'nom' => 'required|string|max:180',
-            'logo' => 'nullable|file|image|max:2048', 
+            'logo' => 'nullable|file|image|max:2048',
             'site' => 'nullable|string|max:255',
             'couleur_primaire' => 'nullable|string|max:50',
             'couleur_secondaire' => 'nullable|string|max:50',
@@ -101,7 +101,7 @@ class EvenementController extends Controller
 
         $validatedData = $request->validate([
             'nom' => 'sometimes|string|max:180',
-            'logo' => 'nullable|file|image|max:2048', 
+            'logo' => 'nullable|file|image|max:2048',
             'site' => 'nullable|string|max:255',
             'couleur_primaire' => 'nullable|string|max:50',
             'couleur_secondaire' => 'nullable|string|max:50',
