@@ -19,7 +19,7 @@ return new class extends Migration
 
         Schema::create('Evenement', function (Blueprint $table) {
             $table->id();
-            $table->string('nom', 180);
+            $table->string('nom', 180)->unique();
             $table->binary('logo')->nullable(); //à enlever plus tard pour une conformité avec la DB
             $table->string('site', 255) ->nullable();
             $table->string('couleur_primaire', 10);
@@ -31,13 +31,13 @@ return new class extends Migration
 
         Schema::create('Categorie', function (Blueprint $table) {
             $table->id();
-            $table->string('nom', 50);
+            $table->string('nom', 50)->unique();
             $table->boolean('modele')->default(0);
         });
 
         Schema::create('SousCategorie', function (Blueprint $table) {
             $table->id();
-            $table->string('nom', 50);
+            $table->string('nom', 50)->unique();
             $table->boolean('modele')->default(0);
         });
 
@@ -50,7 +50,7 @@ return new class extends Migration
 
         Schema::create('Template', function (Blueprint $table) {
             $table->id();
-            $table->string('nom', 255);
+            $table->string('nom', 255)->unique();
             $table->text('contenu');
         });
 
@@ -78,7 +78,7 @@ return new class extends Migration
 
         Schema::create('Avertissement', function (Blueprint $table) {
             $table->id();
-            $table->string('titre', 100);
+            $table->string('titre', 100)->unique();
             $table->text('contenu');
             $table->boolean('modele')->default(0);
         });
