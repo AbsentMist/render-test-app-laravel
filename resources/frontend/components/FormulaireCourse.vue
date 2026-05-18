@@ -1386,9 +1386,7 @@ export default {
             }
 
             // Vérifier le nom
-            if (!this.courseData.name || this.courseData.name.trim() === "") {
-                this.errors.name = "Le champ n'est pas valide";
-            } else if (this.courseData.name.length > 120) {
+            if (!this.courseData.name || this.courseData.name.trim() === "" || this.courseData.name.length > 120) {
                 this.errors.name = "Le champ n'est pas valide";
             }
 
@@ -1839,7 +1837,7 @@ export default {
                 ordre: paliers.length,
             };
             dernier.ordre = paliers.length + 1;
-            paliers.splice(paliers.length - 1, 0, nouveauPalier);
+            paliers.splice(- 1, 0, nouveauPalier);
         },
 
         /**
@@ -2007,9 +2005,9 @@ export default {
             };
             if (option.type === "Quantifiable") {
                 payload.quantiteMin =
-                    parseInt(option.quantifiable?.quantiteMin) || 0;
+                    Number.parseInt(option.quantifiable?.quantiteMin) || 0;
                 payload.quantiteMax =
-                    parseInt(option.quantifiable?.quantiteMax) || 0;
+                    Number.parseInt(option.quantifiable?.quantiteMax) || 0;
             }
             return payload;
         },
@@ -2178,7 +2176,7 @@ export default {
                                     palier.valeur_fin !== null
                                         ? String(palier.valeur_fin)
                                         : null,
-                                tarif: parseFloat(palier.tarif),
+                                tarif: Number.parseFloat(palier.tarif),
                                 ordre: palier.ordre,
                             });
                         }
@@ -2344,7 +2342,7 @@ export default {
             // Pré-remplir le champ événement si l'ID est présent dans l'URL
             if (this.eventIdFromUrl && !this.isEditMode) {
                 const evenementSelectionne = this.evenements.find(
-                    (e) => e.id === parseInt(this.eventIdFromUrl),
+                    (e) => e.id === Number.parseInt(this.eventIdFromUrl),
                 );
                 if (evenementSelectionne) {
                     this.courseData.event = evenementSelectionne;

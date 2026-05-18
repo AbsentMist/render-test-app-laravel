@@ -244,10 +244,10 @@ return new class extends Migration
 
         $tables = [
             'GroupeParticipant', 'ReponseQuestion', 'Resultat', 'Dossard', 'Inscription',
-            'OptionCochable', 'OptionQuantifiable', 'OptionPourCourse', 'Document', 
-            'Administrateur', 'UserRole', 'TemplatePersonnalise', 
+            'OptionCochable', 'OptionQuantifiable', 'OptionPourCourse', 'Document',
+            'Administrateur', 'UserRole', 'TemplatePersonnalise',
             'OptionQuestion', 'EvenementQuestion', 'Course', 'Avertissement',
-            'Options', 'Question', 'Champ', 'Template', 'Groupe', 'SousCategorie', 
+            'Options', 'Question', 'Champ', 'Template', 'Groupe', 'SousCategorie',
             'Categorie', 'Evenement', 'Role'
         ];
 

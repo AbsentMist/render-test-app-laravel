@@ -6,11 +6,12 @@
 
         <!-- Champ unique code -->
         <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">
+            <label for="code-unique" class="text-sm font-medium text-gray-700">
                 {{ estGroupeOuRelais ? "Code de rabais" : "Code promotionnel" }}
             </label>
             <div class="flex gap-2">
                 <input
+                    id="code-unique"
                     v-model="codeUnique"
                     type="text"
                     :placeholder="

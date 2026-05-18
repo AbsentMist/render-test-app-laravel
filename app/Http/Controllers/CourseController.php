@@ -227,6 +227,7 @@ class CourseController extends Controller
             'heure_fin'         => 'sometimes|nullable|string',
             'age_minimum'       => 'sometimes|required|integer|min:0',
             'age_maximum'       => 'sometimes|nullable|integer|gte:age_minimum',
+            'type'              => 'sometimes|required|string',
             'is_challenge'      => 'boolean',
             'is_prix_evolutif'  => 'boolean',
             'is_actif'          => 'boolean',
