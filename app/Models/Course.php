@@ -16,7 +16,7 @@ class Course extends Model
         'id_evenement', 'id_categorie', 'id_sous_categorie', 'id_avertissement', 'nom', 'date_debut', 'date_fin', 
         'debut_inscription', 'fin_inscription', 'tarif', 'status', 'type', 
         'is_challenge', 'is_actif', 'is_dossard', 'is_avertissement', 'is_document', 'is_questionnaire', 'max_inscription', 'max_nb_personne', 'premier_dossard', 
-        'dernier_dossard', 'distance', 'heure_depart', 'heure_fin', 
+        'dernier_dossard', 'distance', 
         'age_minimum', 'age_maximum','is_prix_evolutif', 'document_description',
     ];
 
