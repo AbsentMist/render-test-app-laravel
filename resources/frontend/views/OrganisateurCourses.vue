@@ -277,6 +277,152 @@
                 </div>
             </div>
         </div>
+
+        <!-- Popup duplication événement -->
+        <div
+            v-if="popupDuplication.visible"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+        >
+            <div
+                class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 flex flex-col overflow-hidden max-h-[80vh]"
+            >
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-neutral-secondary-medium"
+                >
+                    <div>
+                        <p class="text-sm font-semibold text-heading">
+                            Dupliquer l'événement
+                        </p>
+                    </div>
+                    <button
+                        @click="popupDuplication.visible = false"
+                        class="text-body hover:text-heading transition-colors"
+                    >
+                        <Icon icon="mdi:close" class="w-5 h-5" />
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-6">
+                    <div class="flex flex-row items-center justify-between mb-4">
+                        <label class="flex items-center">
+                            <span class="text-sm font-medium text-heading">
+                                Dupliquer dans l'événement actuel
+                            </span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            v-model="popupDuplication.evenementActuel"
+                            class="sr-only peer"
+                        />
+                        <div
+                            class="relative w-9 h-5 bg-neutral-quaternary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tertiary"
+                        ></div>
+                    </label>
+                    </div>
+                    <div v-if="!popupDuplication.evenementActuel" class="flex flex-row gap-4 w-full">
+                        <div class="basis-3/4">
+                            <label class="text-sm font-medium text-heading block mb-2">Nom de l'événement</label>
+                            <div class="relative w-full">
+                                <button
+                                    ref="buttonNomRef"
+                                    @click="updateDropdownPosition('nom'); popupDuplication.dropdownNomOpen = !popupDuplication.dropdownNomOpen"
+                                    class="w-full inline-flex items-center justify-between shadow-xs font-medium text-sm px-4 py-2.5"
+                                    :class="[
+                                        popupDuplication.nomEvenement
+                                            ? 'border-b-2 text-primary border-tertiary hover:bg-gray-100 rounded-t-base'
+                                            : 'hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5',
+                                    ]"
+                                    type="button"
+                                >
+                                    <span>{{
+                                        popupDuplication.nomEvenement ||
+                                        "Sélectionner un événement"
+                                    }}</span>
+                                    <Icon
+                                        icon="mdi:chevron-down"
+                                        class="ml-2 w-6 h-6 flex-shrink-0"
+                                    />
+                                </button>
+                                <div
+                                    v-if="popupDuplication.dropdownNomOpen"
+                                    class="fixed z-[60] bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg max-h-64 overflow-y-auto"
+                                    :style="popupDuplication.dropdownNomStyle"
+                                >
+                                    <ul class="p-2 text-sm text-body font-medium">
+                                        <li v-for="nom in nomsEvenements" :key="nom">
+                                            <button
+                                                type="button"
+                                                @click="popupDuplication.nomEvenement = nom; popupDuplication.dropdownNomOpen = false; popupDuplication.annee = ''"
+                                                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded"
+                                            >
+                                                {{ nom }}
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="basis-1/4">
+                            <label class="text-sm font-medium text-heading block mb-2">Année</label>
+                            <div class="relative w-full">
+                                <button
+                                    ref="buttonAnneeRef"
+                                    @click="updateDropdownPosition('annee'); popupDuplication.dropdownAnneeOpen = !popupDuplication.dropdownAnneeOpen"
+                                    :disabled="!popupDuplication.nomEvenement"
+                                    class="w-full inline-flex items-center justify-between shadow-xs font-medium text-sm px-4 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    :class="[
+                                        popupDuplication.annee
+                                            ? 'border-b-2 text-primary border-tertiary hover:bg-gray-100 rounded-t-base'
+                                            : 'hover:bg-primary-300 text-white bg-primary-900 shadow-xs font-medium rounded-base text-sm px-4 py-2.5',
+                                    ]"
+                                    type="button"
+                                >
+                                    <span>{{
+                                        popupDuplication.annee ||
+                                        "Sélectionner une année"
+                                    }}</span>
+                                    <Icon
+                                        icon="mdi:chevron-down"
+                                        class="ml-2 w-6 h-6 flex-shrink-0"
+                                    />
+                                </button>
+                                <div
+                                    v-if="popupDuplication.dropdownAnneeOpen && popupDuplication.nomEvenement"
+                                    class="fixed z-[60] bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg max-h-64 overflow-y-auto"
+                                    :style="popupDuplication.dropdownAnneeStyle"
+                                >
+                                    <ul class="p-2 text-sm text-body font-medium">
+                                        <li v-for="year in anneesEvenements" :key="year">
+                                            <button
+                                                type="button"
+                                                @click="popupDuplication.annee = year; popupDuplication.dropdownAnneeOpen = false"
+                                                class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded"
+                                            >
+                                                {{ year }}
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3 px-6 py-4 border-t border-gray-100 bg-neutral-secondary-medium">
+                    <button
+                        @click="popupDuplication.visible = false"
+                        class="btn-accent-300 px-4 py-2 rounded-lg"
+                    >
+                        Annuler
+                    </button>
+                    <button
+                        @click="confirmerDuplication"
+                        class="btn-tertiary px-4 py-2 rounded-lg ml-auto"
+                    >
+                        Confirmer
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -319,6 +465,29 @@ export default {
         idEvenement() {
             return this.$route.params.idEvenement;
         },
+        nomsEvenements() {
+            return [...new Set(this.tousLesEvenements.map(e => {
+                // Extraire le nom sans l'année (tout sauf les 4 derniers chiffres)
+                return e.nom.replace(/\s*\d{4}\s*$/, '').trim();
+            }))].sort();
+        },
+        anneesEvenements() {
+            if (!this.popupDuplication.nomEvenement) return [];
+            const baseNom = this.popupDuplication.nomEvenement;
+            return [...new Set(
+                this.tousLesEvenements
+                    .filter(e => {
+                        const nomSansAnnee = e.nom.replace(/\s*\d{4}\s*$/, '').trim();
+                        return nomSansAnnee === baseNom;
+                    })
+                    .map(e => {
+                        // Extraire l'année du nom
+                        const match = e.nom.match(/(\d{4})\s*$/);
+                        return match ? parseInt(match[1]) : null;
+                    })
+                    .filter(year => year !== null)
+            )].sort((a, b) => b - a);
+        }
     },
     data() {
         return {
@@ -337,6 +506,20 @@ export default {
             courseCodesRabais: null,
             courseCodesDossard: null,
             courseResultats: null,
+            evenementADupliquer: null,
+            tousLesEvenements: [],
+            popupDuplication: {
+                visible: false,
+                evenementActuel: true,
+                nomEvenement: '',
+                annee: '',
+                dropdownNomOpen: false,
+                dropdownAnneeOpen: false,
+                dropdownNomStyle: {},
+                dropdownAnneeStyle: {}
+            },
+            buttonNomRef: null,
+            buttonAnneeRef: null
         };
     },
     methods: {
@@ -364,7 +547,15 @@ export default {
             this.activeOptionCourseId = null;
             switch (option) {
                 case "Dupliquer":
-                    this.dupliquerCourse(course);
+                    this.popupDuplication = {
+                        visible: true,
+                        evenementActuel: true,
+                        nomEvenement: '',
+                        annee: '',
+                        dropdownNomOpen: false,
+                        dropdownAnneeOpen: false,
+                        course: course,
+                    };
                     break;
                 case "Supprimer":
                     this.confirmerSuppression(course);
@@ -436,44 +627,30 @@ export default {
             }
         },
         genererNomDuplique(nomOriginal) {
-            const baseNameMatch = nomOriginal.match(/^(.+?)\s*(?:\(\d+\))?$/);
-            const baseName = baseNameMatch
-                ? baseNameMatch[1].trim()
-                : nomOriginal;
-            const pattern = new RegExp(
-                `^${baseName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\((\\d+)\\)$`,
-            );
-            const existingNumbers = this.courses
-                .map((c) => {
-                    const match = c.nom.match(pattern);
-                    return match ? parseInt(match[1]) : null;
-                })
-                .filter((n) => n !== null);
-            let nextNumber = 1;
-            if (existingNumbers.length > 0) {
-                nextNumber = Math.max(...existingNumbers) + 1;
-            }
-            return `${baseName} (${nextNumber})`;
+            const baseName = nomOriginal.replace(/\s*\(\d+\)$/, '');
+            const count = this.courses.filter((c) =>
+                c.nom.startsWith(`${baseName} (`)
+            ).length;
+            return `${baseName} (${count + 1})`;
         },
         async dupliquerCourse(course) {
             try {
-                const courseComplete =
-                    await courseOrganisateurService.getCourse(
-                        course.id,
-                        this.idEvenement,
-                    );
-                const nomDuplique = this.genererNomDuplique(
-                    courseComplete.data.nom,
-                );
+                const courseComplete = await courseOrganisateurService.getCourse(course.id, this.idEvenement);
+                const nomDuplique = this.genererNomDuplique(courseComplete.data.nom);
+                
+                if (!this.popupDuplication.evenementActuel) {
+                    courseComplete.data.id_evenement = this.evenementADupliquer;
+                }
+                
                 const payload = {
                     id_evenement: courseComplete.data.id_evenement,
                     id_categorie: courseComplete.data.id_categorie,
                     id_sous_categorie: courseComplete.data.id_sous_categorie,
                     nom: nomDuplique,
-                    date_debut: courseComplete.data.date_debut,
-                    date_fin: courseComplete.data.date_fin,
-                    debut_inscription: courseComplete.data.debut_inscription,
-                    fin_inscription: courseComplete.data.fin_inscription,
+                    date_debut: new Date(),
+                    date_fin: new Date(),
+                    debut_inscription: new Date(),
+                    fin_inscription: new Date(),
                     tarif: courseComplete.data.tarif,
                     status: courseComplete.data.status,
                     type: courseComplete.data.type,
@@ -488,8 +665,6 @@ export default {
                     premier_dossard: courseComplete.data.premier_dossard,
                     dernier_dossard: courseComplete.data.dernier_dossard,
                     distance: courseComplete.data.distance,
-                    heure_depart: courseComplete.data.heure_depart,
-                    heure_fin: courseComplete.data.heure_fin,
                     age_minimum: courseComplete.data.age_minimum,
                     age_maximum: courseComplete.data.age_maximum,
                     is_prix_evolutif: courseComplete.data.is_prix_evolutif,
@@ -623,12 +798,69 @@ export default {
                 this.activeOptionCourseId = null;
             }
         },
+        updateDropdownPosition(dropdown) {
+            this.$nextTick(() => {
+                let buttonRef, styleProp;
+                
+                if (dropdown === 'nom') {
+                    buttonRef = this.$refs.buttonNomRef;
+                    styleProp = 'dropdownNomStyle';
+                } else {
+                    buttonRef = this.$refs.buttonAnneeRef;
+                    styleProp = 'dropdownAnneeStyle';
+                }
+                
+                if (!buttonRef) return;
+                
+                const rect = buttonRef.getBoundingClientRect();
+                this.popupDuplication[styleProp] = {
+                    top: `${rect.top + rect.height}px`,
+                    left: `${rect.left}px`,
+                    width: `${rect.width}px`
+                };
+            });
+        },
+        confirmerDuplication() {
+            if (this.popupDuplication.evenementActuel) {
+                // Dupliquer dans l'événement actuel
+                console.log('Duplication dans l\'événement actuel');
+            } else {
+                // Dupliquer dans un autre événement
+                if (!this.popupDuplication.nomEvenement || !this.popupDuplication.annee) {
+                    alert('Veuillez sélectionner un événement et une année');
+                    return;
+                }
+                // Construire le nom complet avec l'année
+                const nomComplet = `${this.popupDuplication.nomEvenement} ${this.popupDuplication.annee}`;
+                const evenement = this.tousLesEvenements.find(e => e.nom === nomComplet);
+                if (evenement) {
+                    this.evenementADupliquer = evenement.id;
+                    console.log('Duplication vers l\'événement:', evenement.id);
+                } else {
+                    alert('Événement non trouvé');
+                    return;
+                }
+            }
+            this.dupliquerCourse(this.popupDuplication.course);
+            this.popupDuplication.visible = false;
+        },
         ouvrirResultats(course) {
             this.courseResultats = course;
+        },
+        async chargerEvenements() {
+            try {
+                const response = await evenementOrganisateurService.getAllEvenements();
+                console.log('Réponse getAllEvenements:', response);
+                this.tousLesEvenements = response.data?.data ?? response.data ?? [];
+                console.log('tousLesEvenements après assignation:', this.tousLesEvenements);
+            } catch (e) {
+                console.error('Erreur lors du chargement des événements:', e);
+            }
         },
     },
     async mounted() {
         await this.chargerCourses();
+        await this.chargerEvenements();
         try {
             const response = await evenementOrganisateurService.getEvenement(
                 this.idEvenement,
