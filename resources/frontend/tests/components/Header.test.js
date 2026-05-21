@@ -336,7 +336,7 @@ describe('Header', () => {
     expect(wrapper.find('button.w-11.h-11.rounded-full [data-test="icon"]').exists()).toBe(true)
   })
 
-  test('supprime une notification de refus via le bouton OK', async () => {
+  test('supprime une notification de refus via le bouton Fermer', async () => {
     groupeService.getMesInvitations.mockResolvedValue({ data: [] })
     echangeDossardService.mesDemandesRecues.mockResolvedValue({ data: [] })
     api.get.mockImplementation((url) => {
@@ -355,13 +355,61 @@ describe('Header', () => {
     await profileButton.trigger('click')
     await flushPromises()
 
-    const okButton = wrapper.findAll('button').find((b) => b.text().trim() === 'OK')
-    expect(okButton).toBeTruthy()
+    const closeButton = wrapper.findAll('button').find((b) => b.text().trim() === 'Fermer')
+    expect(closeButton).toBeTruthy()
 
-    await okButton.trigger('click')
+    await closeButton.trigger('click')
     await flushPromises()
 
     expect(api.delete).toHaveBeenCalledWith('/participant/notifications-info/99')
     expect(wrapper.text()).toContain("Vous n'avez aucune notification en attente.")
+  })
+
+  test('affiche et ouvre une notification membership de completion', async () => {
+    groupeService.getMesInvitations.mockResolvedValue({ data: [] })
+    echangeDossardService.mesDemandesRecues.mockResolvedValue({ data: [] })
+    api.get.mockImplementation((url) => {
+      if (url.includes('/notifications-info')) {
+        return Promise.resolve({
+          data: [
+            {
+              id: 123,
+              type: 'membership_invitation_to_complete',
+              title: 'Membership à compléter',
+              content: 'Veuillez compléter votre formulaire membership.',
+            },
+          ],
+        })
+      }
+      return Promise.resolve({ data: { tarif: 0 } })
+    })
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    const notification = {
+      id: 123,
+      type: 'membership_invitation_to_complete',
+      title: 'Membership à compléter',
+      content: 'Veuillez compléter votre formulaire membership.',
+    }
+
+    expect(wrapper.vm.getInfoNotificationCardClass(notification)).toContain('blue-50')
+    expect(wrapper.vm.getInfoNotificationTagClass(notification)).toContain('blue-100')
+    expect(wrapper.vm.getInfoNotificationIcon(notification)).toBe('mdi:account-group-outline')
+    expect(wrapper.vm.getInfoNotificationRoute(notification)).toBe('/membership')
+
+    const profileButton = wrapper.find('button.w-11.h-11.rounded-full')
+    await profileButton.trigger('click')
+    await flushPromises()
+
+    const voirButton = wrapper.findAll('button').find((b) => b.text().trim() === 'Voir')
+    expect(voirButton).toBeTruthy()
+
+    await voirButton.trigger('click')
+    await flushPromises()
+
+    expect(routerPushMock).toHaveBeenCalledWith('/membership')
+    expect(api.delete).toHaveBeenCalledWith('/participant/notifications-info/123')
   })
 })
