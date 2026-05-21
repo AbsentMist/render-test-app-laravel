@@ -26,6 +26,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CodeRabaisController;
 use App\Http\Controllers\CodeDossardController;
 use App\Http\Controllers\ResultatController;
+use App\Http\Controllers\MembershipController;
 
     // ===== Routes publiques (sans authentification) =====
     Route::post('/register', [AuthController::class, 'register']);
@@ -40,6 +41,13 @@ use App\Http\Controllers\ResultatController;
 
         // Route accessible à tous les utilisateurs (Participants + Admins)
         Route::prefix('participant')->group(function() {
+            Route::get('/membership/acces', [MembershipController::class, 'accesParticipantMembership']);
+            Route::post('/membership/checkout', [MembershipController::class, 'checkoutPayment']);
+            Route::middleware('has_membership_invitation')->group(function () {
+                Route::get('/membership/ma-demande', [MembershipController::class, 'maDemande']);
+                Route::post('/membership/demander', [MembershipController::class, 'soumettreDemande']);
+            });
+
             // Récupération des évènements
             Route::get('/evenements', [EvenementController::class, 'indexParticipant']);
 
@@ -143,6 +151,15 @@ use App\Http\Controllers\ResultatController;
 
         // Gestion du rôle Administrateur par Middleware
         Route::middleware('is_admin')->prefix('organisateur')->group(function () {
+            // Membership
+            Route::get('/membership/demandes', [MembershipController::class, 'listerDemandes']);
+            Route::get('/membership/demandes/en-attente', [MembershipController::class, 'listerDemandesEnAttente']);
+            Route::post('/membership/invitations', [MembershipController::class, 'inviterParticipant']);
+            Route::get('/membership/participants/rechercher', [MembershipController::class, 'rechercherParticipantParEmail']);
+            Route::post('/membership/demandes/{id}/approuver', [MembershipController::class, 'approuverDemande']);
+            Route::post('/membership/demandes/{id}/a-completer', [MembershipController::class, 'remettreACompleterDemande']);
+            Route::post('/membership/invitations/{id}/annuler', [MembershipController::class, 'annulerInvitation']);
+
             // Routes pour la gestion des événements (CRUD)
             Route::get('/evenements', [EvenementController::class, 'indexAdmin']);
             Route::get('/evenements/{id}', [EvenementController::class, 'show']);
@@ -267,3 +284,5 @@ use App\Http\Controllers\ResultatController;
  
         });
     });
+
+    // Membership access is now invitation-driven and protected by auth middleware.

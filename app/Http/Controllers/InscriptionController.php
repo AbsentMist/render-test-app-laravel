@@ -6,9 +6,11 @@ use App\Models\Inscription;
 use App\Models\Course;
 use App\Models\Dossard;
 use App\Models\ChoixOption;
+use App\Models\FormulaireMembership;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Collection;
 use App\Models\Participant;
 use App\Models\Groupe;
 use App\Models\CodeRabais;
@@ -535,7 +537,11 @@ if (!empty($validatedData['code_rabais'])) {
         // On récupère le format depuis l'URL (csv ou xlsx), par défaut xlsx
         $format = $request->query('format', 'xlsx');
         $filters = $request->only(['recherche', 'status', 'type']);
-        $inscriptions = $this->adminInscriptionsQuery($filters)->get();
+        $inscriptions = $this->adminInscriptionsQuery([])->get();
+        $inscriptions = $inscriptions
+            ->filter(fn ($item) => $this->matchesAdminFilters($item, $filters))
+            ->sortByDesc('date_paiement')
+            ->values();
         
         $extension = $format === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX;
         $fileName = 'export_inscriptions_' . date('Y-m-d_H-i') . '.' . $format;
@@ -621,5 +627,146 @@ if (!empty($validatedData['code_rabais'])) {
         }
 
         return $query;
+    }
+
+    /**
+     * Retourne les memberships complétés au format compatible avec le tableau des inscriptions.
+     */
+    private function adminMembershipRows(array $participantColumns = []): Collection
+    {
+        if (empty($participantColumns)) {
+            $participantColumns = [
+                'id',
+                'id_user',
+                'nom',
+                'prenom',
+                'date_naissance',
+                'equipe_nom',
+                'adresse',
+                'code_postal',
+                'ville',
+                'pays',
+                'telephone',
+                'nationalite',
+                'instagram',
+                'facebook',
+                'taille_tshirt',
+                'sexe',
+            ];
+        }
+
+        $memberships = FormulaireMembership::query()
+            ->with([
+                'invitation.participantUser' => function ($query) use ($participantColumns) {
+                    $query->select('id', 'email')
+                        ->with([
+                            'participant' => fn ($participantQuery) => $participantQuery->select($participantColumns),
+                        ]);
+                },
+            ])
+            ->where('status', 'Approuvée')
+            ->orderByDesc('date_decision')
+            ->get();
+
+        return $memberships->map(function (FormulaireMembership $membership) {
+            $participantUser = $membership->invitation?->participantUser;
+            $participant = $participantUser?->participant;
+            $datePaiement = $membership->date_decision ?? $membership->date_creation;
+            $datePaiementString = $datePaiement?->format('Y-m-d H:i:s');
+
+            return [
+                'id' => 'membership-' . $membership->id,
+                'membership_id' => $membership->id,
+                'course' => [
+                    'id' => null,
+                    'nom' => 'Inscription à Membership',
+                    'type' => 'Membership',
+                    'distance' => null,
+                    'status' => 'actif',
+                    'evenement' => [
+                        'id' => null,
+                        'nom' => 'Membership',
+                        'couleur_primaire' => '#eef2ff',
+                        'couleur_secondaire' => '#0e0f54',
+                    ],
+                ],
+                'participant' => [
+                    'id' => $participant?->id,
+                    'nom' => $participant?->nom ?? $membership->nom,
+                    'prenom' => $participant?->prenom ?? $membership->prenom,
+                    'date_naissance' => $participant?->date_naissance,
+                    'equipe_nom' => $participant?->equipe_nom,
+                    'adresse' => $membership->adresse,
+                    'code_postal' => $membership->code_postal,
+                    'ville' => $membership->ville,
+                    'pays' => $membership->pays,
+                    'telephone' => $membership->telephone,
+                    'nationalite' => $participant?->nationalite,
+                    'instagram' => $participant?->instagram,
+                    'facebook' => $participant?->facebook,
+                    'taille_tshirt' => $participant?->taille_tshirt,
+                    'sexe' => $participant?->sexe,
+                    'user' => [
+                        'email' => $participantUser?->email ?? $membership->email,
+                    ],
+                ],
+                'dossard' => null,
+                'groupe' => null,
+                'choixOptions' => [],
+                'reponsesQuestions' => [],
+                'documentsFournis' => [],
+                'ancienneInscription' => null,
+                'date_paiement' => $datePaiementString,
+                'tarif' => $membership->prix ?? 25,
+                'status_paiement' => 'Validé',
+                'montant_rabais' => 0,
+                'avertissement_valide' => true,
+                'participe_challenge' => false,
+                'type_challenge' => null,
+                'equipe_challenge' => null,
+                'code_participant' => null,
+                'ref_groupage' => null,
+                'numero_inscription' => 'M' . str_pad((string) $membership->id, 4, '0', STR_PAD_LEFT),
+                'id_course' => null,
+                'is_membership' => true,
+            ];
+        });
+    }
+
+    /**
+     * Filtre un enregistrement admin (inscription ou membership) selon les critères courants.
+     */
+    private function matchesAdminFilters($item, array $filters): bool
+    {
+        $recherche = trim((string) ($filters['recherche'] ?? ''));
+        $status = (string) ($filters['status'] ?? '');
+        $type = (string) ($filters['type'] ?? '');
+
+        if ($status !== '' && data_get($item, 'status_paiement') !== $status) {
+            return false;
+        }
+
+        if ($type !== '' && data_get($item, 'course.type') !== $type) {
+            return false;
+        }
+
+        if ($recherche === '') {
+            return true;
+        }
+
+        $needle = mb_strtolower($recherche);
+        $haystack = implode(' ', array_filter([
+            mb_strtolower((string) data_get($item, 'participant.nom', '')),
+            mb_strtolower((string) data_get($item, 'participant.prenom', '')),
+            mb_strtolower((string) data_get($item, 'participant.user.email', '')),
+            mb_strtolower((string) data_get($item, 'dossard.numero', '')),
+            mb_strtolower((string) data_get($item, 'groupe.nom', '')),
+            mb_strtolower((string) data_get($item, 'equipe_challenge', '')),
+            mb_strtolower((string) data_get($item, 'course.nom', '')),
+            mb_strtolower((string) data_get($item, 'course.evenement.nom', '')),
+            mb_strtolower((string) data_get($item, 'course.type', '')),
+        ]));
+
+        return str_contains($haystack, $needle);
     }
 }

@@ -2,10 +2,17 @@ import api from './api';
 
 export default {
   /**
-   * Soumet une demande de membership
+   * Vérifie si le participant connecté a accès au module membership
+   */
+  accesMembershipParticipant() {
+    return api.get('/participant/membership/acces');
+  },
+
+  /**
+   * Soumet un formulaire membership (participant invité)
    */
   soumettreDemande(data) {
-    return api.post('/membership/demander', data);
+    return api.post('/participant/membership/demander', data);
   },
 
   /**
@@ -23,12 +30,19 @@ export default {
   },
 
   /**
-   * Vérifie qu'un utilisateur existant possède cet email
+   * Recherche un participant existant via email (admin)
    */
-  verifierEmail(email) {
-    return api.get('/participant/membership/verifier-email', {
+  rechercherParticipantParEmail(email) {
+    return api.get('/organisateur/membership/participants/rechercher', {
       params: { email },
     });
+  },
+
+  /**
+   * Crée une invitation membership pour un participant (admin)
+   */
+  inviterParticipant(payload) {
+    return api.post('/organisateur/membership/invitations', payload);
   },
 
   /**
@@ -53,9 +67,25 @@ export default {
   },
 
   /**
-   * Refuse une demande (admin)
+   * Remet une demande à compléter (admin)
    */
-  refuserDemande(id, raison) {
-    return api.post(`/organisateur/membership/demandes/${id}/refuser`, { raison });
+  remettreACompleterDemande(id, commentaire_admin) {
+    return api.post(`/organisateur/membership/demandes/${id}/a-completer`, { commentaire_admin });
+  },
+
+  /**
+   * Annule une invitation membership (admin)
+   */
+  annulerInvitation(id, commentaire_annulation = '') {
+    return api.post(`/organisateur/membership/invitations/${id}/annuler`, {
+      commentaire_annulation,
+    });
+  },
+
+  /**
+   * Finalise le membership au moment du paiement (création du formulaire + attribution rôle)
+   */
+  checkoutMembership(payload) {
+    return api.post('/participant/membership/checkout', payload);
   },
 };

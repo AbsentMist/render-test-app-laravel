@@ -1,10 +1,17 @@
 <template>
   <div>
-    <Title texte="Demande de Membership" />
+    <Title texte="Formulaire Membership" />
 
     <div class="p-6 space-y-8">
       <div v-if="chargementInitial" class="text-body text-center py-10">
         Chargement de vos informations...
+      </div>
+
+      <div v-else-if="!hasMembershipAccess" class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <p class="text-amber-800 font-semibold">Accès membership indisponible</p>
+        <p class="text-amber-700 text-sm mt-1">
+          Le formulaire membership devient accessible uniquement lorsqu'un organisateur vous invite à le compléter.
+        </p>
       </div>
 
       <div v-else-if="messageErreur" class="rounded-xl border border-red-200 bg-red-50 p-4">
@@ -12,7 +19,28 @@
       </div>
 
       <section
-        v-else-if="demandeExistante && demandeExistante.status === 'En attente'"
+        v-else-if="membershipEnCoursDansPanier"
+        class="rounded-2xl border border-blue-200 bg-blue-50 p-6 shadow-sm"
+      >
+        <h2 class="text-base font-semibold text-heading flex items-center gap-2">
+          <Icon icon="mdi:cart-check" class="w-5 h-5 text-blue-600" />
+          Inscription en cours
+        </h2>
+        <p class="text-sm text-body mt-2">
+          Votre formulaire a déjà été ajouté au panier. Veuillez valider votre panier pour confirmer votre membership.
+        </p>
+        <div class="mt-4">
+          <router-link
+            to="/panier"
+            class="inline-flex items-center justify-center rounded-xl btn-tertiary px-6 py-3 font-semibold"
+          >
+            Voir le panier
+          </router-link>
+        </div>
+      </section>
+
+      <section
+        v-else-if="demandeExistante && demandeExistante.status === 'En attente de validation'"
         class="rounded-xl border border-blue-200 bg-blue-50 p-5"
       >
         <h2 class="text-sm font-semibold text-heading uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -48,16 +76,16 @@
           class="text-sm font-semibold text-heading uppercase tracking-wider mb-6 flex items-center gap-2"
         >
           <Icon icon="mdi:clipboard-text-outline" class="w-5 h-5 text-blue-500" />
-          Formulaire de demande
+          Formulaire membership
         </h2>
 
         <div
-          v-if="demandeExistante && demandeExistante.status === 'Refusée'"
+          v-if="demandeExistante && demandeExistante.status === 'À compléter'"
           class="rounded-xl border border-amber-200 bg-amber-50 p-4 mb-4"
         >
-          <p class="text-amber-800 text-sm font-semibold">Votre précédente demande a été refusée.</p>
+          <p class="text-amber-800 text-sm font-semibold">Votre formulaire nécessite des compléments.</p>
           <p class="text-amber-700 text-xs mt-1">
-            Vous pouvez soumettre une nouvelle demande avec vos informations mises à jour.
+            Merci de compléter les informations demandées puis de soumettre à nouveau.
           </p>
         </div>
 
@@ -95,7 +123,6 @@
               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               :class="errors.email ? 'border-red-300 bg-red-50' : 'border-gray-200'"
               placeholder="jean@example.com"
-              @blur="verifierEmailExistant"
               @input="errors.email = ''"
             />
             <p v-if="errors.email" class="text-xs text-red-600 mt-1">{{ errors.email }}</p>
@@ -212,8 +239,8 @@
               :disabled="chargement"
               class="btn-tertiary px-8 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span v-if="!chargement">Soumettre ma demande</span>
-              <span v-else>Envoi en cours...</span>
+              <span v-if="!chargement">Ajouter au panier</span>
+              <span v-else>Ajout en cours...</span>
             </button>
           </div>
         </form>
@@ -226,6 +253,7 @@
 import Title from '../components/Title.vue';
 import { Icon } from '@iconify/vue';
 import membershipService from '../services/membershipService';
+import { useCartStore } from '../stores/cart';
 
 export default {
   name: 'Membership',
@@ -249,10 +277,12 @@ export default {
       chargement: false,
       chargementInitial: true,
       demandeExistante: null,
+      hasMembershipAccess: false,
       messageErreur: '',
       adresseSuggestions: [],
       showAdresseDropdown: false,
       adresseTimeout: null,
+      cartStore: null,
     };
   },
 
@@ -268,12 +298,30 @@ export default {
     }
   },
 
+  computed: {
+    membershipEnCoursDansPanier() {
+      return this.getCart().inscriptions.some((article) => article.type_article === 'membership');
+    },
+  },
+
   methods: {
+    getCart() {
+      if (!this.cartStore) this.cartStore = useCartStore();
+      return this.cartStore;
+    },
     async initialiserVue() {
       this.chargementInitial = true;
       this.messageErreur = '';
 
       try {
+        const accesRes = await membershipService.accesMembershipParticipant();
+        this.hasMembershipAccess = !!accesRes?.data?.has_access;
+
+        if (!this.hasMembershipAccess) {
+          this.demandeExistante = null;
+          return;
+        }
+
         const [profilRes, demandeRes] = await Promise.all([
           membershipService.profilParticipant(),
           membershipService.maDemande(),
@@ -282,7 +330,7 @@ export default {
         this.prefillDepuisProfil(profilRes.data || {});
         this.demandeExistante = demandeRes.data || null;
 
-        if (this.demandeExistante && this.demandeExistante.status === 'Refusée') {
+        if (this.demandeExistante && this.demandeExistante.status === 'À compléter') {
           this.prefillDepuisDemande(this.demandeExistante);
         }
       } catch (error) {
@@ -442,12 +490,13 @@ export default {
     },
 
     async soumettreDemande() {
+      // Désormais: on ajoute l'inscription membership au panier (tarif fixe 25 CHF)
       if (!this.validerFormulaire()) {
         return;
       }
 
-      const emailValide = await this.verifierEmailExistant();
-      if (!emailValide) {
+      if (this.membershipEnCoursDansPanier) {
+        this.messageErreur = 'Votre membership est déjà dans le panier. Validez-le avant d\'en ajouter un nouveau.';
         return;
       }
 
@@ -455,51 +504,39 @@ export default {
       this.messageErreur = '';
 
       try {
-        await membershipService.soumettreDemande(this.formulaire);
-        await this.initialiserVue();
+        const cart = this.getCart();
+
+        const uniqueId = `membership_${Date.now()}`;
+
+        const donneesInscription = {
+          id_groupe: null,
+          participant: [{
+            nom: this.formulaire.nom,
+            prenom: this.formulaire.prenom,
+            email: this.formulaire.email,
+          }],
+          tarif: 25,
+          tarif_base: 25,
+          formulaire_membership: { ...this.formulaire },
+          type_article: 'membership',
+          id_unique: uniqueId,
+        };
+
+        const courseDetails = {
+          nom_course: 'Inscription à Membership',
+          evenement: { nom: 'Membership', couleur_primaire: '#0e0f54' },
+          tarif: 25,
+        };
+
+        cart.ajouterInscription(donneesInscription, courseDetails);
+
+        // Redirecter vers la page panier pour finaliser le paiement
+        this.$router.push({ name: 'Panier' });
       } catch (error) {
-        console.error('Erreur lors de la soumission :', error);
-        this.messageErreur = error.response?.data?.message || 'Une erreur est survenue lors de la soumission.';
-        if (error.response?.status === 422 && error.response?.data?.errors) {
-          const erreursApi = {};
-          Object.entries(error.response.data.errors).forEach(([champ, messages]) => {
-            erreursApi[champ] = Array.isArray(messages) ? messages[0] : messages;
-          });
-          this.errors = { ...this.errors, ...erreursApi };
-        }
-        if (error.response?.status === 409) {
-          await this.initialiserVue();
-        }
+        console.error("Erreur lors de l'ajout au panier :", error);
+        this.messageErreur = 'Impossible d\'ajouter au panier pour le moment.';
       } finally {
         this.chargement = false;
-      }
-    },
-
-    async verifierEmailExistant() {
-      const email = String(this.formulaire.email || '').trim();
-
-      if (!email) {
-        return false;
-      }
-
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return false;
-      }
-
-      try {
-        await membershipService.verifierEmail(email);
-        if (this.errors.email === 'Aucun utilisateur trouvé avec cette adresse email.') {
-          delete this.errors.email;
-        }
-        return true;
-      } catch (error) {
-        if (error.response?.status === 404) {
-          this.errors.email = error.response?.data?.message || 'Aucun utilisateur trouvé avec cette adresse email.';
-          return false;
-        }
-
-        return true;
       }
     },
   },

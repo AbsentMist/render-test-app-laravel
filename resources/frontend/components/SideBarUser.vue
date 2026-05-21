@@ -9,10 +9,13 @@ import { Icon } from '@iconify/vue';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { useRouter } from 'vue-router';
+import { onMounted, ref } from 'vue';
+import membershipService from '../services/membershipService';
 
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
 const router = useRouter();
+const hasMembershipAccess = ref(false);
 
 /**
  * Déconnecte le participant puis retourne à la page de connexion.
@@ -22,6 +25,20 @@ const handleLogout = async () => {
   await authStore.logout(); 
   router.push('/login');   
 };
+
+onMounted(async () => {
+   if (!authStore.user?.participant) {
+      hasMembershipAccess.value = false;
+      return;
+   }
+
+   try {
+      const response = await membershipService.accesMembershipParticipant();
+      hasMembershipAccess.value = !!response?.data?.has_access;
+   } catch (_error) {
+      hasMembershipAccess.value = false;
+   }
+});
 </script>
 
 <template>
@@ -86,7 +103,7 @@ const handleLogout = async () => {
               </router-link>
            </li>
 
-           <li>
+                <li v-if="hasMembershipAccess">
               <router-link 
                 to="/membership" 
                 class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200" 

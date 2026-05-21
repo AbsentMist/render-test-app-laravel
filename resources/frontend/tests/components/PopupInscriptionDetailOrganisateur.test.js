@@ -462,4 +462,29 @@ describe('PopupInscriptionDetailOrganisateur', () => {
     wrapper.vm.fermerAvecPopup()
     expect(wrapper.emitted('close')).toBeTruthy()
   })
+
+  test('membership masque Options et Questions et affiche les champs course comme des tirets', async () => {
+    const wrapper = mountComponent({
+      inscription: {
+        ...JSON.parse(JSON.stringify(baseInscription)),
+        course: {
+          ...baseInscription.course,
+          type: 'Membership',
+          nom: 'Inscription à Membership',
+          distance: null,
+          tarif: 25,
+        },
+      },
+    })
+
+    await flushPromises()
+
+    const tabButtons = wrapper.findAll('button').filter((button) => ['Général', 'Options', 'Questions'].includes(button.text()))
+    expect(tabButtons).toHaveLength(1)
+    expect(tabButtons[0].text()).toBe('Général')
+
+    expect(wrapper.text()).not.toContain('Options')
+    expect(wrapper.text()).not.toContain('Questions')
+    expect(wrapper.text()).toContain('—')
+  })
 })

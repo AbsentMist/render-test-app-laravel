@@ -110,7 +110,14 @@
                       </span>
                   </div>
               </td>
-              <td class="px-4 py-3">{{ inscription.course.type ?? '—' }}</td>
+              <td class="px-4 py-3 text-center">
+                <span
+                  class="inline-block px-3 py-1 rounded-full text-xs font-bold"
+                  :class="'bg-gray-100 text-gray-700'"
+                >
+                  {{ inscription.course?.type ?? '—' }}
+                </span>
+              </td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
                   <button
@@ -436,7 +443,7 @@ export default {
         link.setAttribute('download', `inscriptions_${new Date().toISOString().slice(0, 10)}.${extension}`);
         document.body.appendChild(link);
         link.click();
-        childNode.remove(link);
+        document.body.removeChild(link);
         globalThis.URL.revokeObjectURL(url);
       } catch (error) {
         console.error("Erreur lors de l'export :", error);

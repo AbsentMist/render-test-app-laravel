@@ -474,6 +474,7 @@ import groupeService from "../services/groupeService";
 import choixOptionParticipantService from "../services/choixOptionParticipantService";
 import reponseQuestionParticipantService from "../services/reponseQuestionParticipantService";
 import documentService from "../services/documentService";
+import membershipService from "../services/membershipService";
 import api from "../services/api";
 import prixEvolutifService from "../services/prixEvolutifService";
 import PopupConfirmation from "../components/PopupConfirmation.vue";
@@ -941,34 +942,50 @@ const procederPaiement = async () => {
                           )
                         : parseFloat(tarifFinal || 0);
 
-                    const response = await inscriptionService.createInscription(
-                        {
-                            id_course: article.courseDetails.id,
-                            id_participant: p.id,
-                            tarif: tarifApresChangement,
-                            avertissement_valide: accepteConditions.value,
-                            id_groupe: idGroupeFinal,
-                            id_ancienne_inscription:
-                                article.ancienneInscriptionId || null,
-                            code_participant: article.codeParticipation || null,
-                            montant_rabais: article.montant_rabais || 0,
-                            code_rabais: article.code_rabais || null,
-                            code_dossard: article.code_dossard || null,
-                            participe_challenge:
-                                article.type?.id === "challenge",
-                            type_challenge:
-                                article.type?.id === "challenge"
-                                    ? article.groupeEphemere?.type_groupe
-                                    : null,
-                            equipe_challenge:
-                                article.type?.id === "challenge"
-                                    ? article.nom_equipe
-                                    : null,
-                        },
-                    );
-                    const id_inscription =
-                        response.data.inscription?.id ?? response.data.id;
-                    await finaliserInscription(id_inscription, article);
+                    if (article.type_article === 'membership') {
+                        // Special handling for membership: call membership checkout endpoint
+                        try {
+                            const payload = {
+                                formulaire: article.formulaire_membership || {},
+                                invitation_id: article.formulaire_membership?.id_invitation || article.id_invitation || null,
+                                prix: article.tarif || article.tarif_base || 25.00,
+                            };
+
+                            await membershipService.checkoutMembership(payload);
+                        } catch (e) {
+                            console.error('Erreur lors du checkout membership pour le panier :', e);
+                            throw e;
+                        }
+                    } else {
+                        const response = await inscriptionService.createInscription(
+                            {
+                                id_course: article.courseDetails.id,
+                                id_participant: p.id,
+                                tarif: tarifApresChangement,
+                                avertissement_valide: accepteConditions.value,
+                                id_groupe: idGroupeFinal,
+                                id_ancienne_inscription:
+                                    article.ancienneInscriptionId || null,
+                                code_participant: article.codeParticipation || null,
+                                montant_rabais: article.montant_rabais || 0,
+                                code_rabais: article.code_rabais || null,
+                                code_dossard: article.code_dossard || null,
+                                participe_challenge:
+                                    article.type?.id === "challenge",
+                                type_challenge:
+                                    article.type?.id === "challenge"
+                                        ? article.groupeEphemere?.type_groupe
+                                        : null,
+                                equipe_challenge:
+                                    article.type?.id === "challenge"
+                                        ? article.nom_equipe
+                                        : null,
+                            },
+                        );
+                        const id_inscription =
+                            response.data.inscription?.id ?? response.data.id;
+                        await finaliserInscription(id_inscription, article);
+                    }
                 });
 
                 await Promise.all(promessesParticipants);

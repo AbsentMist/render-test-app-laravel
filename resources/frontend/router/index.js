@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
+import api from "../services/api";
 
 const routes = [
   // ===== Route par défaut (Racine du site) =====
@@ -69,7 +70,7 @@ const routes = [
     path: "/membership",
     name: "Membership",
     component: () => import("../views/Membership.vue"),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresMembershipAccess: true }
   },
   {
     path: "/course-collecte",
@@ -149,7 +150,7 @@ const router = createRouter({
 
 
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
   const themeStore = useThemeStore(); 
   const isAuthenticated = authStore.isAuthenticated();
@@ -173,6 +174,17 @@ router.beforeEach((to, from, next) => {
   //Blocage sur les accès aux pages Admin si l'utilisateur n'a pas le rôle
   if (to.meta.requiresAdmin && !isAdmin) {
     return next('/accueil');
+  }
+
+  if (to.meta.requiresMembershipAccess && !isAdmin) {
+    try {
+      const res = await api.get('/participant/membership/acces');
+      if (!res?.data?.has_access) {
+        return next('/accueil');
+      }
+    } catch (_error) {
+      return next('/accueil');
+    }
   }
 
   next();

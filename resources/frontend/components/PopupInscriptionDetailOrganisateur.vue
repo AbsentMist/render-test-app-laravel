@@ -55,7 +55,7 @@
                     <!-- Tabs -->
                     <div class="flex gap-1 mt-3 px-6">
                         <button
-                            v-for="tab in tabs"
+                            v-for="tab in filteredTabs"
                             :key="tab.key"
                             @click="activeTab = tab.key"
                             class="px-4 py-2 text-sm font-medium rounded-t-lg transition-all duration-200 flex items-center gap-2"
@@ -162,27 +162,29 @@
                             <div>
                                 <p class="text-xs text-gray-400">Nom</p>
                                 <p class="font-medium text-gray-800">
-                                    {{ inscription.course.nom }}
+                                    {{ courseDisplayValue(inscription.course.nom) }}
                                 </p>
                             </div>
                             <div>
                                 <p class="text-xs text-gray-400">Distance</p>
                                 <p class="font-medium text-gray-800">
-                                    {{ inscription.course.distance }} km
+                                    {{ courseDisplayValue(inscription.course.distance, true) }}
                                 </p>
                             </div>
                             <div>
                                 <p class="text-xs text-gray-400">Type</p>
                                 <p class="font-medium text-gray-800">
-                                    {{ inscription.course.type }}
+                                    {{ courseDisplayValue(inscription.course.type) }}
                                 </p>
                             </div>
                             <div>
                                 <p class="text-xs text-gray-400">Date</p>
                                 <p class="font-medium text-gray-800">
                                     {{
-                                        formatDate(
-                                            inscription.course.date_debut,
+                                        courseDisplayValue(
+                                            formatDate(
+                                                inscription.course.date_debut,
+                                            ),
                                         )
                                     }}
                                 </p>
@@ -191,19 +193,15 @@
                                 <p class="text-xs text-gray-400">Statut</p>
                                 <span
                                     class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold"
-                                    :class="
-                                        inscription.course.status === 'actif'
-                                            ? 'bg-green-100 text-green-700'
-                                            : 'bg-red-100 text-red-700'
-                                    "
+                                    :class="membershipMode ? 'bg-gray-100 text-gray-700' : (inscription.course.status === 'actif' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')"
                                 >
-                                    {{ inscription.course.status }}
+                                    {{ courseDisplayValue(inscription.course.status) }}
                                 </span>
                             </div>
                             <div>
                                 <p class="text-xs text-gray-400">Tarif</p>
                                 <p class="font-medium text-gray-800">
-                                    {{ inscription.course.tarif }} CHF
+                                    {{ courseDisplayValue(inscription.course.tarif, true) }}
                                 </p>
                             </div>
                         </div>
@@ -680,7 +678,7 @@
                     </section>
 
                     <!-- Documents -->
-                    <section>
+                    <section v-if="!membershipMode">
                         <h3
                             class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2"
                         >
@@ -847,7 +845,7 @@
                 </div>
 
                 <!-- Onglet Options -->
-                <div v-if="activeTab === 'options'" class="p-6">
+                <div v-if="activeTab === 'options' && !membershipMode" class="p-6">
                     <div class="space-y-4">
                         <div
                             v-if="
@@ -1017,7 +1015,7 @@
                 </div>
 
                 <!-- Onglet Questions -->
-                <div v-if="activeTab === 'questions'" class="p-6">
+                <div v-if="activeTab === 'questions' && !membershipMode" class="p-6">
                     <div
                         v-if="
                             coursComplet?.questionnaire &&
@@ -1149,45 +1147,47 @@
                 </div>
 
                 <div class="flex gap-3">
-                    <button
-                        class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-                        @click="ouvrirChangementCourse"
-                    >
-                        <Icon icon="mdi:swap-horizontal" class="w-4 h-4" />
-                        Changer de course
-                    </button>
-
-                    <template v-if="!isEdit">
-                        <button
-                            class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                            :style="{
-                                backgroundColor:
-                                    inscription.course.evenement
-                                        .couleur_primaire,
-                                color: inscription.course.evenement
-                                    .couleur_secondaire,
-                            }"
-                            @click="activerEdition"
-                        >
-                            <Icon icon="mdi:pencil" class="w-4 h-4" />
-                            Modifier l'inscription
-                        </button>
-                    </template>
-                    <template v-else>
+                    <template v-if="inscription.course?.type !== 'Membership'">
                         <button
                             class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-                            @click="annulerEdition"
+                            @click="ouvrirChangementCourse"
                         >
-                            <Icon icon="mdi:close" class="w-4 h-4" />
-                            Annuler
+                            <Icon icon="mdi:swap-horizontal" class="w-4 h-4" />
+                            Changer de course
                         </button>
-                        <button
-                            class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-600 transition-colors shadow-sm"
-                            @click="sauvegarderEdition"
-                        >
-                            <Icon icon="mdi:check" class="w-4 h-4" />
-                            Sauvegarder
-                        </button>
+
+                        <template v-if="!isEdit">
+                            <button
+                                class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                :style="{
+                                    backgroundColor:
+                                        inscription.course.evenement
+                                            .couleur_primaire,
+                                    color: inscription.course.evenement
+                                        .couleur_secondaire,
+                                }"
+                                @click="activerEdition"
+                            >
+                                <Icon icon="mdi:pencil" class="w-4 h-4" />
+                                Modifier l'inscription
+                            </button>
+                        </template>
+                        <template v-else>
+                            <button
+                                class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                                @click="annulerEdition"
+                            >
+                                <Icon icon="mdi:close" class="w-4 h-4" />
+                                Annuler
+                            </button>
+                            <button
+                                class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-600 transition-colors shadow-sm"
+                                @click="sauvegarderEdition"
+                            >
+                                <Icon icon="mdi:check" class="w-4 h-4" />
+                                Sauvegarder
+                            </button>
+                        </template>
                     </template>
                 </div>
             </div>
@@ -1263,6 +1263,15 @@ export default {
             ],
         };
     },
+        computed: {
+            membershipMode() {
+                return this.inscription?.course?.type === 'Membership';
+            },
+            filteredTabs() {
+                if (!this.membershipMode) return this.tabs;
+                return this.tabs.filter((tab) => tab.key === 'general');
+            },
+        },
     methods: {
         /**
          * Formate une date ISO en JJ.MM.AAAA.
@@ -1273,6 +1282,12 @@ export default {
             if (!dateStr) return "—";
             const [y, m, d] = dateStr.split("-");
             return `${d}.${m}.${y}`;
+        },
+
+        courseDisplayValue(value, appendChf = false) {
+            if (this.membershipMode) return "—";
+            if (value === null || value === undefined || value === "") return "—";
+            return appendChf ? `${value} CHF` : value;
         },
 
         /**
