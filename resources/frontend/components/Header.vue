@@ -24,7 +24,6 @@ const router = useRouter();
 const invitations = ref([]);
 const demandesEchange = ref([]);
 const notificationsInfo = ref([]);
-const membershipRequests = ref([]);
 const isProfileDropdownOpen = ref(false);
 const deductionChangement = ref(0);
 const notificationsRefreshIntervalId = ref(null);
@@ -147,19 +146,6 @@ const chargerInvitations = async () => {
         tag: notification.title || 'Information',
       }));
 
-      // Filtrer les demandes membership des notifications info AVANT d'exclure
-      membershipRequests.value = notificationsInfo.value
-        .filter(n => n.type === 'new_membership_request')
-        .map(n => ({
-          ...n,
-          id: n.id,
-          prenom: n.prenom || 'Candidat',
-          nom: n.nom || '',
-          email: n.email || '',
-        }));
-      
-      // Exclure les membership requests des notifications info pour éviter le doublon
-      notificationsInfo.value = notificationsInfo.value.filter(n => n.type !== 'new_membership_request');
     } catch (e) {
       console.error("Erreur lors du chargement des invitations", e);
     }
@@ -170,7 +156,7 @@ const rafraichirNotifications = () => {
   chargerInvitations();
 };
 
-const totalNotifications = computed(() => invitations.value.length + demandesEchange.value.length + notificationsInfo.value.length + membershipRequests.value.length);
+const totalNotifications = computed(() => invitations.value.length + demandesEchange.value.length + notificationsInfo.value.length);
 
 onMounted(() => {
   chargerInvitations();
@@ -306,7 +292,15 @@ const supprimerNotificationInfo = async (idNotification) => {
   }
 };
 
-const isMembershipInfoNotification = (notification) => ['membership_approved_info', 'membership_refused_info'].includes(notification?.type);
+const isMembershipInfoNotification = (notification) => [
+  'membership_approved_info',
+  'membership_refused_info',
+  'new_membership_request',
+  'membership_invitation_to_complete',
+  'membership_invitation_info',
+  'membership_invitation_cancelled_info',
+  'membership_invitation_cancelled_participant',
+].includes(notification?.type);
 
 const getInfoNotificationCardClass = (notification) => {
   if (isMembershipInfoNotification(notification)) {
@@ -330,8 +324,8 @@ const getInfoNotificationIcon = (notification) => {
 };
 
 const getInfoNotificationRoute = (notification) => {
-  if (notification?.type === 'new_membership_request') {
-    return '/organisateur/membership';
+  if (notification?.type === 'membership_invitation_to_complete') {
+    return '/membership';
   }
   return null;
 };
@@ -341,11 +335,7 @@ const ouvrirNotificationInfo = async (notification) => {
   if (route) {
     isProfileDropdownOpen.value = false;
     await router.push(route);
-    // Pour les notifications d'information simples (refus), on les supprime
-    // Pour les membership requests, on les garde jusqu'à ce que l'admin prenne une action
-    if (notification.type !== 'new_membership_request') {
-      await supprimerNotificationInfo(notification.id);
-    }
+    await supprimerNotificationInfo(notification.id);
   }
 };
 </script>
@@ -611,35 +601,6 @@ const ouvrirNotificationInfo = async (notification) => {
                           class="inline-flex items-center justify-center w-full bg-[#0e0f54] hover:bg-[#0e0f54]/90 text-white py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
                         >
                           Voir la demande
-                        </router-link>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div v-if="membershipRequests.length > 0" class="pt-2 border-t border-gray-100">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
-                      <Icon icon="mdi:file-document-outline" class="w-4 h-4 text-purple-500" />
-                      Demandes de membership
-                    </h4>
-
-                    <div class="flex flex-col gap-3">
-                      <div v-for="notif in membershipRequests" :key="`membership-${notif.id}`" class="bg-purple-50 border border-purple-200 shadow-sm rounded-xl p-4">
-                        <div class="flex flex-col gap-2 mb-1">
-                          <span class="shrink-0 bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-200 w-fit">
-                            Demande membership
-                          </span>
-                        </div>
-
-                        <p class="text-xs text-gray-600 font-medium mb-3 leading-snug">
-                          <strong class="text-[#0e0f54]">{{ notif.prenom }} {{ notif.nom }}</strong> ({{ notif.email }}) a soumis une demande de membership.
-                        </p>
-
-                        <router-link
-                          to="/organisateur/membership"
-                          @click="isProfileDropdownOpen = false"
-                          class="inline-flex items-center justify-center w-full bg-[#0e0f54] hover:bg-[#0e0f54]/90 text-white py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
-                        >
-                          Gérer les demandes
                         </router-link>
                       </div>
                     </div>

@@ -58,7 +58,7 @@ const handleLogout = async () => {
                 :active-class="themeStore.primaryColor ? 'bg-white shadow-sm font-bold' : 'bg-tertiary !text-primary'"
               >
                  <Icon icon="lucide:clipboard-list" class="w-5 h-5 opacity-90 transition duration-75" />
-                 <span class="ms-3 font-medium">Inscription</span>
+                 <span class="ms-3 font-medium">Inscriptions</span>
               </router-link>
            </li>
 
