@@ -3,7 +3,11 @@
 //use App\Http\Controllers\MessageController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/login', function () {
+    return view('welcome');
+})->name('login');
+
 //Route::get('/', [MessageController::class, 'index']); // La route principale
 Route::get('/{any}', function () {
     return view('welcome');
-})->where('any', '.*');
+})->where('any', '^(?!api).*$');

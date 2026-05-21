@@ -51,12 +51,25 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Création de la table DemandeMembership
-        Schema::create('DemandeMembership', function (Blueprint $table) {
+        Schema::create('InvitationMembership', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_user_participant')->constrained('User')->onDelete('cascade');
+            $table->foreignId('id_admin_createur')->constrained('User')->onDelete('cascade');
+            $table->string('commentaire_admin', 500)->nullable();
+            $table->string('status', 20)->default('En cours');
+            $table->timestamp('date_invitation')->useCurrent();
+            $table->timestamp('date_annulation')->nullable();
+            $table->foreignId('id_admin_annulation')->nullable()->constrained('User')->onDelete('set null');
+            $table->string('commentaire_annulation', 500)->nullable();
+        });
+
+        // Création de la table FormulaireMembership
+        Schema::create('FormulaireMembership', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('id_invitation')->constrained('InvitationMembership')->onDelete('cascade');
             $table->string('nom', 100);
             $table->string('prenom', 100);
-            $table->string('email', 255)->unique();
+            $table->string('email', 255);
             $table->string('adresse', 255);
             $table->string('code_postal', 10);
             $table->string('ville', 100);
@@ -64,7 +77,8 @@ return new class extends Migration
             $table->string('telephone', 20);
             $table->date('date_naissance');
             $table->text('description');
-            $table->enum('status', ['En attente', 'Approuvée', 'Refusée'])->default('En attente');
+            $table->decimal('prix', 8, 2)->default(25.00);
+            $table->string('status', 30)->default('À compléter');
             $table->timestamp('date_creation')->useCurrent();
             $table->timestamp('date_decision')->nullable();
             $table->foreignId('id_admin_decideur')->nullable()->constrained('User')->onDelete('set null');
@@ -74,7 +88,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('DemandeMembership');
+        Schema::dropIfExists('FormulaireMembership');
+        Schema::dropIfExists('InvitationMembership');
         Schema::dropIfExists('Membre');
 
         // Revenir à l'enum original

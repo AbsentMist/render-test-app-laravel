@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Models\Participant;
 use App\Models\Groupe;
 use App\Models\Inscription;
+use App\Models\FormulaireMembership;
+use App\Models\InvitationMembership;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -419,15 +421,64 @@ public function mesParticipants(Request $request)
                 return null;
             }
 
+            if (($payload['type'] ?? null) === 'membership_invitation_to_complete') {
+                $invitationId = $payload['invitation_id'] ?? null;
+                $invitation = $invitationId ? InvitationMembership::find($invitationId) : null;
+
+                if (!$invitation || $invitation->status !== 'En cours') {
+                    return null;
+                }
+            }
+
             $payload['title'] = match ($payload['type'] ?? null) {
                 'exchange_refused' => 'Demande échange dossard refusée',
                 'group_invitation_refused' => 'Invitation à un groupe refusée',
+                'new_membership_request' => 'Membership complété',
+                'membership_invitation_to_complete' => 'Invitation membership',
+                'membership_invitation_info' => 'Invitation membership envoyée',
+                'membership_invitation_cancelled_info' => 'Invitation membership annulée',
+                'membership_invitation_cancelled_participant' => 'Invitation membership annulée',
+                'membership_refused_info' => 'Membership refusé',
                 default => 'Information',
             };
+
+            $membershipDecisionMaker = $this->resolveMembershipDecisionMakerLabel($payload);
+            $membershipAdminActor = $this->resolveMembershipAdminActorLabel($payload);
 
             $payload['content'] = match ($payload['type'] ?? null) {
                 'exchange_refused' => $this->buildExchangeRefusedNotification($payload),
                 'group_invitation_refused' => $this->buildGroupRefusedNotification($payload),
+                'new_membership_request' => sprintf(
+                    '%s %s a complété sa demande membership.',
+                    $payload['prenom'] ?? 'Quelqu\'un',
+                    $payload['nom'] ?? ''
+                ),
+                'membership_invitation_to_complete' => sprintf(
+                    '%s vous a invité à compléter votre formulaire membership.',
+                    $membershipAdminActor
+                ),
+                'membership_invitation_info' => sprintf(
+                    '%s a invité %s %s à compléter son formulaire membership.',
+                    $membershipAdminActor,
+                    $payload['participant_prenom'] ?? 'Un participant',
+                    $payload['participant_nom'] ?? ''
+                ),
+                'membership_invitation_cancelled_info' => sprintf(
+                    '%s a annulé l\'invitation membership de %s %s.',
+                    $membershipAdminActor,
+                    $payload['participant_prenom'] ?? 'Un participant',
+                    $payload['participant_nom'] ?? ''
+                ),
+                'membership_invitation_cancelled_participant' => sprintf(
+                    '%s a annulé votre invitation membership.',
+                    $membershipAdminActor
+                ),
+                'membership_refused_info' => sprintf(
+                    '%s a refusé la demande de membership de %s %s.',
+                    $membershipDecisionMaker,
+                    $payload['prenom'] ?? 'Quelqu\'un',
+                    $payload['nom'] ?? ''
+                ),
                 default => 'Notification.',
             };
 
@@ -476,6 +527,42 @@ public function mesParticipants(Request $request)
         $nom = $sender?->participant?->nom ?? '';
 
         return sprintf('%s %s a refusé votre invitation au groupe %s.', $prenom, $nom, $groupe?->nom ?? '—');
+    }
+
+    private function resolveMembershipDecisionMakerLabel(array $payload): string
+    {
+        $prenom = trim((string) ($payload['admin_decideur_prenom'] ?? ''));
+        $nom = trim((string) ($payload['admin_decideur_nom'] ?? ''));
+        $fullName = trim($prenom . ' ' . $nom);
+
+        if ($fullName !== '') {
+            return $fullName;
+        }
+
+        $email = $payload['admin_decideur_email'] ?? null;
+        if (is_string($email) && $email !== '') {
+            $admin = User::with('participant')->where('email', $email)->first();
+            $dbName = trim(trim((string) ($admin?->participant?->prenom ?? '')) . ' ' . trim((string) ($admin?->participant?->nom ?? '')));
+
+            if ($dbName !== '') {
+                return $dbName;
+            }
+        }
+
+        return 'Un autre admin';
+    }
+
+    private function resolveMembershipAdminActorLabel(array $payload): string
+    {
+        $prenom = trim((string) ($payload['admin_prenom'] ?? ''));
+        $nom = trim((string) ($payload['admin_nom'] ?? ''));
+        $fullName = trim($prenom . ' ' . $nom);
+
+        if ($fullName !== '') {
+            return $fullName;
+        }
+
+        return 'Un autre admin';
     }
     
 }

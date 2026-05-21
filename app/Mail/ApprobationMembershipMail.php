@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\DemandeMembership;
+use App\Models\FormulaireMembership;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -11,9 +11,9 @@ class ApprobationMembershipMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public DemandeMembership $demande;
+    public FormulaireMembership $demande;
 
-    public function __construct(DemandeMembership $demande)
+    public function __construct(FormulaireMembership $demande)
     {
         $this->demande = $demande;
     }

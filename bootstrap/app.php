@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
         'is_admin' => \App\Http\Middleware\IsAdmin::class,
+        'has_membership_invitation' => \App\Http\Middleware\HasMembershipInvitation::class,
     ]);
         $middleware->api(prepend: [
             \Illuminate\Http\Middleware\HandleCors::class,
