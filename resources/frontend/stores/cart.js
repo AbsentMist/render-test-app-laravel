@@ -31,7 +31,10 @@ export const useCartStore = defineStore('cart', {
 
   getters: {
     cartCount: (state) => state.inscriptions.length,
-    cartTotal: (state) => state.inscriptions.reduce((total, item) => total + parseFloat(item.tarif || 0), 0)
+    cartTotal: (state) => state.inscriptions.reduce((total, item) => {
+      const prix = item.type === 'options_supplementaires' ? (item.prixTotal || 0) : parseFloat(item.tarif || 0);
+      return total + prix;
+    }, 0)
   },
 
   actions: {

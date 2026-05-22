@@ -95,29 +95,26 @@
                                 <div
                                     class="w-full flex flex-col gap-1 text-sm text-gray-900"
                                 >
-                                    <h3 class="text-lg font-normal">
-                                        {{
-                                            article.courseDetails?.evenement
-                                                ?.nom
-                                        }}
+                                    <h3 class="text-lg font-normal" :class="{ 'whitespace-pre-line': article.type === 'options_supplementaires' }">
+                                        <template v-if="article.type === 'options_supplementaires'">
+                                            {{ article.libelle }}
+                                        </template>
+                                        <template v-else>
+                                            {{
+                                                article.courseDetails?.evenement
+                                                    ?.nom
+                                            }}
+                                        </template>
                                     </h3>
                                     <div class="flex flex-row justify-between">
-                                        <p class="font-semibold text-xs">
-                                            -
-                                            {{
-                                                article.courseDetails
-                                                    ?.nom_course
-                                            }}
-                                        </p>
-
-                                        <p>
-                                            {{
-                                                parseFloat(
-                                                    article.courseDetails
-                                                        ?.tarif,
-                                                ).toFixed(2)
-                                            }}.-
-                                        </p>
+                                        <template v-if="article.type === 'options_supplementaires'">
+                                            <p class="font-semibold text-xs">- Supplément d'option</p>
+                                            <p>{{ parseFloat(article.prixTotal).toFixed(2) }}.-</p>
+                                        </template>
+                                        <template v-else>
+                                            <p class="font-semibold text-xs">- {{ article.courseDetails?.nom_course }}</p>
+                                            <p>{{ parseFloat(article.courseDetails?.tarif).toFixed(2) }}.-</p>
+                                        </template>
                                     </div>
                                     <!-- Après la ligne du nom de la course -->
                                     <p
@@ -145,18 +142,23 @@
                                     </p>
 
                                     <p class="font-bold mt-1 text-gray-700">
-                                        {{
-                                            (article.participant?.length
-                                                ? article.participant
-                                                : article.groupeEphemere
-                                                      ?.participants || []
-                                            )
-                                                .map(
-                                                    (p) =>
-                                                        p.prenom + " " + p.nom,
+                                        <template v-if="article.type === 'options_supplementaires'">
+                                            Supplément d'option
+                                        </template>
+                                        <template v-else>
+                                            {{
+                                                (article.participant?.length
+                                                    ? article.participant
+                                                    : article.groupeEphemere
+                                                          ?.participants || []
                                                 )
-                                                .join(", ")
-                                        }}
+                                                    .map(
+                                                        (p) =>
+                                                            p.prenom + " " + p.nom,
+                                                    )
+                                                    .join(", ")
+                                            }}
+                                        </template>
                                     </p>
 
                                     <div

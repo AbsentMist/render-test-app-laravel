@@ -423,19 +423,24 @@ const ouvrirNotificationInfo = async (notification) => {
                     
                     <div class="flex-1 flex flex-col justify-between">
                       <div>
-                        <h3 class="text-[1.1rem] font-medium text-[#0e0f54] leading-tight mb-1">{{ item.courseDetails?.nom_course || 'Nouvelle inscription' }}</h3>
-                        <p class="text-[0.8rem] text-[#0e0f54] font-semibold">
-                          - {{ item.courseDetails?.categorie || 'Catégorie' }} <span v-if="item.courseDetails?.sous_categorie">• {{ item.courseDetails?.sous_categorie }}</span>
-                        </p>
-                        <div v-if="item.options && Object.keys(item.options).length > 0">
-                          <p v-for="(opt, key) in item.options" :key="key" class="text-[0.8rem] text-[#0e0f54] font-semibold mt-0.5">
-                            - {{ opt.quantite ? opt.quantite + ' ' : '1x ' }}{{ opt.option?.nom }}
+                        <template v-if="item.type === 'options_supplementaires'">
+                          <p v-if="item.libelle" class="text-[0.8rem] text-[#0e0f54] font-semibold whitespace-pre-line">{{ item.libelle }}</p>
+                        </template>
+                        <template v-else>
+                          <h3 class="text-[1.1rem] font-medium text-[#0e0f54] leading-tight mb-1">{{ item.courseDetails?.nom_course || 'Nouvelle inscription' }}</h3>
+                          <p class="text-[0.8rem] text-[#0e0f54] font-semibold">
+                            - {{ item.courseDetails?.categorie || 'Catégorie' }} <span v-if="item.courseDetails?.sous_categorie">• {{ item.courseDetails?.sous_categorie }}</span>
                           </p>
-                        </div>
+                          <div v-if="item.options && Object.keys(item.options).length > 0">
+                            <p v-for="(opt, key) in item.options" :key="key" class="text-[0.8rem] text-[#0e0f54] font-semibold mt-0.5">
+                              - {{ opt.quantite ? opt.quantite + ' ' : '1x ' }}{{ opt.option?.nom }}
+                            </p>
+                          </div>
+                        </template>
                       </div>
 
                       <div class="text-right mt-2">
-                        <span class="text-lg font-medium text-[#0e0f54]">{{ item.tarif || 0 }}.-</span>
+                        <span class="text-lg font-medium text-[#0e0f54]">{{ item.type === 'options_supplementaires' ? item.prixTotal : item.tarif || 0 }}.-</span>
                       </div>
                     </div>
                   </div>
