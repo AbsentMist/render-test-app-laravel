@@ -116,7 +116,7 @@
         <PopupInscriptionCourse
         v-else-if="etape === ETAPES.INSCRIPTION"
         :course="nouvelleInscription.course"
-        :participants="participants"
+        :participants="inscription.participant ? [inscription.participant, ...participants] : participants"
         :inline="true"
         @close="retourCourses"
         @ajouter-panier="confirmerChangement"

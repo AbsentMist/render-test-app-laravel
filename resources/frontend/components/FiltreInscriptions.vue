@@ -26,6 +26,8 @@
         <option value="Validé">Validé</option>
         <option value="En attente">En attente</option>
         <option value="Annulé">Annulé</option>
+        <option value="Transféré">Transféré</option>
+        <option value="Echangé">Echangé</option>
       </select>
   
       <select
