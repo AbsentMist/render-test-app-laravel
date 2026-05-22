@@ -469,10 +469,17 @@ export default {
     computed: {
         tousLesParticipants() {
             const ids = new Set(this.participants.map((p) => p.id));
+            let result = [...this.participants];
             const extras = (
                 this.inscription.groupeEphemere?.participants ?? []
             ).filter((p) => !ids.has(p.id));
-            return [...this.participants, ...extras];
+            result.push(...extras);
+            const supplementairesFiltrés = (
+                this.participantsSupplementaires ?? []
+            ).filter((p) => !ids.has(p.id) && !extras.some((e) => e.id === p.id));
+            result.push(...supplementairesFiltrés);
+            
+            return result;
         },
         estCourseGroupe() {
             return this.course.type === "Groupe";
@@ -756,10 +763,10 @@ export default {
         this.modalAffichage = this.course.avertissement
             ? modals.AVERTISSEMENT
             : modals.INSCRIPTION;
-        this.etape = this.etapesActives[0];
-        this.modalAffichage = this.course.avertissement
-            ? modals.AVERTISSEMENT
-            : modals.INSCRIPTION;
-    },
+        // Pré-sélectionner le participant initial par défaut
+        if (this.participants.length > 0) {
+            this.inscription.participant = [this.participants[0]];
+        }
+    }
 };
 </script>

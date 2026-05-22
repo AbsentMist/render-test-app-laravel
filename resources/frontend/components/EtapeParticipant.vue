@@ -1108,11 +1108,13 @@ export default {
                 (p) => p.id === participant.id,
             );
             if (idx >= 0) {
+                // Si déjà sélectionné, désélectionner
                 const n = [...this.selectionnes];
                 n.splice(idx, 1);
                 this.selectionnes = n;
-            } else if (this.selectionnes.length < 1) {
-                this.selectionnes = [...this.selectionnes, participant];
+            } else {
+                // Si pas sélectionné, sélectionner (remplace la sélection actuelle)
+                this.selectionnes = [participant];
             }
         },
         /**

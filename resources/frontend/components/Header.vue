@@ -474,8 +474,8 @@ const ouvrirNotificationInfo = async (notification) => {
           @click="handleToggleMode()"
           class="hidden md:flex items-center gap-2 bg-secondary hover:bg-secondary-600 text-primary-900 px-4 py-2 rounded-xl transition-colors font-bold text-sm"
         >
-          <Icon :icon="authStore.showAdminLayout ? 'lucide:eye' : 'lucide:settings'" class="w-4 h-4" />
-          {{ authStore.showAdminLayout ? 'Vue Participant' : 'Vue Organisateur' }}
+          <Icon :icon="authStore.showAdminLayout ? 'lucide:settings' : 'lucide:eye'" class="w-4 h-4" />
+          {{ authStore.showAdminLayout ? 'Vue Organisateur' : 'Vue Participant' }}
         </button>
 
 
