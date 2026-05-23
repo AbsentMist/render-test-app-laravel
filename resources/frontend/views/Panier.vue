@@ -96,28 +96,24 @@
                                     class="w-full flex flex-col gap-1 text-sm text-gray-900"
                                 >
                                     <h3 class="text-lg font-normal">
-                                        {{
-                                            article.courseDetails?.evenement
-                                                ?.nom
-                                        }}
+                                        <template v-if="article.type === 'options_supplementaires'">
+                                            Ajout d'option
+                                        </template>
+                                        <template v-else>
+                                            {{
+                                                article.courseDetails?.evenement
+                                                    ?.nom
+                                            }}
+                                        </template>
                                     </h3>
                                     <div class="flex flex-row justify-between">
-                                        <p class="font-semibold text-xs">
-                                            -
-                                            {{
-                                                article.courseDetails
-                                                    ?.nom_course
-                                            }}
-                                        </p>
-
-                                        <p>
-                                            {{
-                                                parseFloat(
-                                                    article.courseDetails
-                                                        ?.tarif,
-                                                ).toFixed(2)
-                                            }}.-
-                                        </p>
+                                        <template v-if="article.type === 'options_supplementaires'">
+                                            <p class="font-semibold text-xs">- {{ article.courseDetails?.nom }}</p>
+                                        </template>
+                                        <template v-else>
+                                            <p class="font-semibold text-xs">- {{ article.courseDetails?.nom_course }}</p>
+                                            <p>{{ parseFloat(article.courseDetails?.tarif).toFixed(2) }}.-</p>
+                                        </template>
                                     </div>
                                     <!-- Après la ligne du nom de la course -->
                                     <p
@@ -145,33 +141,35 @@
                                     </p>
 
                                     <p class="font-bold mt-1 text-gray-700">
-                                        {{
-                                            (article.participant?.length
-                                                ? article.participant
-                                                : article.groupeEphemere
-                                                      ?.participants || []
-                                            )
-                                                .map(
-                                                    (p) =>
-                                                        p.prenom + " " + p.nom,
+                                        <template v-if="article.type !== 'options_supplementaires'">
+                                            {{
+                                                (article.participant?.length
+                                                    ? article.participant
+                                                    : article.groupeEphemere
+                                                          ?.participants || []
                                                 )
-                                                .join(", ")
-                                        }}
+                                                    .map(
+                                                        (p) =>
+                                                            p.prenom + " " + p.nom,
+                                                    )
+                                                    .join(", ")
+                                            }}
+                                        </template>
                                     </p>
 
                                     <div
                                         v-if="
                                             article.options &&
-                                            Object.keys(article.options)
-                                                .length > 0
+                                            Array.isArray(article.options) &&
+                                            article.options.length > 0
                                         "
                                         class="mt-1"
                                     >
                                         <div
                                             v-for="(
-                                                opt, key
+                                                opt, idx
                                             ) in article.options"
-                                            :key="key"
+                                            :key="'opt-' + idx"
                                             class="font-medium text-xs text-gray-600 flex flex-row justify-between"
                                         >
                                             <span>
@@ -185,7 +183,9 @@
                                                 +
                                                 {{
                                                     parseFloat(
-                                                        opt.option?.tarif,
+                                                        opt.option?.tarif *
+                                                            (opt.quantite || 1) ||
+                                                            0,
                                                     ).toFixed(2)
                                                 }}.-
                                             </span>
@@ -597,12 +597,14 @@ const getDeductionArticle = (index) => {
 
 /**
  * Retourne le tarif final d'une ligne après déduction de changement.
+ * Inclut prixTotal pour les options supplémentaires.
  * @param {Object} article
  * @param {number} index
  * @returns {number}
  */
 const getTotalLigneArticle = (article, index) => {
-    const tarif = parseFloat(article?.tarif || 0);
+    // Utiliser prixTotal pour les options supplémentaires, sinon tarif
+    const tarif = parseFloat(article?.prixTotal || article?.tarif || 0);
     const deduction = getDeductionArticle(index);
     return Math.max(tarif - deduction, 0);
 };
@@ -761,6 +763,31 @@ const procederPaiement = async () => {
         // On boucle sur chaque article du panier
         const promessesInscriptions = panier.value.map(
             async (article, articleIndex) => {
+                // Traiter les options supplémentaires (pas d'inscription à créer, juste mettre à jour les options)
+                if (article.type === "options_supplementaires") {
+                    try {
+                        // Sauvegarder les options supplémentaires pour l'inscription existante
+                        const optionsAjoutes = (article.options ?? []).map((opt) => ({
+                            id_inscription: article.inscription_id,
+                            id_option: opt.option.id,
+                            quantite: opt.quantiteTotale ?? opt.quantite,  // Utiliser quantité totale finale
+                        }));
+                        
+                        if (optionsAjoutes.length > 0) {
+                            await choixOptionParticipantService.saveChoix({
+                                choix: optionsAjoutes,
+                            });
+                        }
+                    } catch (e) {
+                        console.error(
+                            "Erreur lors de la sauvegarde des options supplémentaires:",
+                            e,
+                        );
+                        throw e;
+                    }
+                    return null;
+                }
+
                 // On vérifie si un groupe a déjà été créé
                 let idGroupeFinal = article.id_groupe || null;
 
@@ -1004,8 +1031,8 @@ const procederPaiement = async () => {
             },
         );
 
-        // On attend que tout soit en base de données
-        await Promise.all(promessesInscriptions);
+        // On attend que tout soit en base de données (filtre les promesses null pour les options supplémentaires)
+        await Promise.all(promessesInscriptions.filter(p => p !== null));
         const montantTotal = parseFloat(total.value);
 
         // Si le total est à 0 (Downgrade gratuit), on valide sans passer par Payrexx

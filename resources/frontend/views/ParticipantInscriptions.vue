@@ -178,6 +178,7 @@ import { Icon } from "@iconify/vue";
 import Title from "../components/Title.vue";
 import inscriptionService from "../services/inscriptionService.js";
 import echangeDossardService from "../services/echangeDossardService.js";
+import { useCartStore } from "../stores/cart";
 import PopupAvertissementCourse from "../components/PopupAvertissementCourse.vue";
 import PopupChangementCourseParticipant from "../components/PopupChangementCourseParticipant.vue";
 import PopupInscriptionDetailParticipant from "../components/PopupInscriptionDetailParticipant.vue";
@@ -191,6 +192,10 @@ export default {
         PopupInscriptionDetailParticipant,
     },
     emits: ["close"],
+    setup() {
+        const cartStore = useCartStore();
+        return { cartStore };
+    },
     data() {
         return {
             inscriptions: [],
@@ -354,7 +359,7 @@ export default {
 
         onChangementConfirme(data) {
             this.popupDetail = false;
-            this.$emit("ajouter-panier", data);
+            this.cartStore.ajouterInscription(data, data.course);
         },
     },
 

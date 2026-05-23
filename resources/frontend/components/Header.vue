@@ -423,19 +423,24 @@ const ouvrirNotificationInfo = async (notification) => {
                     
                     <div class="flex-1 flex flex-col justify-between">
                       <div>
-                        <h3 class="text-[1.1rem] font-medium text-[#0e0f54] leading-tight mb-1">{{ item.courseDetails?.nom_course || 'Nouvelle inscription' }}</h3>
-                        <p class="text-[0.8rem] text-[#0e0f54] font-semibold">
+                        <h3 v-if="item.type === 'options_supplementaires'" class="text-[1.1rem] font-medium text-[#0e0f54] leading-tight mb-1">Ajout d'option</h3>
+                        <h3 v-else class="text-[1.1rem] font-medium text-[#0e0f54] leading-tight mb-1">{{ item.courseDetails?.nom_course || 'Nouvelle inscription' }}</h3>
+                        <p v-if="item.type === 'options_supplementaires'" class="text-[0.8rem] text-[#0e0f54] font-semibold">
+                          - {{ item.courseDetails?.nom  }} 
+                        </p>
+                        <p v-else class="text-[0.8rem] text-[#0e0f54] font-semibold">
                           - {{ item.courseDetails?.categorie || 'Catégorie' }} <span v-if="item.courseDetails?.sous_categorie">• {{ item.courseDetails?.sous_categorie }}</span>
                         </p>
-                        <div v-if="item.options && Object.keys(item.options).length > 0">
-                          <p v-for="(opt, key) in item.options" :key="key" class="text-[0.8rem] text-[#0e0f54] font-semibold mt-0.5">
-                            - {{ opt.quantite ? opt.quantite + ' ' : '1x ' }}{{ opt.option?.nom }}
+                        <!-- Options ajoutées -->
+                        <div v-if="item.options && Array.isArray(item.options) && item.options.length > 0">
+                          <p v-for="(opt, idx) in item.options" :key="'opt-' + idx" class="text-[0.8rem] text-[#0e0f54] font-semibold mt-0.5">
+                            - {{ opt.quantite ? opt.quantite + 'x ' : '1x ' }}{{ opt.option?.nom || 'Option' }}
                           </p>
                         </div>
                       </div>
 
                       <div class="text-right mt-2">
-                        <span class="text-lg font-medium text-[#0e0f54]">{{ item.tarif || 0 }}.-</span>
+                        <span class="text-lg font-medium text-[#0e0f54]">{{ (item.prixTotal || item.tarif || 0) }}.-</span>
                       </div>
                     </div>
                   </div>
