@@ -82,6 +82,9 @@ class CourseController extends Controller
                         : 'Illimité',
                     'max_nb_personne' => $course->max_nb_personne,
                     'age_minimum'     => $course->age_minimum,
+                    'age_maximum'     => $course->age_maximum,
+                    'date_debut'      => $course->date_debut,
+                    'date_fin'        => $course->date_fin,
                 ];
             });
 

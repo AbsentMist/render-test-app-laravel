@@ -673,6 +673,20 @@
 
                 <div v-if="activeTab === 'options'" class="p-6">
                     <div class="space-y-4">
+                        <!-- Message d'information en mode édition -->
+                        <div
+                            v-if="isEdit"
+                            class="flex items-start gap-2 text-xs bg-yellow-100 text-yellow-700 rounded-xl px-3 py-2"
+                        >
+                            <Icon
+                                icon="mdi:information-outline"
+                                class="w-4 h-4"
+                            />
+                            <p>
+                                <strong>Ajout d'options : </strong> Vous pouvez ajouter des options contre des frais supplémentaires. Les options déjà sélectionnées ne peuvent pas être retirées.
+                            </p>
+                        </div>
+
                         <div
                             v-if="
                                 coursComplet?.options &&
@@ -697,13 +711,20 @@
                                         optionSelectionneePourAffichage(
                                             option.id,
                                         )
-                                            ? 'bg-gray-50 border-2 border-tertiary-600'
+                                            ? 'bg-blue-50 border-2 border-tertiary-600'
                                             : 'bg-gray-50 border border-gray-200',
-                                        isEdit
+                                        isEdit &&
+                                        !estOptionOriginale(option.id)
                                             ? 'cursor-pointer hover:border-accent-600 hover:shadow-sm'
-                                            : '',
+                                            : isEdit && estOptionOriginale(option.id)
+                                              ? 'cursor-not-allowed'
+                                              : '',
                                     ]"
-                                    @click="isEdit && toggleOption(option)"
+                                    @click="
+                                        isEdit &&
+                                        !estOptionOriginale(option.id) &&
+                                        toggleOption(option)
+                                    "
                                 >
                                     <div
                                         class="flex justify-between items-start"
@@ -770,7 +791,24 @@
                                                     <template v-if="isEdit">
                                                         <input
                                                             type="number"
-                                                            min="0"
+                                                            :min="
+                                                                estOptionOriginale(
+                                                                    option.id,
+                                                                )
+                                                                    ? (
+                                                                          this
+                                                                              .inscription
+                                                                              .choix_options ??
+                                                                          []
+                                                                      ).find(
+                                                                          (c) =>
+                                                                              c.id_option ===
+                                                                              option.id,
+                                                                      )
+                                                                        ?.quantite ??
+                                                                      0
+                                                                    : 0
+                                                            "
                                                             :value="
                                                                 getQuantiteOption(
                                                                     option.id,
@@ -788,7 +826,14 @@
                                                             class="border border-gray-300 rounded px-2 py-1 w-16 text-sm bg-white"
                                                         />
                                                         <span
-                                                            class="text-xs text-gray-400"
+                                                            class="text-xs"
+                                                            :class="
+                                                                estOptionOriginale(
+                                                                    option.id,
+                                                                )
+                                                                    ? 'text-gray-300'
+                                                                    : 'text-gray-400'
+                                                            "
                                                             >unité(s)</span
                                                         >
                                                     </template>
@@ -803,10 +848,23 @@
                                                     >
                                                 </div>
                                                 <div v-else class="text-sm">
-                                                    <span
-                                                        class="font-bold text-tertiary-900"
-                                                        >✓ Sélectionné</span
-                                                    >
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span
+                                                            class="font-bold text-tertiary-900"
+                                                            >✓ Sélectionné</span
+                                                        >
+                                                        <Icon
+                                                            v-if="
+                                                                isEdit &&
+                                                                estOptionOriginale(
+                                                                    option.id,
+                                                                )
+                                                            "
+                                                            icon="mdi:lock"
+                                                            class="w-3.5 h-3.5 text-gray-400"
+                                                            title="Option de base - ne peut pas être retirée"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div
@@ -1160,8 +1218,8 @@ export default {
         },
 
         /**
-         * Enregistre les choix d'options modifiés sur l'inscription.
-         * Les quantités sont normalisées en entiers avant l'envoi.
+         * Enregistre les choix d'options modifiés et ajoute les suppléments au panier.
+         * Les options augmentées ou nouvelles sont ajoutées au panier avec détails et prix.
          * @returns {Promise<void>}
          */
         async sauvegarderEdition() {
@@ -1177,24 +1235,78 @@ export default {
                     }),
                 );
 
-                await inscriptionService.updateInscription(
-                    this.inscription.id,
-                    {
-                        choix_options: choixOptions,
-                    },
-                );
+                // Identifier les options ajoutées ou augmentées (coût supplémentaire)
+                const optionsNouvelles = [];
+                let prixTotal = 0;
 
-                Object.assign(this.inscription, {
-                    choix_options: JSON.parse(
-                        JSON.stringify(choixOptions ?? []),
-                    ),
+                choixOptions.forEach((choixNew) => {
+                    const choixAncien = (
+                        this.inscription.choix_options ?? []
+                    ).find((c) => c.id_option === choixNew.id_option);
+                    const option = this.coursComplet.options?.find(
+                        (o) => o.id === choixNew.id_option,
+                    );
+
+                    if (!option) return;
+
+                    // Quantité supplémentaire : complète si nouvelle, augmentation sinon
+                    const quantiteAugmentation = choixAncien
+                        ? choixNew.quantite - (choixAncien.quantite ?? 0)
+                        : (choixNew.quantite ?? 1);
+
+                    if (quantiteAugmentation > 0) {
+                        const sousTotal = quantiteAugmentation * option.tarif;
+                        optionsNouvelles.push({
+                            option,
+                            quantite: quantiteAugmentation,
+                            quantiteOriginale: choixAncien?.quantite ?? 0,
+                            quantiteTotale: choixNew.quantite,
+                            prixUnitaire: option.tarif,
+                            sousTotal,
+                        });
+                        prixTotal += sousTotal;
+                    }
                 });
+
+                // Ajouter au panier les options supplémentaires
+                if (optionsNouvelles.length > 0) {
+                    const libelle = this.construireLibelleOptions(
+                        optionsNouvelles,
+                    );
+                    this.$emit("ajouter-panier", {
+                        type: "options_supplementaires",
+                        inscription_id: this.inscription.id,
+                        participant: this.inscription.participant,
+                        course: this.inscription.course,
+                        options: optionsNouvelles,
+                        libelle,
+                        prixTotal,
+                    });
+                }
 
                 this.isEdit = false;
                 this.$emit("modifier-inscription", this.inscription);
             } catch (e) {
                 console.error("Erreur sauvegarde :", e);
             }
+        },
+
+        /**
+         * Construit un libellé pour les options supplémentaires.
+         * @param {Array} optionsNouvelles Options ajoutées ou augmentées
+         * @returns {string} Libellé pour affichage dans le panier
+         */
+        construireLibelleOptions(optionsNouvelles) {
+            const detailsOptions = optionsNouvelles
+                .map((opt) => {
+                    if (opt.quantite > 1) {
+                        return `${opt.quantite} ${opt.option.nom}`;
+                    }
+                    return `1 ${opt.option.nom}`;
+                })
+                .join("\n");
+
+            return `Supplément d'option\n${detailsOptions}`;
         },
 
         /**
@@ -1243,7 +1355,18 @@ export default {
         },
 
         /**
-         * Ajoute ou retire une option de la sélection en mode édition.
+         * Vérifie si une option était sélectionnée dans l'inscription originale.
+         * @param {number} idOption
+         * @returns {boolean}
+         */
+        estOptionOriginale(idOption) {
+            return (this.inscription.choix_options ?? []).some(
+                (c) => c.id_option === idOption,
+            );
+        },
+
+        /**
+         * Ajoute ou retire une option (originales non retirables).
          * @param {object} option
          * @returns {void}
          */
@@ -1251,9 +1374,11 @@ export default {
             const idx = this.inscriptionEdit.choix_options.findIndex(
                 (c) => c.id_option === option.id,
             );
-            if (idx > -1) {
+            if (idx > -1 && !this.estOptionOriginale(option.id)) {
+                // Retirer seulement si c'était pas original
                 this.inscriptionEdit.choix_options.splice(idx, 1);
-            } else {
+            } else if (idx === -1) {
+                // Ajouter si pas présent
                 this.inscriptionEdit.choix_options.push({
                     id_option: option.id,
                     id_inscription: this.inscription.id,
@@ -1263,7 +1388,7 @@ export default {
         },
 
         /**
-         * Met à jour la quantité d'une option dans l'édition locale.
+         * Met à jour quantité (min = quantité originale pour les anciennes options).
          * @param {number} idOption
          * @param {string|number} valeur
          * @returns {void}
@@ -1272,7 +1397,27 @@ export default {
             const choix = this.inscriptionEdit.choix_options.find(
                 (c) => c.id_option === idOption,
             );
-            if (choix) choix.quantite = parseInt(valeur) || 0;
+            if (!choix) return;
+
+            const nouveau = Math.max(0, parseInt(valeur) || 0);
+            const original = (this.inscription.choix_options ?? []).find(
+                (c) => c.id_option === idOption,
+            )?.quantite ?? 0;
+
+            if (this.estOptionOriginale(idOption)) {
+                // Minimum = quantité originale
+                choix.quantite = Math.max(nouveau, original);
+            } else if (nouveau === 0) {
+                // Retirer si quantité = 0 pour les nouvelles
+                const idx = this.inscriptionEdit.choix_options.findIndex(
+                    (c) => c.id_option === idOption,
+                );
+                if (idx > -1) {
+                    this.inscriptionEdit.choix_options.splice(idx, 1);
+                }
+            } else {
+                choix.quantite = nouveau;
+            }
         },
 
         /**

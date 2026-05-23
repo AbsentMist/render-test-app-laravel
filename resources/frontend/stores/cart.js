@@ -31,7 +31,11 @@ export const useCartStore = defineStore('cart', {
 
   getters: {
     cartCount: (state) => state.inscriptions.length,
-    cartTotal: (state) => state.inscriptions.reduce((total, item) => total + parseFloat(item.tarif || 0), 0)
+    cartTotal: (state) => state.inscriptions.reduce((total, item) => {
+      // Utiliser prixTotal pour les options supplémentaires, sinon tarif
+      const prix = item.prixTotal || item.tarif || 0;
+      return total + parseFloat(prix);
+    }, 0)
   },
 
   actions: {
@@ -63,9 +67,20 @@ export const useCartStore = defineStore('cart', {
 
     //Récupération des informations de la course pour les afficher dans le panier
     ajouterInscription(donneesInscription, courseDetails) {
+      // Normaliser les options : convertir choix_options en options si nécessaire
+      const inscriptionNormalisee = { ...donneesInscription };
+      
+      // Si c'est une inscription normale avec choix_options, les convertir en format options
+      if (inscriptionNormalisee.choix_options && !inscriptionNormalisee.options) {
+        inscriptionNormalisee.options = inscriptionNormalisee.choix_options.map(choix => ({
+          id_option: choix.id_option,
+          quantite: choix.quantite || 1
+        }));
+      }
+      
       this.inscriptions.push({ 
-        ...donneesInscription, 
-        courseDetails: courseDetails 
+        ...inscriptionNormalisee, 
+        courseDetails: courseDetails  
       });
       this.sauvegarderPanier();
       
