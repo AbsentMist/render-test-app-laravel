@@ -119,7 +119,6 @@
                             "
                             :idCourse="course.id"
                             :tarif="parseFloat(course.tarif) || 0"
-                            :typeInscription="inscription.type?.id"
                             @rabais-applique="onRabaisApplique"
                             @rabais-retire="onRabaisRetire"
                             @dossard-valide="onDossardValide"
@@ -348,45 +347,72 @@
                 </button>
                 <div v-else></div>
 
-                <button
-                    @click="etapeSuivante"
-                    :disabled="!peutContinuer || creationGroupe || codeBloquant"
-                    :class="[
-                        'btn-tertiary',
-                        !peutContinuer || creationGroupe || codeBloquant
-                            ? 'opacity-50 cursor-not-allowed'
-                            : '',
-                    ]"
-                >
-                    <span v-if="creationGroupe" class="flex items-center gap-2">
-                        <svg
-                            class="animate-spin h-4 w-4"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
+                <div class="flex flex-col items-end gap-1">
+                    <!-- Message aide document -->
+                    <p
+                        v-if="
+                            etape === formulaireEtape.DOCUMENT &&
+                            inscription.documents.length === 0
+                        "
+                        class="text-xs text-orange-500"
+                    >
+                        Un document est requis pour continuer.
+                    </p>
+                    <!-- Message aide questionnaire -->
+                    <p
+                        v-if="
+                            etape === formulaireEtape.QUESTIONNAIRE &&
+                            !peutContinuer
+                        "
+                        class="text-xs text-orange-500"
+                    >
+                        Veuillez répondre à toutes les questions pour continuer.
+                    </p>
+                    <button
+                        @click="etapeSuivante"
+                        :disabled="
+                            !peutContinuer || creationGroupe || codeBloquant
+                        "
+                        :class="[
+                            'btn-tertiary',
+                            !peutContinuer || creationGroupe || codeBloquant
+                                ? 'opacity-50 cursor-not-allowed'
+                                : '',
+                        ]"
+                    >
+                        <span
+                            v-if="creationGroupe"
+                            class="flex items-center gap-2"
                         >
-                            <circle
-                                class="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                stroke-width="4"
-                            ></circle>
-                            <path
-                                class="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                            ></path>
-                        </svg>
-                        Création du groupe...
-                    </span>
-                    <span v-else>{{
-                        estDerniereEtape
-                            ? "Ajouter au panier"
-                            : "Etape suivante"
-                    }}</span>
-                </button>
+                            <svg
+                                class="animate-spin h-4 w-4"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                ></circle>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                                ></path>
+                            </svg>
+                            Création du groupe...
+                        </span>
+                        <span v-else>{{
+                            estDerniereEtape
+                                ? "Ajouter au panier"
+                                : "Etape suivante"
+                        }}</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -469,17 +495,10 @@ export default {
     computed: {
         tousLesParticipants() {
             const ids = new Set(this.participants.map((p) => p.id));
-            let result = [...this.participants];
             const extras = (
                 this.inscription.groupeEphemere?.participants ?? []
             ).filter((p) => !ids.has(p.id));
-            result.push(...extras);
-            const supplementairesFiltrés = (
-                this.participantsSupplementaires ?? []
-            ).filter((p) => !ids.has(p.id) && !extras.some((e) => e.id === p.id));
-            result.push(...supplementairesFiltrés);
-            
-            return result;
+            return [...this.participants, ...extras];
         },
         estCourseGroupe() {
             return this.course.type === "Groupe";
@@ -535,6 +554,18 @@ export default {
                     return nom && membres >= 2;
                 }
                 return this.inscription.participant.length > 0;
+            }
+            // Document obligatoire si la course en demande un
+            if (this.etape === formulaireEtape.DOCUMENT) {
+                return this.inscription.documents.length > 0;
+            }
+            // Questionnaire obligatoire : toutes les questions doivent avoir une réponse
+            if (this.etape === formulaireEtape.QUESTIONNAIRE) {
+                const questions = this.course.questionnaire ?? [];
+                if (questions.length === 0) return true;
+                return questions.every(
+                    (q) => this.inscription.reponses[q.id]?.reponse != null,
+                );
             }
             return true;
         },
@@ -763,10 +794,10 @@ export default {
         this.modalAffichage = this.course.avertissement
             ? modals.AVERTISSEMENT
             : modals.INSCRIPTION;
-        // Pré-sélectionner le participant initial par défaut
-        if (this.participants.length > 0) {
-            this.inscription.participant = [this.participants[0]];
-        }
-    }
+        this.etape = this.etapesActives[0];
+        this.modalAffichage = this.course.avertissement
+            ? modals.AVERTISSEMENT
+            : modals.INSCRIPTION;
+    },
 };
 </script>
