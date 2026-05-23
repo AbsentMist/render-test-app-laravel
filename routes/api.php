@@ -88,8 +88,6 @@ use App\Http\Controllers\MembershipController;
             // Gestion des participants liés au compte
             Route::get('/participants', [AuthController::class, 'mesParticipants']);
             Route::post('/participants', [AuthController::class, 'creerParticipant']);
-            Route::put('/participants/{id}', [AuthController::class, 'majParticipant']);
-            Route::delete('/participants/{id}', [AuthController::class, 'supprimerParticipant']);
             
             //Gestion du code participant
             Route::post('/groupes/verifier-code', [GroupeController::class, 'verifierCodeEntreprise']);
@@ -166,6 +164,7 @@ use App\Http\Controllers\MembershipController;
             Route::post('/evenements', [EvenementController::class, 'store']);
             Route::put('/evenements/{id}', [EvenementController::class, 'update']);
             Route::delete('/evenements/{id}', [EvenementController::class, 'destroy']);
+            Route::post('/evenements/ordre', [EvenementController::class, 'updateOrdre']);
 
             // Routes pour la gestion des courses (CRUD)
             Route::get('/evenements/{id_evenement}/courses', [CourseController::class, 'indexAdmin']);
