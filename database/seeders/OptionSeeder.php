@@ -13,18 +13,20 @@ class OptionSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Options de type 'Quantifiable' (Pasta)
+        // =====================================================
+        // OPTIONS QUANTIFIABLES (Repas)
+        // =====================================================
         $optionsQuantifiables = [
             [
                 'nom'         => '1 Entrée + 1 pasta bolognaise',
-                'description' => 'Réservation entrée + pasta non-participant CHF 19,00 / paiement à RUNNINGENEVA ASSOCIATION',
+                'description' => 'Réservation entrée + pasta non-participant — CHF 19.00 / paiement à RUNNINGENEVA ASSOCIATION',
                 'tarif'       => 15.00,
                 'qte_min'     => 1,
                 'qte_max'     => 10,
             ],
             [
                 'nom'         => '1 Entrée + 1 pasta pesto',
-                'description' => 'Réservation entrée + pasta non-participant CHF 19,00 / paiement à RUNNINGENEVA ASSOCIATION',
+                'description' => 'Réservation entrée + pasta non-participant — CHF 19.00 / paiement à RUNNINGENEVA ASSOCIATION',
                 'tarif'       => 15.00,
                 'qte_min'     => 1,
                 'qte_max'     => 10,
@@ -43,40 +45,37 @@ class OptionSeeder extends Seeder
             );
             OptionQuantifiable::updateOrCreate(
                 ['id' => $option->id],
-                [
-                    'quantiteMin' => $data['qte_min'],
-                    'quantiteMax' => $data['qte_max'],
-                ]
+                ['quantiteMin' => $data['qte_min'], 'quantiteMax' => $data['qte_max']]
             );
         }
 
-        // 2. Option de type 'Cochable' (Navettes)
+        // =====================================================
+        // OPTIONS COCHABLES
+        // =====================================================
         $navette = Option::updateOrCreate(
-            ['nom' => "J'utilise les navettes transports de l'organisation"],
+            ['nom' => "J'utilise les navettes transport de l'organisation"],
             [
-                'description' => "Transport organisé par l'événement",
+                'description' => "Transport organisé par l'événement — aller/retour",
                 'tarif'       => 2.00,
                 'type'        => 'Cochable',
                 'modele'      => true,
             ]
         );
-        OptionCochable::updateOrCreate(
-            ['id' => $navette->id],
-            ['is_coche' => false]
-        );
+        OptionCochable::updateOrCreate(['id' => $navette->id], ['is_coche' => false]);
 
-        // 3. Liaisons options → courses
+        // =====================================================
+        // LIAISONS OPTIONS → COURSES
+        // =====================================================
         $pasta = Option::where('nom', '1 Entrée + 1 pasta bolognaise')->first();
 
-        $coursesAvecOptions = Course::whereIn('nom', [
-            'Nocturne des Evaux - Challenge',
+        $coursesAvecPasta = Course::whereIn('nom', [
             '10km des Ponts',
-            'Antigel Night Run',
-            'Marathon de Genève',
+            'Antigel Night Run 10km',
+            'Urban Trail de Genève',
+            'Nocturne Relais 2x5km',
         ])->get();
 
-        foreach ($coursesAvecOptions as $course) {
-            // updateOrCreate pour éviter les doublons
+        foreach ($coursesAvecPasta as $course) {
             DB::table('OptionPourCourse')->updateOrInsert(
                 ['id_course' => $course->id, 'id_option' => $pasta->id]
             );
