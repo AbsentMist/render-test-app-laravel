@@ -10,7 +10,10 @@
             >
                 Nouveau
             </button>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+                <span v-if="sauvegarde" class="text-xs text-gray-400"
+                    >Sauvegarde...</span
+                >
                 <span
                     v-if="sauvegardeOrdre"
                     class="text-xs text-green-600 flex items-center gap-1"
@@ -18,21 +21,6 @@
                     <Icon icon="mdi:check-circle-outline" class="w-4 h-4" />
                     Ordre sauvegardé
                 </span>
-                <button
-                    v-if="ordreModifie"
-                    @click="sauvegarderOrdre"
-                    :disabled="sauvegarde"
-                    class="btn-tertiary px-4 py-2 rounded-lg text-sm disabled:opacity-50"
-                >
-                    {{ sauvegarde ? "Sauvegarde..." : "Sauvegarder l'ordre" }}
-                </button>
-                <button
-                    v-if="ordreModifie"
-                    @click="reinitialiserOrdre"
-                    class="px-4 py-2 rounded-lg text-sm border border-gray-300 text-gray-600 hover:bg-gray-50"
-                >
-                    Annuler
-                </button>
             </div>
         </div>
 
@@ -51,7 +39,7 @@
                     class="bg-neutral-secondary-medium text-heading text-xs uppercase"
                 >
                     <tr>
-                        <th class="px-4 py-3 w-16 text-center">Ordre</th>
+                        <th class="px-4 py-3 w-20 text-center">En avant</th>
                         <th class="px-4 py-3">Nom</th>
                         <th class="px-4 py-3">Date début</th>
                         <th class="px-4 py-3">Date fin</th>
@@ -70,37 +58,68 @@
                         v-for="(evenement, index) in evenements"
                         :key="evenement.id"
                         class="border-t border-default-medium hover:bg-neutral-secondary-medium transition-colors cursor-pointer"
+                        :class="
+                            evenement.ordre !== null ? 'bg-tertiary/10' : ''
+                        "
                         @click.stop="
                             $router.push(
                                 `/organisateur/evenements/${evenement.id}/courses`,
                             )
                         "
                     >
-                        <!-- Flèches haut/bas -->
+                        <!-- Épingler + flèches (uniquement pour les épinglés) -->
                         <td class="px-4 py-3" @click.stop>
-                            <div class="flex flex-col items-center gap-0.5">
+                            <div class="flex flex-col items-center gap-1">
+                                <!-- Bouton épingler/désépingler -->
                                 <button
-                                    @click.stop="monterEvenement(index)"
-                                    :disabled="index === 0"
-                                    class="p-0.5 rounded text-gray-400 hover:text-primary hover:bg-gray-100 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                                    title="Monter"
+                                    @click.stop="toggleEpingler(evenement)"
+                                    :title="
+                                        evenement.ordre !== null
+                                            ? 'Désépingler'
+                                            : 'Mettre en avant'
+                                    "
+                                    class="transition-colors"
+                                    :class="
+                                        evenement.ordre !== null
+                                            ? 'text-yellow-500 hover:text-gray-400'
+                                            : 'text-gray-300 hover:text-yellow-500'
+                                    "
                                 >
-                                    <Icon
-                                        icon="mdi:chevron-up"
-                                        class="w-4 h-4"
-                                    />
+                                    <Icon icon="mdi:star" class="w-5 h-5" />
                                 </button>
-                                <button
-                                    @click.stop="descendreEvenement(index)"
-                                    :disabled="index === evenements.length - 1"
-                                    class="p-0.5 rounded text-gray-400 hover:text-primary hover:bg-gray-100 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                                    title="Descendre"
+                                <!-- Flèches uniquement pour les épinglés -->
+                                <div
+                                    v-if="evenement.ordre !== null"
+                                    class="flex flex-col items-center gap-0.5"
                                 >
-                                    <Icon
-                                        icon="mdi:chevron-down"
-                                        class="w-4 h-4"
-                                    />
-                                </button>
+                                    <button
+                                        @click.stop="monterEvenement(index)"
+                                        :disabled="
+                                            indexParmiEpingles(index) === 0
+                                        "
+                                        class="p-0.5 rounded text-gray-400 hover:text-primary hover:bg-gray-100 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                                        title="Monter"
+                                    >
+                                        <Icon
+                                            icon="mdi:chevron-up"
+                                            class="w-4 h-4"
+                                        />
+                                    </button>
+                                    <button
+                                        @click.stop="descendreEvenement(index)"
+                                        :disabled="
+                                            indexParmiEpingles(index) ===
+                                            epingles.length - 1
+                                        "
+                                        class="p-0.5 rounded text-gray-400 hover:text-primary hover:bg-gray-100 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                                        title="Descendre"
+                                    >
+                                        <Icon
+                                            icon="mdi:chevron-down"
+                                            class="w-4 h-4"
+                                        />
+                                    </button>
+                                </div>
                             </div>
                         </td>
                         <td class="px-4 py-3 font-medium text-heading">
@@ -108,9 +127,9 @@
                                 {{ evenement.nom }}
                                 <span
                                     v-if="evenement.ordre !== null"
-                                    class="text-xs px-1.5 py-0.5 rounded bg-tertiary text-primary font-medium"
+                                    class="text-xs px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700 font-medium"
                                 >
-                                    #{{ evenement.ordre }}
+                                    ⭐ #{{ evenement.ordre }}
                                 </span>
                             </div>
                         </td>
@@ -204,24 +223,15 @@
                                         class="w-4 h-4"
                                     />
                                 </button>
-                                <button
-                                    v-if="evenement.ordre !== null"
-                                    @click.stop="
-                                        reinitialiserOrdreEvenement(evenement)
-                                    "
-                                    class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-50 transition-colors"
-                                    title="Retirer l'ordre manuel"
-                                >
-                                    <Icon
-                                        icon="mdi:sort-variant-remove"
-                                        class="w-4 h-4"
-                                    />
-                                </button>
                             </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
+            <p class="text-xs text-gray-400 px-4 py-2">
+                ⭐ Les événements épinglés apparaissent en premier pour les
+                participants.
+            </p>
         </div>
 
         <PopupConfirmation
@@ -241,7 +251,7 @@
  * @remarks Affiche les périodes d'inscription calculées à partir des courses,
  * et gère les opérations d'édition/suppression.
  */
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import api from "../services/api.js";
 import Title from "../components/Title.vue";
@@ -250,105 +260,84 @@ import { Icon } from "@iconify/vue";
 
 const router = useRouter();
 const evenements = ref([]);
-const evenementsOriginaux = ref([]);
 const chargement = ref(true);
 const erreur = ref("");
 const evenementASupprimer = ref(null);
-const ordreModifie = ref(false);
 const sauvegarde = ref(false);
 const sauvegardeOrdre = ref(false);
 
-// Flèches haut/bas
-function monterEvenement(index) {
-    if (index === 0) return;
-    const items = [...evenements.value];
-    [items[index - 1], items[index]] = [items[index], items[index - 1]];
-    items[index - 1]._modifie = true;
-    items[index]._modifie = true;
-    evenements.value = items;
-    ordreModifie.value = true;
+// Ensemble des IDs déplacés manuellement
+// Computed : liste des événements épinglés dans l'ordre
+const epingles = computed(() =>
+    evenements.value
+        .filter((e) => e.ordre !== null)
+        .sort((a, b) => a.ordre - b.ordre),
+);
+
+// Index d'un événement parmi les épinglés uniquement
+function indexParmiEpingles(indexGlobal) {
+    const e = evenements.value[indexGlobal];
+    return epingles.value.findIndex((x) => x.id === e.id);
 }
 
-function descendreEvenement(index) {
-    if (index === evenements.value.length - 1) return;
-    const items = [...evenements.value];
-    [items[index], items[index + 1]] = [items[index + 1], items[index]];
-    items[index]._modifie = true;
-    items[index + 1]._modifie = true;
-    evenements.value = items;
-    ordreModifie.value = true;
-}
-
-async function sauvegarderOrdre() {
-    sauvegarde.value = true;
-    try {
-        // Attribuer des ordres séquentiels à tous les événements modifiés
-        // selon leur position actuelle dans la liste
-        let compteur = 1;
-        const payload = [];
-        evenements.value.forEach((e) => {
-            if (e._modifie || e.ordre !== null) {
-                payload.push({ id: e.id, ordre: compteur });
-                e.ordre = compteur;
-                compteur++;
-            } else {
-                payload.push({ id: e.id, ordre: null });
-            }
-        });
-
-        await api.post("/organisateur/evenements/ordre", {
-            evenements: payload,
-        });
-
-        evenements.value = evenements.value.map((e) => ({
-            ...e,
-            _modifie: false,
-        }));
-        evenementsOriginaux.value = [...evenements.value];
-        ordreModifie.value = false;
-        sauvegardeOrdre.value = true;
-        setTimeout(() => (sauvegardeOrdre.value = false), 2000);
-    } catch (e) {
-        erreur.value = "Impossible de sauvegarder l'ordre.";
-    } finally {
-        sauvegarde.value = false;
-    }
-}
-
-function reinitialiserOrdre() {
-    evenements.value = [...evenementsOriginaux.value];
-    ordreModifie.value = false;
-}
-
-async function reinitialiserOrdreEvenement(evenement) {
-    try {
+// Épingler ou désépingler un événement
+async function toggleEpingler(evenement) {
+    if (evenement.ordre !== null) {
+        // Désépingler → ordre = null
         await api.post("/organisateur/evenements/ordre", {
             evenements: [{ id: evenement.id, ordre: null }],
         });
-        // Mettre à jour localement et retrier
         evenement.ordre = null;
-        evenement._modifie = false;
-        // Retrier : ordre défini en premier, puis par date naturelle
-        evenements.value = [...evenements.value].sort((a, b) => {
-            if (a.ordre !== null && b.ordre !== null) return a.ordre - b.ordre;
-            if (a.ordre !== null) return -1;
-            if (b.ordre !== null) return 1;
-            const dateA =
-                a.courses
-                    ?.map((c) => c.fin_inscription)
-                    .filter(Boolean)
-                    .sort()[0] ?? "";
-            const dateB =
-                b.courses
-                    ?.map((c) => c.fin_inscription)
-                    .filter(Boolean)
-                    .sort()[0] ?? "";
-            return dateA.localeCompare(dateB);
+    } else {
+        // Épingler → ordre = dernier épinglé + 1
+        const maxOrdre =
+            epingles.value.length > 0
+                ? Math.max(...epingles.value.map((e) => e.ordre))
+                : 0;
+        const nouvelOrdre = maxOrdre + 1;
+        await api.post("/organisateur/evenements/ordre", {
+            evenements: [{ id: evenement.id, ordre: nouvelOrdre }],
         });
-        evenementsOriginaux.value = [...evenements.value];
-    } catch (e) {
-        erreur.value = "Impossible de réinitialiser l'ordre.";
+        evenement.ordre = nouvelOrdre;
     }
+}
+
+// Monter un événement épinglé
+async function monterEvenement(indexGlobal) {
+    const idx = indexParmiEpingles(indexGlobal);
+    if (idx <= 0) return;
+    const a = epingles.value[idx - 1];
+    const b = epingles.value[idx];
+    const tmpOrdre = a.ordre;
+    a.ordre = b.ordre;
+    b.ordre = tmpOrdre;
+    await api.post("/organisateur/evenements/ordre", {
+        evenements: [
+            { id: a.id, ordre: a.ordre },
+            { id: b.id, ordre: b.ordre },
+        ],
+    });
+    sauvegardeOrdre.value = true;
+    setTimeout(() => (sauvegardeOrdre.value = false), 2000);
+}
+
+// Descendre un événement épinglé
+async function descendreEvenement(indexGlobal) {
+    const idx = indexParmiEpingles(indexGlobal);
+    if (idx >= epingles.value.length - 1) return;
+    const a = epingles.value[idx];
+    const b = epingles.value[idx + 1];
+    const tmpOrdre = a.ordre;
+    a.ordre = b.ordre;
+    b.ordre = tmpOrdre;
+    await api.post("/organisateur/evenements/ordre", {
+        evenements: [
+            { id: a.id, ordre: a.ordre },
+            { id: b.id, ordre: b.ordre },
+        ],
+    });
+    sauvegardeOrdre.value = true;
+    setTimeout(() => (sauvegardeOrdre.value = false), 2000);
 }
 
 /**
@@ -412,7 +401,6 @@ async function chargerEvenements() {
     try {
         const response = await api.get("/organisateur/evenements");
         evenements.value = response.data;
-        evenementsOriginaux.value = [...response.data];
     } catch (e) {
         erreur.value = "Impossible de charger les évènements.";
     } finally {

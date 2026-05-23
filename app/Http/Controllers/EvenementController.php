@@ -10,31 +10,34 @@ class EvenementController extends Controller
     // GET (admin): 
     public function indexAdmin()
     {
-        $evenements = Evenement::with('courses')->get()->map(function ($evenement) {
-            if ($evenement->logo) {
-                $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
-            }
-            $evenement->prochaine_date = $evenement->courses
-                ->whereNotNull('fin_inscription')
-                ->sortBy('fin_inscription')
-                ->first()?->fin_inscription;
-            return $evenement;
-        })->sortBy(function ($e) {
-            if ($e->ordre !== null) return $e->ordre;
-            if ($e->prochaine_date) return 1000 + strtotime($e->prochaine_date);
-            return PHP_INT_MAX;
-        })->values();
+        $evenements = Evenement::with('courses')
+            ->get()
+            ->map(function ($evenement) {
+                if ($evenement->logo) {
+                    $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
+                }
+                $evenement->prochaine_date = $evenement->courses
+                    ->whereNotNull('fin_inscription')
+                    ->sortBy('fin_inscription')
+                    ->first()?->fin_inscription;
+                return $evenement;
+            })
+            ->sortBy(function ($e) {
+                if ($e->ordre !== null) return $e->ordre;
+                if ($e->prochaine_date) return 1000 + strtotime($e->prochaine_date);
+                return PHP_INT_MAX;
+            })
+            ->values();
 
         return response()->json($evenements);
     }
 
-    // POST (admin) : Sauvegarde l'ordre des événements après drag & drop
-    // Attend : [{ id: 1, ordre: 1 }, { id: 3, ordre: null }, ...]
+    // POST (admin) : Sauvegarde l'ordre des événements épinglés
     public function updateOrdre(Request $request)
     {
         $request->validate([
-            'evenements'        => 'required|array',
-            'evenements.*.id'   => 'required|exists:Evenement,id',
+            'evenements'         => 'required|array',
+            'evenements.*.id'    => 'required|exists:Evenement,id',
             'evenements.*.ordre' => 'nullable|integer|min:1',
         ]);
 
@@ -58,7 +61,6 @@ class EvenementController extends Controller
                 if ($evenement->logo) {
                     $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
                 }
-                // Date de la prochaine fin d'inscription pour le tri
                 $evenement->prochaine_date = $evenement->courses
                     ->whereNotNull('fin_inscription')
                     ->sortBy('fin_inscription')
@@ -66,7 +68,6 @@ class EvenementController extends Controller
                 return $evenement;
             })
             ->sortBy(function ($e) {
-                // Ordre manuel en premier, puis par date, puis sans date
                 if ($e->ordre !== null) return $e->ordre;
                 if ($e->prochaine_date) return 1000 + strtotime($e->prochaine_date);
                 return PHP_INT_MAX;
