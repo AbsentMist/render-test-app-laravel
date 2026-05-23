@@ -7,42 +7,71 @@ use Illuminate\Http\Request;
 
 class EvenementController extends Controller
 {
-    // GET (admin):
+    // GET (admin): 
     public function indexAdmin()
     {
-        // 1. On remplace all() par with('courses')->get()
         $evenements = Evenement::with('courses')->get()->map(function ($evenement) {
-            // Transformation du BLOB en Base64 pour l'affichage Frontend
             if ($evenement->logo) {
                 $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
             }
+            $evenement->prochaine_date = $evenement->courses
+                ->whereNotNull('fin_inscription')
+                ->sortBy('fin_inscription')
+                ->first()?->fin_inscription;
             return $evenement;
-        });
+        })->sortBy(function ($e) {
+            if ($e->ordre !== null) return $e->ordre;
+            if ($e->prochaine_date) return 1000 + strtotime($e->prochaine_date);
+            return PHP_INT_MAX;
+        })->values();
 
         return response()->json($evenements);
     }
 
-    // GET (participant):
+    // POST (admin) : Sauvegarde l'ordre des événements après drag & drop
+    // Attend : [{ id: 1, ordre: 1 }, { id: 3, ordre: null }, ...]
+    public function updateOrdre(Request $request)
+    {
+        $request->validate([
+            'evenements'        => 'required|array',
+            'evenements.*.id'   => 'required|exists:Evenement,id',
+            'evenements.*.ordre' => 'nullable|integer|min:1',
+        ]);
+
+        foreach ($request->evenements as $item) {
+            Evenement::where('id', $item['id'])->update(['ordre' => $item['ordre']]);
+        }
+
+        return response()->json(['message' => 'Ordre mis à jour avec succès.']);
+    }
+
+    // GET (participant): 
     public function indexParticipant()
     {
-        
         $evenements = Evenement::where('is_actif', true)
-            ->select(
-                'id',
-                'nom',
-                'logo',
-                'site',
-                'couleur_primaire',
-                'couleur_secondaire'
-            )
+            ->select('id', 'nom', 'logo', 'site', 'couleur_primaire', 'couleur_secondaire', 'ordre')
+            ->with(['courses' => function ($q) {
+                $q->select('id', 'id_evenement', 'fin_inscription');
+            }])
             ->get()
             ->map(function ($evenement) {
-                // Transformation du BLOB en Base64 (pour le frontend)
                 if ($evenement->logo) {
                     $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
                 }
+                // Date de la prochaine fin d'inscription pour le tri
+                $evenement->prochaine_date = $evenement->courses
+                    ->whereNotNull('fin_inscription')
+                    ->sortBy('fin_inscription')
+                    ->first()?->fin_inscription;
                 return $evenement;
-            });
+            })
+            ->sortBy(function ($e) {
+                // Ordre manuel en premier, puis par date, puis sans date
+                if ($e->ordre !== null) return $e->ordre;
+                if ($e->prochaine_date) return 1000 + strtotime($e->prochaine_date);
+                return PHP_INT_MAX;
+            })
+            ->values();
 
         return response()->json($evenements);
     }
@@ -53,7 +82,7 @@ class EvenementController extends Controller
         // On stocke tout dans $validatedData
         $validatedData = $request->validate([
             'nom' => 'required|string|max:180',
-            'logo' => 'nullable|file|image|max:2048',
+            'logo' => 'nullable|file|image|max:2048', 
             'site' => 'nullable|string|max:255',
             'couleur_primaire' => 'nullable|string|max:50',
             'couleur_secondaire' => 'nullable|string|max:50',
@@ -101,7 +130,7 @@ class EvenementController extends Controller
 
         $validatedData = $request->validate([
             'nom' => 'sometimes|string|max:180',
-            'logo' => 'nullable|file|image|max:2048',
+            'logo' => 'nullable|file|image|max:2048', 
             'site' => 'nullable|string|max:255',
             'couleur_primaire' => 'nullable|string|max:50',
             'couleur_secondaire' => 'nullable|string|max:50',
