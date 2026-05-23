@@ -3,44 +3,56 @@
 namespace Database\Seeders;
 
 use App\Models\Avertissement;
+use App\Models\Course;
 use Illuminate\Database\Seeder;
 
 class AvertissementSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $avertissements = [
             [
-                'titre'   => 'Course des ponts',
-                'contenu' => 'Course urbaine avec de nombreux ponts à traverser, ce qui peut présenter un risque de chute en cas de pluie.',
+                'titre'   => 'Course urbaine — risque de chute',
+                'contenu' => 'Course urbaine avec de nombreux ponts à traverser. En cas de pluie, les surfaces peuvent être glissantes. Chaussures adaptées recommandées.',
                 'modele'  => true,
+                'courses' => ['10km des Ponts', '20km Groupe des Ponts'],
             ],
             [
-                'titre'   => 'Antigel',
-                'contenu' => 'En raison de conditions météorologiques hivernales, du verglas peut être présent sur le parcours, ce qui peut rendre certaines sections glissantes.',
+                'titre'   => 'Course nocturne — visibilité réduite',
+                'contenu' => 'Lampe frontale obligatoire. Le balisage est réfléchissant mais la visibilité reste limitée. Équipement fluorescent fortement recommandé.',
                 'modele'  => true,
+                'courses' => ['Antigel Night Run 10km', 'Nocturne Relais 2x5km'],
             ],
             [
-                'titre'   => 'Trail Nocturne',
-                'contenu' => 'Lampe frontale obligatoire. Le balisage est réfléchissant mais la visibilité reste limitée en forêt.',
+                'titre'   => 'Conditions hivernales',
+                'contenu' => 'En raison de conditions météorologiques hivernales, du verglas peut être présent sur le parcours. Des chaussures avec crampons sont recommandées.',
                 'modele'  => true,
+                'courses' => [],
             ],
             [
-                'titre'   => 'Canicule',
-                'contenu' => 'Risque de forte chaleur. Hydratation régulière fortement recommandée aux postes de ravitaillement.',
+                'titre'   => 'Forte chaleur',
+                'contenu' => 'Risque de forte chaleur. Hydratation régulière fortement recommandée aux postes de ravitaillement. Casquette et crème solaire conseillées.',
                 'modele'  => true,
+                'courses' => [],
             ],
         ];
 
-        foreach ($avertissements as $avertissementData) {
-            // On cherche par le nom (unique). S'il existe, on met à jour, sinon on crée.
-            Avertissement::updateOrCreate(
-                ['titre' => $avertissementData['titre']], 
-                $avertissementData
+        foreach ($avertissements as $data) {
+            $avertissement = Avertissement::updateOrCreate(
+                ['titre' => $data['titre']],
+                [
+                    'titre'   => $data['titre'],
+                    'contenu' => $data['contenu'],
+                    'modele'  => $data['modele'],
+                ]
             );
+
+            foreach ($data['courses'] as $nomCourse) {
+                $course = Course::where('nom', $nomCourse)->first();
+                if ($course) {
+                    $course->update(['id_avertissement' => $avertissement->id]);
+                }
+            }
         }
     }
 }

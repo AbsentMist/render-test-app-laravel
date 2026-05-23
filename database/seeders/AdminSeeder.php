@@ -31,7 +31,7 @@ class AdminSeeder extends Seeder
             ],
             // Membres de l'équipe
             [
-                'email'     => 'alessandro.neris@hes-so.ch',
+                'email'     => 'alessand.neris@hes-so.ch',
                 'password'  => 'AdminRGVA2026!',
                 'prenom'    => 'Alessandro',
                 'nom'       => 'Neris',
@@ -47,7 +47,7 @@ class AdminSeeder extends Seeder
                 'telephone' => '0000000003',
             ],
             [
-                'email'     => 'jean-daniel.guillermet-suarez@hes-so.ch',
+                'email'     => 'jeandani.guillerm@hes-so.ch',
                 'password'  => 'AdminRGVA2026!',
                 'prenom'    => 'Jean-Daniel',
                 'nom'       => 'Guillermet',
