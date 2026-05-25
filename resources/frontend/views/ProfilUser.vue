@@ -1349,8 +1349,8 @@ const submitPasswordForm = async () => {
         });
 
         closePasswordModal();
-        successModalTitle.value = "Mot de passe modifie avec succes";
-        successModalMessage.value = "Votre mot de passe a bien ete mis a jour.";
+        successModalTitle.value = "Mot de passe modifié avec succès";
+        successModalMessage.value = "Votre mot de passe a bien été mis à jour.";
         showSuccessModal.value = true;
     } catch (error) {
         const apiErrors = error?.response?.data?.errors || {};
@@ -1363,7 +1363,7 @@ const submitPasswordForm = async () => {
 
         passwordFeedback.message =
             error?.response?.data?.message ||
-            "La modification du mot de passe a echoue.";
+            "La modification du mot de passe a échoué.";
         passwordFeedback.isError = true;
     } finally {
         isSavingPassword.value = false;

@@ -730,7 +730,7 @@
                 </div>
                 <div class="flex flex-row justify-between items-center mb-4">
                     <label class="text-sm font-medium text-heading"
-                        >Dossard personnalisé</label
+                        >N° Dossard manuel</label
                     >
                     <label class="inline-flex items-center cursor-pointer">
                         <input
