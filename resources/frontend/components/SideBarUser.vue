@@ -8,14 +8,29 @@
 import { Icon } from '@iconify/vue';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
-import { useRouter } from 'vue-router';
-import { onMounted, ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { onMounted, ref, computed } from 'vue';
 import membershipService from '../services/membershipService';
 
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
 const router = useRouter();
+const route = useRoute();
 const hasMembershipAccess = ref(false);
+
+/**
+ * Retourne le style du lien "Liste des évènements" en fonction de si on est sur ListeCourses
+ * @returns {Object}
+ */
+const getLienEvenementsStyle = computed(() => {
+  // Si on est sur la page ListeCourses et qu'il y a une couleur secondaire d'événement
+  if (route.name === 'ListeCourses' && themeStore.secondaryColor) {
+    return {
+      backgroundColor: themeStore.secondaryColor
+    };
+  }
+  return {};
+});
 
 /**
  * Déconnecte le participant puis retourne à la page de connexion.
@@ -73,6 +88,7 @@ onMounted(async () => {
                 class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200" 
                 :class="themeStore.primaryColor ? 'hover:bg-white/50 text-[#0e0f54]' : 'text-secondary hover:bg-tertiary hover:text-primary'"
                 :active-class="themeStore.primaryColor ? 'bg-white shadow-sm font-bold' : 'bg-tertiary !text-primary'"
+                :style="getLienEvenementsStyle"
               >
                  <Icon icon="lucide:calendar-days" class="w-5 h-5 opacity-90 transition duration-75" />
                  <span class="ms-3 font-medium">Liste des évènements</span>

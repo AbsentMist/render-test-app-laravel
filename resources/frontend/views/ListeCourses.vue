@@ -115,9 +115,21 @@ async function chargerDonnees() {
     courses.value = response.data.courses;
 
     if (evenement.value) {
+        // Extrait le logo en format data URI ou base64
+        let logo = evenement.value.logo_base64 || evenement.value.logo;
+        
+        // Si c'est un data URI (commence par data:), extrait la partie base64
+        if (logo && logo.includes('data:')) {
+          const parts = logo.split(',');
+          const encodedContent = parts[1] || parts[0];
+          // Décode le base64 une fois pour obtenir le vrai data URI
+          logo = atob(encodedContent);
+        }
+        
         themeStore.setTheme(
             evenement.value.couleur_primaire,
-            evenement.value.couleur_secondaire
+            evenement.value.couleur_secondaire,
+            logo
         );
     }
 

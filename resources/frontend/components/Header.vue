@@ -29,6 +29,30 @@ const deductionChangement = ref(0);
 const notificationsRefreshIntervalId = ref(null);
 const notificationsRefreshMs = 10000;
 const invitationEnCoursAcceptation = ref(null);
+const isCartButtonHovered = ref(false);
+const isCartChevronHovered = ref(false);
+const headerLogoUrl = ref(null);
+
+/**
+ * Retourne le style dynamique du bouton panier selon le thème et l'état hover.
+ * @param {boolean} isHovered État du hover
+ * @returns {object}
+ */
+const getCartButtonStyle = (isHovered) => {
+  if (!themeStore.primaryColor) {
+    // Sans thème personnalisé, utilise les couleurs par défaut
+    return {
+      backgroundColor: isHovered ? '#bfd309' : '#d9f20b',
+    };
+  }
+  
+  // Avec thème personnalisé, utilise la couleur secondaire
+  const baseColor = themeStore.secondaryColor;
+  // Réduit légèrement l'opacité pour le hover
+  return {
+    backgroundColor: isHovered ? baseColor + 'e6' : baseColor,
+  };
+};
 
 /**
  * Observe le panier pour recalculer la déduction liée aux changements de course.
@@ -58,18 +82,6 @@ const totalMiniPanier = computed(() => {
   let st = cartStore.cartTotal - deductionChangement.value;
   return st > 0 ? st : 0; 
 });
-
-/**
- * Normalise la source du logo évènement pour l'affichage.
- * Supporte `logo_base64` ou `logo`, avec ou sans préfixe data URI.
- * @param {object} evenement
- * @returns {string|null}
- */
-const getLogoSource = (evenement) => {
-  const logo = evenement?.logo_base64 || evenement?.logo;
-  if (!logo) return null;
-  return logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;
-};
 
 /**
  * Bascule entre l'affichage participant et administrateur.
@@ -166,7 +178,83 @@ onMounted(() => {
   }, notificationsRefreshMs);
 
   window.addEventListener('membership-notifications-updated', rafraichirNotifications);
+  
+  // Initialise le logo du header
+  mettreAJourLogoHeader();
 });
+
+/**
+ * Applique une teinte sur le logo afin de l'adapter à la palette de l'évènement.
+ * @param {string} logoSrc Source de l'image à recolorer.
+ * @param {string} couleur Couleur cible.
+ * @returns {Promise<string>}
+ */
+async function coloriserLogo(logoSrc, couleur) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.fillStyle = couleur;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL());
+    };
+    img.src = logoSrc;
+  });
+}
+
+/**
+ * Met à jour l'URL du logo du header en formatant et colorisant le logo du themeStore.
+ * @returns {Promise<void>}
+ */
+const mettreAJourLogoHeader = async () => {
+  if (themeStore.logo && themeStore.secondaryColor) {
+    const logo = themeStore.logo;
+    const logoDataUri = logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;
+    headerLogoUrl.value = await coloriserLogo(logoDataUri, themeStore.secondaryColor);
+  } else {
+    headerLogoUrl.value = null;
+  }
+};
+
+/**
+ * Observe les changements du logo du thème et met à jour l'affichage du header.
+ */
+watch(() => themeStore.logo, () => {
+  mettreAJourLogoHeader();
+});
+
+/**
+ * Colorise les logos des événements présents dans le mini-panier.
+ * @param {Array} panier Liste des articles du panier
+ * @returns {Promise<void>}
+ */
+const coloriserLogosParier = async (panier = cartStore.inscriptions) => {
+  for (const item of panier) {
+    if (item.courseDetails?.evenement && item.courseDetails.evenement.couleur_secondaire && !item.courseLogoColorized) {
+      try {
+        const logo = item.courseDetails.evenement.logo_base64 || item.courseDetails.evenement.logo;
+        if (logo) {
+          const logoDataUri = logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;
+          item.courseLogoColorized = await coloriserLogo(logoDataUri, item.courseDetails.evenement.couleur_secondaire);
+        }
+      } catch (e) {
+        console.error('Erreur colorisation logo:', e);
+      }
+    }
+  }
+};
+
+/**
+ * Observe le panier pour coloriser les logos des événements.
+ */
+watch(() => cartStore.inscriptions, async (nouveauPanier) => {
+  await coloriserLogosParier(nouveauPanier);
+}, { deep: true });
 
 onBeforeUnmount(() => {
   if (notificationsRefreshIntervalId.value) {
@@ -338,6 +426,18 @@ const ouvrirNotificationInfo = async (notification) => {
     await supprimerNotificationInfo(notification.id);
   }
 };
+
+/**
+ * Récupère la source du logo d'un événement formatée en data URI.
+ * @param {object} evenement
+ * @returns {string|null}
+ */
+const getLogoSource = (evenement) => {
+  if (!evenement) return null;
+  const logo = evenement.logo_base64 || evenement.logo;
+  if (!logo) return null;
+  return logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;
+};
 </script>
 
 <template>
@@ -360,7 +460,8 @@ const ouvrirNotificationInfo = async (notification) => {
           <Icon icon="lucide:menu" class="w-6 h-6" />
         </button>
         <router-link to="/accueil" class="flex ms-2 md:me-24">
-          <img src="../assets/thumbnail_RGVA_LOGO_PRINCIPAL_BLANC_RVB.png" class="h-12 me-3" alt="Running Geneva Logo" />
+          <img v-if="headerLogoUrl" :src="headerLogoUrl" class="max-h-15 max-w-70 me-3 object-contain" alt="Logo événement" />
+          <img v-else src="../assets/thumbnail_RGVA_LOGO_PRINCIPAL_BLANC_RVB.png" class="max-h-20 me-3" alt="Running Geneva Logo" />
         </router-link>
       </div>
 
@@ -372,8 +473,11 @@ const ouvrirNotificationInfo = async (notification) => {
             <button
               v-if="!authStore.showAdminLayout"
               @click="allerAuPanier"
-              class="flex items-center gap-2 bg-tertiary hover:bg-tertiary/90 text-primary px-4 py-2 rounded-l-xl transition-colors font-bold text-sm"
-            >
+              @mouseenter="isCartButtonHovered = true"
+              @mouseleave="isCartButtonHovered = false"
+              class="flex items-center gap-2 text-primary px-4 py-2 rounded-l-xl transition-colors font-bold text-sm"
+              :style="getCartButtonStyle(isCartButtonHovered)"
+              >
               <Icon icon="lucide:shopping-cart" class="w-4 h-4" />
               Panier
             </button>
@@ -381,16 +485,20 @@ const ouvrirNotificationInfo = async (notification) => {
             <button
               v-if="!authStore.showAdminLayout"
               @click="toggleCartDropdown"
-              class="flex items-center justify-center bg-tertiary hover:bg-tertiary/90 text-primary px-2 rounded-r-xl border-l border-primary/20 transition-colors"
-            >
+              @mouseenter="isCartChevronHovered = true"
+              @mouseleave="isCartChevronHovered = false"
+              class="flex items-center justify-center text-primary px-2 rounded-r-xl border-l border-primary/20 transition-colors"
+              :style="{ ...getCartButtonStyle(isCartChevronHovered), borderLeftColor: themeStore.primaryColor ? themeStore.primaryColor + '33' : 'rgba(0, 0, 0, 0.1)' }"
+              >
               <Icon icon="lucide:chevron-down" class="w-4 h-4 transition-transform" :class="cartStore.isDropdownOpen ? 'rotate-180' : ''" />
             </button>
           </div>
 
           <span 
             v-if="cartStore.cartCount > 0 && !authStore.showAdminLayout" 
-            class="absolute -top-2 -right-2 bg-white text-tertiary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold border-2 border-tertiary shadow-sm pointer-events-none z-10"
-          >
+            :class="['absolute -top-2 -right-2 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold border-2 shadow-sm pointer-events-none z-10', themeStore.primaryColor ? '' : 'text-tertiary border-tertiary']"
+            :style="themeStore.primaryColor ? {color: themeStore.secondaryColor, borderColor: themeStore.secondaryColor} : {}"
+            >
             {{ cartStore.cartCount }}
           </span>
 
@@ -417,7 +525,8 @@ const ouvrirNotificationInfo = async (notification) => {
                       class="w-[72px] h-[72px] rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-sm relative"
                       :style="{ backgroundColor: item.courseDetails?.evenement?.couleur_primaire || '#5C8E9A' }"
                     >
-                      <img v-if="getLogoSource(item.courseDetails?.evenement)" :src="getLogoSource(item.courseDetails?.evenement)" class="absolute inset-0 w-full h-full object-contain p-1.5" />
+                      <img v-if="item.courseLogoColorized" :src="item.courseLogoColorized" class="absolute inset-0 w-full h-full object-contain p-1.5" />
+                      <img v-else-if="getLogoSource(item.courseDetails?.evenement)" :src="getLogoSource(item.courseDetails?.evenement)" class="absolute inset-0 w-full h-full object-contain p-1.5" />
                       <span v-else class="text-[10px] text-white font-bold text-center px-1 leading-tight relative z-10">{{ item.courseDetails?.evenement?.nom || 'Course' }}</span>
                     </div>
                     
@@ -429,18 +538,17 @@ const ouvrirNotificationInfo = async (notification) => {
                           - {{ item.courseDetails?.nom  }} 
                         </p>
                         <p v-else class="text-[0.8rem] text-[#0e0f54] font-semibold">
-                          - {{ item.courseDetails?.categorie || 'Catégorie' }} <span v-if="item.courseDetails?.sous_categorie">• {{ item.courseDetails?.sous_categorie }}</span>
+                          - {{ item.participant?.[0]?.prenom }} {{ item.participant?.[0]?.nom }}
                         </p>
-                        <!-- Options ajoutées -->
-                        <div v-if="item.options && Array.isArray(item.options) && item.options.length > 0">
-                          <p v-for="(opt, idx) in item.options" :key="'opt-' + idx" class="text-[0.8rem] text-[#0e0f54] font-semibold mt-0.5">
-                            - {{ opt.quantite ? opt.quantite + 'x ' : '1x ' }}{{ opt.option?.nom || 'Option' }}
+                        <div v-if="item.options && Object.keys(item.options).length > 0">
+                          <p v-for="(opt, key) in item.options" :key="key" class="text-[0.8rem] text-[#0e0f54] font-sm mt-0.5 ml-2">
+                            - {{ opt.quantite ? opt.quantite + ' x ' : '' }}{{ opt.option?.nom }}
                           </p>
                         </div>
                       </div>
 
                       <div class="text-right mt-2">
-                        <span class="text-lg font-medium text-[#0e0f54]">{{ (item.prixTotal || item.tarif || 0) }}.-</span>
+                        <span class="text-lg font-medium text-[#0e0f54]">{{ item.tarif || 0 }}.-</span>
                       </div>
                     </div>
                   </div>
