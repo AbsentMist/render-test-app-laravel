@@ -228,6 +228,34 @@ watch(() => themeStore.logo, () => {
   mettreAJourLogoHeader();
 });
 
+/**
+ * Colorise les logos des événements présents dans le mini-panier.
+ * @param {Array} panier Liste des articles du panier
+ * @returns {Promise<void>}
+ */
+const coloriserLogosParier = async (panier = cartStore.inscriptions) => {
+  for (const item of panier) {
+    if (item.courseDetails?.evenement && item.courseDetails.evenement.couleur_secondaire && !item.courseLogoColorized) {
+      try {
+        const logo = item.courseDetails.evenement.logo_base64 || item.courseDetails.evenement.logo;
+        if (logo) {
+          const logoDataUri = logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;
+          item.courseLogoColorized = await coloriserLogo(logoDataUri, item.courseDetails.evenement.couleur_secondaire);
+        }
+      } catch (e) {
+        console.error('Erreur colorisation logo:', e);
+      }
+    }
+  }
+};
+
+/**
+ * Observe le panier pour coloriser les logos des événements.
+ */
+watch(() => cartStore.inscriptions, async (nouveauPanier) => {
+  await coloriserLogosParier(nouveauPanier);
+}, { deep: true });
+
 onBeforeUnmount(() => {
   if (notificationsRefreshIntervalId.value) {
     window.clearInterval(notificationsRefreshIntervalId.value);
@@ -432,8 +460,8 @@ const getLogoSource = (evenement) => {
           <Icon icon="lucide:menu" class="w-6 h-6" />
         </button>
         <router-link to="/accueil" class="flex ms-2 md:me-24">
-          <img v-if="headerLogoUrl" :src="headerLogoUrl" class="h-12 me-3 object-contain" alt="Logo événement" />
-          <img v-else src="../assets/thumbnail_RGVA_LOGO_PRINCIPAL_BLANC_RVB.png" class="h-12 me-3" alt="Running Geneva Logo" />
+          <img v-if="headerLogoUrl" :src="headerLogoUrl" class="max-h-15 max-w-70 me-3 object-contain" alt="Logo événement" />
+          <img v-else src="../assets/thumbnail_RGVA_LOGO_PRINCIPAL_BLANC_RVB.png" class="max-h-20 me-3" alt="Running Geneva Logo" />
         </router-link>
       </div>
 
@@ -468,8 +496,9 @@ const getLogoSource = (evenement) => {
 
           <span 
             v-if="cartStore.cartCount > 0 && !authStore.showAdminLayout" 
-            class="absolute -top-2 -right-2 bg-white text-tertiary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold border-2 border-tertiary shadow-sm pointer-events-none z-10"
-          >
+            :class="['absolute -top-2 -right-2 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold border-2 shadow-sm pointer-events-none z-10', themeStore.primaryColor ? '' : 'text-tertiary border-tertiary']"
+            :style="themeStore.primaryColor ? {color: themeStore.secondaryColor, borderColor: themeStore.secondaryColor} : {}"
+            >
             {{ cartStore.cartCount }}
           </span>
 
@@ -496,7 +525,8 @@ const getLogoSource = (evenement) => {
                       class="w-[72px] h-[72px] rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-sm relative"
                       :style="{ backgroundColor: item.courseDetails?.evenement?.couleur_primaire || '#5C8E9A' }"
                     >
-                      <img v-if="getLogoSource(item.courseDetails?.evenement)" :src="getLogoSource(item.courseDetails?.evenement)" class="absolute inset-0 w-full h-full object-contain p-1.5" />
+                      <img v-if="item.courseLogoColorized" :src="item.courseLogoColorized" class="absolute inset-0 w-full h-full object-contain p-1.5" />
+                      <img v-else-if="getLogoSource(item.courseDetails?.evenement)" :src="getLogoSource(item.courseDetails?.evenement)" class="absolute inset-0 w-full h-full object-contain p-1.5" />
                       <span v-else class="text-[10px] text-white font-bold text-center px-1 leading-tight relative z-10">{{ item.courseDetails?.evenement?.nom || 'Course' }}</span>
                     </div>
                     
@@ -508,18 +538,17 @@ const getLogoSource = (evenement) => {
                           - {{ item.courseDetails?.nom  }} 
                         </p>
                         <p v-else class="text-[0.8rem] text-[#0e0f54] font-semibold">
-                          - {{ item.courseDetails?.categorie || 'Catégorie' }} <span v-if="item.courseDetails?.sous_categorie">• {{ item.courseDetails?.sous_categorie }}</span>
+                          - {{ item.participant?.[0]?.prenom }} {{ item.participant?.[0]?.nom }}
                         </p>
-                        <!-- Options ajoutées -->
-                        <div v-if="item.options && Array.isArray(item.options) && item.options.length > 0">
-                          <p v-for="(opt, idx) in item.options" :key="'opt-' + idx" class="text-[0.8rem] text-[#0e0f54] font-semibold mt-0.5">
-                            - {{ opt.quantite ? opt.quantite + 'x ' : '1x ' }}{{ opt.option?.nom || 'Option' }}
+                        <div v-if="item.options && Object.keys(item.options).length > 0">
+                          <p v-for="(opt, key) in item.options" :key="key" class="text-[0.8rem] text-[#0e0f54] font-sm mt-0.5 ml-2">
+                            - {{ opt.quantite ? opt.quantite + ' x ' : '' }}{{ opt.option?.nom }}
                           </p>
                         </div>
                       </div>
 
                       <div class="text-right mt-2">
-                        <span class="text-lg font-medium text-[#0e0f54]">{{ (item.prixTotal || item.tarif || 0) }}.-</span>
+                        <span class="text-lg font-medium text-[#0e0f54]">{{ item.tarif || 0 }}.-</span>
                       </div>
                     </div>
                   </div>

@@ -16,20 +16,23 @@
       <h3 class="text-xl font-medium leading-tight whitespace-pre-line">{{ evenement?.nom }}</h3>
       <div class="mt-3 px-4 py-1 rounded-full text-sm text-white font-semibold tracking-wide bg-opacity-30" :style="{ backgroundColor: evenement?.couleur_secondaire + '30' }">
         <span v-if="course.date_debut === course.date_fin">
-          {{ course.date_debut }}
+          {{ formaterDate(course.date_debut) }}
         </span>
         <span v-else>
-          {{ course.date_debut.split('-')[2] }}.{{ course.date_debut.split('-')[1] }} - {{ course.date_fin.split('-')[2] }}.{{ course.date_fin.split('-')[1] }}
+          {{ formaterDate(course.date_debut).split('.')[0] }} - {{ formaterDate(course.date_fin) }}
         </span>
       </div>
     </div>
     <div class="flex-1 flex flex-col md:flex-row md:items-center justify-between p-4 pl-6">
       <div :style="{ color: evenement?.couleur_primaire }" class="w-full">
-        <h4 class="text-xl font-semibold mb-2">{{ course.nom_course }}</h4>
+        <div class="flex justify-between">
+          <h4 class="text-xl font-semibold mb-2">{{ course.nom_course }}</h4>
+          <span class="border-t-4 font-semibold p-0.5" :style="{borderColor: evenement.couleur_secondaire}"> {{ course.type }}</span>
+        </div>
         <div class="text-sm font-semibold">Tarif CHF {{ course.tarif }}</div>
         <div class="flex justify-between pr-4">
           <div class="text-xs opacity-80">+ Frais de plateforme et frais bancaire</div>
-          <div class="text-xs font-semibold rounded-lg px-2 py-1 border-1" :style="{ borderColor: evenement?.couleur_primaire }">
+          <div v-if="course.categorie || course.sous_categorie" class="text-xs font-semibold rounded-lg px-2 py-1 border-1" :style="{ borderColor: evenement?.couleur_primaire }">
             <span v-if="course.categorie">{{ course.categorie }}</span>
             <span v-if="course.sous_categorie"> - {{ course.sous_categorie }}</span>
           </div>
@@ -87,7 +90,16 @@ function handleClick(course) {
 
 /**
  * Formate la date d'évènement pour affichage localisé.
- * @param {string} dateStr Date brute au format ISO.
+ * @param {string|Date} dateInput Date brute au format ISO ou objet Date.
  * @returns {string}
  */
+function formaterDate(dateInput) {
+  if (!dateInput) return '';
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  return date.toLocaleDateString('fr-CH', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+}
 </script>
