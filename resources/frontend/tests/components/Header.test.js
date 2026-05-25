@@ -8,6 +8,7 @@ const alertMock = vi.fn()
 const authStoreMock = reactive({
   isAdmin: false,
   showAdminLayout: false,
+  logout: vi.fn().mockResolvedValue(),
   user: {
     participant: {
       prenom: 'Alice',
@@ -108,6 +109,7 @@ describe('Header', () => {
 
     authStoreMock.isAdmin = false
     authStoreMock.showAdminLayout = false
+    authStoreMock.logout.mockClear()
     authStoreMock.user = {
       participant: {
         prenom: 'Alice',

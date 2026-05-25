@@ -428,6 +428,26 @@ const ouvrirNotificationInfo = async (notification) => {
 };
 
 /**
+ * Déconnecte l'utilisateur via le store et redirige vers la page de login.
+ * Garde le dropdown profil fermé et gère les erreurs silencieusement.
+ */
+const handleLogout = async () => {
+  try {
+    await authStore.logout();
+  } catch (e) {
+    console.error('Erreur lors de la déconnexion', e);
+  } finally {
+    isProfileDropdownOpen.value = false;
+    try {
+      await router.push('/login');
+    } catch (e) {
+      // Si le routeur est indisponible, on fait un fallback vers la page login
+      window.location.href = '/login';
+    }
+  }
+};
+
+/**
  * Récupère la source du logo d'un événement formatée en data URI.
  * @param {object} evenement
  * @returns {string|null}
@@ -634,7 +654,7 @@ const getLogoSource = (evenement) => {
 
             <div
               v-if="isProfileDropdownOpen"
-              class="absolute top-full right-0 mt-4 w-[320px] bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 z-50 cursor-default text-left"
+              class="absolute top-full right-0 mt-4 w-[320px] max-h-[calc(100vh-7rem)] overflow-hidden bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 z-50 cursor-default text-left flex flex-col"
             >
               <div class="absolute -top-2 right-4 w-4 h-4 bg-white rotate-45 border-l border-t border-gray-100"></div>
 
@@ -644,18 +664,19 @@ const getLogoSource = (evenement) => {
               </div>
               <div class="h-1 w-12 rounded-r-full bg-red-200 mb-6"></div>
 
-              <div v-if="authStore.user?.participant">
+              <div v-if="authStore.user?.participant" class="flex flex-1 flex-col min-h-0">
                 <h3 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
                   <Icon icon="lucide:mail" class="w-4 h-4" />
                   Mes notifications ({{ totalNotifications }})
                 </h3>
 
-                <div v-if="totalNotifications === 0" class="text-sm text-gray-500 italic text-center py-4 bg-gray-50 rounded-xl border border-gray-100">
-                  Vous n'avez aucune notification en attente.
-                </div>
+                <div class="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col gap-3">
+                  <div v-if="totalNotifications === 0" class="text-sm text-gray-500 italic text-center py-4 bg-gray-50 rounded-xl border border-gray-100">
+                    Vous n'avez aucune notification en attente.
+                  </div>
 
-                <div v-else class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
-                  <div v-for="invit in invitations" :key="`groupe-${invit.id}`" class="bg-white border border-gray-200 shadow-sm rounded-xl p-4">
+                  <div v-else class="flex flex-col gap-3">
+                    <div v-for="invit in invitations" :key="`groupe-${invit.id}`" class="bg-white border border-gray-200 shadow-sm rounded-xl p-4">
                     <div class="flex justify-between items-start mb-1 gap-2">
                       <p class="font-bold text-[#0e0f54] text-sm">{{ invit.nom }}</p>
                       <span class="shrink-0 bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200">
@@ -690,7 +711,7 @@ const getLogoSource = (evenement) => {
                     </div>
                   </div>
 
-                  <div v-if="demandesEchange.length > 0" class="pt-2 border-t border-gray-100">
+                    <div v-if="demandesEchange.length > 0" class="pt-2 border-t border-gray-100">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
                       <Icon icon="mdi:swap-horizontal" class="w-4 h-4 text-blue-500" />
                       Demandes d'échange de dossard
@@ -719,7 +740,7 @@ const getLogoSource = (evenement) => {
                     </div>
                   </div>
 
-                  <div v-if="notificationsInfo.length > 0" class="pt-2 border-t border-gray-100">
+                    <div v-if="notificationsInfo.length > 0" class="pt-2 border-t border-gray-100">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
                       <Icon icon="mdi:information-outline" class="w-4 h-4 text-amber-500" />
                       Notifications d'information
@@ -765,7 +786,22 @@ const getLogoSource = (evenement) => {
                         </div>
                       </div>
                     </div>
+                    </div>
                   </div>
+                </div>
+
+                <div class="pt-4 mt-4 border-t border-gray-100 shrink-0">
+                  <button
+                    type="button"
+                    @click="handleLogout"
+                    data-testid="profile-logout-button"
+                    class="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span>Se déconnecter</span>
+                  </button>
                 </div>
               </div>
 

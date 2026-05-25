@@ -2,11 +2,16 @@ import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { reactive } from 'vue'
 
-const routerPushMock = vi.fn()
 const logoutMock = vi.fn().mockResolvedValue()
 
 const authStoreMock = reactive({
   logout: logoutMock,
+  user: {
+    participant: {
+      prenom: 'Alice',
+      nom: 'Dupont',
+    },
+  },
 })
 
 const themeStoreMock = reactive({
@@ -22,7 +27,8 @@ vi.mock('@iconify/vue', () => ({
 }))
 
 vi.mock('vue-router', () => ({
-  useRouter: () => ({ push: routerPushMock }),
+  useRouter: () => ({ push: vi.fn() }),
+  useRoute: () => ({ name: 'ListeCourses' }),
 }))
 
 vi.mock('../../stores/auth', () => ({
@@ -33,7 +39,14 @@ vi.mock('../../stores/theme', () => ({
   useThemeStore: () => themeStoreMock,
 }))
 
+vi.mock('../../services/membershipService', () => ({
+  default: {
+    accesMembershipParticipant: vi.fn(),
+  },
+}))
+
 import SideBarUser from '../../components/SideBarUser.vue'
+import membershipService from '../../services/membershipService'
 
 function mountComponent() {
   return mount(SideBarUser, {
@@ -53,11 +66,19 @@ describe('SideBarUser', () => {
     vi.clearAllMocks()
     themeStoreMock.primaryColor = null
     themeStoreMock.secondaryColor = null
+    authStoreMock.user = {
+      participant: {
+        prenom: 'Alice',
+        nom: 'Dupont',
+      },
+    }
+    membershipService.accesMembershipParticipant.mockResolvedValue({ data: { has_access: true } })
   })
 
   // Rend les liens de navigation participant attendus
-  test('affiche les routes principales participant', () => {
+  test('affiche les routes principales participant', async () => {
     const wrapper = mountComponent()
+    await flushPromises()
 
     const links = wrapper.findAll('a[data-to]').map((a) => a.attributes('data-to'))
     expect(links).toEqual([
@@ -96,17 +117,10 @@ describe('SideBarUser', () => {
     expect(aside.attributes('style')).toContain('border-color: #44556633')
   })
 
-  // Deconnecte puis redirige vers login
-  test('handleLogout deconnecte et redirige', async () => {
+  // Le bouton de déconnexion a été déplacé dans le header
+  test('n affiche plus le bouton de deconnexion', () => {
     const wrapper = mountComponent()
-
-    const logoutButton = wrapper.findAll('button').find((b) => b.text().includes('Se déconnecter'))
-    expect(logoutButton).toBeTruthy()
-
-    await logoutButton.trigger('click')
-    await flushPromises()
-
-    expect(logoutMock).toHaveBeenCalledTimes(1)
-    expect(routerPushMock).toHaveBeenCalledWith('/login')
+    expect(wrapper.text()).not.toContain('Se déconnecter')
+    expect(wrapper.findAll('button')).toHaveLength(0)
   })
 })

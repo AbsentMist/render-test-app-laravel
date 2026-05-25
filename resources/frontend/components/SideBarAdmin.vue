@@ -8,20 +8,9 @@
 import { Icon } from '@iconify/vue';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
-import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
-const router = useRouter();
-
-/**
- * Déconnecte l'utilisateur puis redirige vers l'écran de connexion.
- * @returns {Promise<void>}
- */
-const handleLogout = async () => {
-  await authStore.logout(); 
-  router.push('/login'); 
-};
 </script>
 
 <template>
@@ -86,12 +75,6 @@ const handleLogout = async () => {
               </router-link>
            </li>
            
-           <li>
-            <button @click="handleLogout" class="flex items-center px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors w-full text-left mt-2">
-               <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-               <span class="font-medium">Se déconnecter</span>
-            </button>
-         </li>
         </ul>
      </div>
   </aside>
