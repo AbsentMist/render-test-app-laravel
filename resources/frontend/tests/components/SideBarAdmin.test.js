@@ -2,6 +2,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { reactive } from 'vue'
 
+const routerPushMock = vi.fn()
 const logoutMock = vi.fn().mockResolvedValue()
 
 const authStoreMock = reactive({
@@ -21,7 +22,7 @@ vi.mock('@iconify/vue', () => ({
 }))
 
 vi.mock('vue-router', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: routerPushMock }),
 }))
 
 vi.mock('../../stores/auth', () => ({
@@ -63,7 +64,6 @@ describe('SideBarAdmin', () => {
       '/organisateur/evenements',
       '/organisateur/inscriptions',
       '/organisateur/formulaires',
-      '/organisateur/membership',
     ])
 
     expect(wrapper.text()).toContain('Tableau de bord')
@@ -91,10 +91,17 @@ describe('SideBarAdmin', () => {
     expect(aside.attributes('style')).toContain('border-color: #11223333')
   })
 
-  // Le bouton de déconnexion a été déplacé dans le header
-  test('n affiche plus le bouton de deconnexion', () => {
+  // Deconnecte puis redirige vers login
+  test('handleLogout deconnecte et redirige', async () => {
     const wrapper = mountComponent()
-    expect(wrapper.text()).not.toContain('Se déconnecter')
-    expect(wrapper.findAll('button')).toHaveLength(0)
+
+    const logoutButton = wrapper.findAll('button').find((b) => b.text().includes('Se déconnecter'))
+    expect(logoutButton).toBeTruthy()
+
+    await logoutButton.trigger('click')
+    await flushPromises()
+
+    expect(logoutMock).toHaveBeenCalledTimes(1)
+    expect(routerPushMock).toHaveBeenCalledWith('/login')
   })
 })

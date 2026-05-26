@@ -428,9 +428,9 @@ export default {
      * @param {'email'|'logistique'|'banque'} action Action d'export souhaitée.
      * @returns {Promise<void>}
      */
-    async exporter(action) {
+    async exporter(format) {
       try {
-        if (action === 'email') {
+        if(format === 'email') {
           const emails = this.inscriptionsFiltrees
             .map(i => i.participant?.user?.email)
             .filter(Boolean)
@@ -442,12 +442,12 @@ export default {
           this.showCopyConfirmationEmail();
           return;
         }
-        const preset = action === 'banque' ? 'banque' : 'logistique';
-        const response = await inscriptionService.exportInscriptionsAdmin('xlsx', this.filtres, preset);
+        const response = await inscriptionService.exportInscriptionsAdmin(format, this.filtres);
         const url  = globalThis.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href  = url;
-        link.setAttribute('download', `inscriptions_${preset}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        const extension = format === 'csv' ? 'csv' : 'xlsx';
+        link.setAttribute('download', `inscriptions_${new Date().toISOString().slice(0, 10)}.${extension}`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

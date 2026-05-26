@@ -36,9 +36,9 @@ export default {
   deleteInscriptionAdmin(id) {
     return api.delete(`/organisateur/inscriptions/${id}`);
   },
-  exportInscriptionsAdmin(format = 'xlsx', filters = {}, preset = 'logistique') {
+  exportInscriptionsAdmin(format = 'xlsx', filters = {}) {
     return api.get('/organisateur/inscriptions/export', {
-      params: { format, preset, ...filters },
+      params: { format, ...filters },
       responseType: 'blob'
     });
   }

@@ -497,7 +497,6 @@ const panier = computed(() => cartStore.inscriptions);
 /**
  * Retire un article du panier et supprime le groupe associé si nécessaire.
  * Utilise panier.value[index] pour éviter le problème de cache du handler Vue.
- * @author Ngoie Steven
  */
 async function retirerArticle(idGroupe) {
     const index = panier.value.findIndex((i) => i.id_groupe === idGroupe);
@@ -513,7 +512,6 @@ const redirectionApresPopup = ref(null);
 
 /**
  * Ouvre la popup de confirmation d'inscription avec le message fourni.
- * @author Ngoie Steven
  * @param {string} message
  * @param {string|null} [redirection='/inscriptions']
  */
@@ -525,7 +523,6 @@ function ouvrirPopupInscription(message, redirection = "/inscriptions") {
 
 /**
  * Ferme la popup de confirmation sans redirection.
- * @author Ngoie Steven
  */
 function fermerPopupInscription() {
     popupInscriptionVisible.value = false;
@@ -533,7 +530,6 @@ function fermerPopupInscription() {
 
 /**
  * Confirme la popup puis effectue la redirection cible si définie.
- * @author Ngoie Steven
  */
 function confirmerPopupInscription() {
     popupInscriptionVisible.value = false;
@@ -546,7 +542,6 @@ function confirmerPopupInscription() {
 /**
  * Normalise la source du logo évènement pour l'affichage.
  * Supporte `logo_base64` ou `logo`, avec ou sans préfixe data URI.
- * @author Neris Alessandro
  * @param {Object} evenement
  * @returns {string|null}
  */
@@ -619,7 +614,6 @@ async function coloriserLogosParier(panier) {
 
 /**
  * Vérifie si une valeur correspond à un fichier uploadable côté navigateur.
- * @author Ngoie Steven
  * @param {unknown} valeur
  * @returns {boolean}
  */
@@ -632,7 +626,6 @@ function estFichierNavigateur(valeur) {
 
 /**
  * Extrait un fichier exploitable depuis différents formats possibles.
- * @author Ngoie Steven
  * @param {unknown} document
  * @returns {File|Blob|null}
  */
@@ -664,7 +657,6 @@ const deductionsParArticle = ref({});
 
 /**
  * Retourne la déduction applicable à une ligne panier.
- * @author Ngoie Steven
  * @param {number} index
  * @returns {number}
  */
@@ -675,7 +667,6 @@ const getDeductionArticle = (index) => {
 /**
  * Retourne le tarif final d'une ligne après déduction de changement.
  * Inclut prixTotal pour les options supplémentaires.
- * @author Ngoie Steven
  * @param {Object} article
  * @param {number} index
  * @returns {number}
@@ -689,7 +680,6 @@ const getTotalLigneArticle = (article, index) => {
 
 /**
  * Calcule le supplément dû aux options pour un article du panier.
- * @author Ngoie Steven
  * @param {Object} article
  * @returns {number}
  */
@@ -719,7 +709,6 @@ function calculerSupplementOptions(article) {
 
 /**
  * Surveille le panier pour recalculer la déduction liée aux anciennes inscriptions.
- * @author Ngoie Steven
  */
 watch(
     panier,
@@ -759,7 +748,6 @@ watch(
 
 /**
  * Somme de toutes les déductions de changement dans le panier.
- * @author Ngoie Steven
  * @type {import('vue').ComputedRef<number>}
  */
 const deductionTotale = computed(() => {
@@ -771,7 +759,6 @@ const deductionTotale = computed(() => {
 
 /**
  * Surveille le panier pour rafraîchir les tarifs évolutifs.
- * @author Ngoie Steven
  */
 watch(
     panier,
@@ -816,7 +803,6 @@ watch(
 
 /**
  * Sous-total après déduction éventuelle.
- * @author Ngoie Steven
  * @type {import('vue').ComputedRef<number>}
  */
 const sousTotal = computed(() => {
@@ -826,7 +812,6 @@ const sousTotal = computed(() => {
 
 /**
  * Frais de service appliqués uniquement si un montant positif est dû.
- * @author Ngoie Steven
  * @type {import('vue').ComputedRef<string>}
  */
 const fraisService = computed(() => {
@@ -837,7 +822,6 @@ const fraisService = computed(() => {
 
 /**
  * Total final à payer, frais inclus.
- * @author Ngoie Steven
  * @type {import('vue').ComputedRef<string>}
  */
 const total = computed(() => {
@@ -850,7 +834,6 @@ const total = computed(() => {
 
 /**
  * Valide le panier: crée inscriptions/options/réponses/documents puis lance le paiement.
- * @author Ngoie Steven, Guillermet Jean-Daniel
  * @returns {Promise<void>}
  */
 const procederPaiement = async () => {
