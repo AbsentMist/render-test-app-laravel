@@ -219,6 +219,7 @@ export default {
     computed: {
         /**
          * Applique le tri sur les inscriptions chargées.
+         * @author Neris Alessandro
          * @returns {Array<Object>} Liste d'inscriptions triée selon la colonne et direction actuelle.
          */
         inscriptionsFiltrees() {
@@ -275,6 +276,7 @@ export default {
     methods: {
         /**
          * Change la colonne de tri active ou inverse sa direction.
+         * @author Neris Alessandro
          * @param {string} colonne Nom de la colonne triée.
          * @returns {void}
          */
