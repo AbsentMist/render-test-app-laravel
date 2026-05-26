@@ -1,5 +1,5 @@
 <template>
-    <Title texte="Échange de dossard" />
+    <Title texte="Céder mon dossard" />
 
     <div class="p-6 space-y-8">
         <!-- ===== SECTION : Demandes reçues ===== -->
@@ -220,9 +220,7 @@
                         </p>
                         <p class="text-body">
                             <span class="font-medium">Course :</span>
-                            {{
-                                inscriptionSelectionnee.course?.evenement?.nom
-                            }}
+                            {{ inscriptionSelectionnee.course?.evenement?.nom }}
                             — {{ inscriptionSelectionnee.course?.nom }}
                         </p>
                         <p class="text-body">

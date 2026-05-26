@@ -98,7 +98,12 @@
                                     class="w-full flex flex-col gap-1 text-sm text-gray-900"
                                 >
                                     <h3 class="text-lg font-normal">
-                                        <template v-if="article.type === 'options_supplementaires'">
+                                        <template
+                                            v-if="
+                                                article.type ===
+                                                'options_supplementaires'
+                                            "
+                                        >
                                             Ajout d'option
                                         </template>
                                         <template v-else>
@@ -109,12 +114,34 @@
                                         </template>
                                     </h3>
                                     <div class="flex flex-row justify-between">
-                                        <template v-if="article.type === 'options_supplementaires'">
-                                            <p class="font-semibold text-xs">- {{ article.courseDetails?.nom }}</p>
+                                        <template
+                                            v-if="
+                                                article.type ===
+                                                'options_supplementaires'
+                                            "
+                                        >
+                                            <p class="font-semibold text-xs">
+                                                -
+                                                {{ article.courseDetails?.nom }}
+                                            </p>
                                         </template>
                                         <template v-else>
-                                            <p class="font-semibold text-xs">- {{ article.courseDetails?.nom_course }}</p>
-                                            <p>{{ parseFloat(article.courseDetails?.tarif).toFixed(2) }}.-</p>
+                                            <p class="font-semibold text-xs">
+                                                -
+                                                {{
+                                                    article.courseDetails
+                                                        ?.nom_course
+                                                }}
+                                            </p>
+                                            <p>
+                                                {{
+                                                    parseFloat(
+                                                        article.courseDetails
+                                                            ?.tarif,
+                                                    ).toFixed(2)
+                                                }}
+                                                CHF
+                                            </p>
                                         </template>
                                     </div>
                                     <!-- Après la ligne du nom de la course -->
@@ -142,8 +169,15 @@
                                         }}
                                     </p>
 
-                                    <p class="font-semibold text-gray-700 flex items-center">
-                                        <template v-if="article.type !== 'options_supplementaires'">
+                                    <p
+                                        class="font-semibold text-gray-700 flex items-center"
+                                    >
+                                        <template
+                                            v-if="
+                                                article.type !==
+                                                'options_supplementaires'
+                                            "
+                                        >
                                             <Icon
                                                 :icon="'mdi:account'"
                                                 class="w-4 h-4 mr-1"
@@ -156,7 +190,9 @@
                                                 )
                                                     .map(
                                                         (p) =>
-                                                            p.prenom + " " + p.nom,
+                                                            p.prenom +
+                                                            " " +
+                                                            p.nom,
                                                     )
                                                     .join(", ")
                                             }}
@@ -166,7 +202,10 @@
                                     <div
                                         v-if="
                                             article.options &&
-                                            (Array.isArray(article.options) ? article.options.length > 0 : Object.keys(article.options).length > 0)
+                                            (Array.isArray(article.options)
+                                                ? article.options.length > 0
+                                                : Object.keys(article.options)
+                                                      .length > 0)
                                         "
                                         class="mt-1"
                                     >
@@ -178,7 +217,8 @@
                                             class="font-medium text-xs text-gray-600 flex flex-row justify-between"
                                         >
                                             <span>
-                                               - {{
+                                                -
+                                                {{
                                                     opt.quantite
                                                         ? opt.quantite + "x "
                                                         : ""
@@ -189,10 +229,11 @@
                                                 {{
                                                     parseFloat(
                                                         opt.option?.tarif *
-                                                            (opt.quantite || 1) ||
-                                                            0,
+                                                            (opt.quantite ||
+                                                                1) || 0,
                                                     ).toFixed(2)
-                                                }}.-
+                                                }}
+                                                CHF
                                             </span>
                                         </div>
                                     </div>
@@ -240,7 +281,8 @@
                                                         article.tarif_base ||
                                                             article.tarif,
                                                     ).toFixed(2)
-                                                }}.-</span
+                                                }}
+                                                CHF</span
                                             >
                                         </div>
                                         <div
@@ -256,7 +298,8 @@
                                                     getDeductionArticle(
                                                         index,
                                                     ).toFixed(2)
-                                                }}.-</span
+                                                }}
+                                                CHF</span
                                             >
                                         </div>
                                         <div
@@ -287,7 +330,8 @@
                                                     parseFloat(
                                                         article.montant_rabais,
                                                     ).toFixed(2)
-                                                }}.-</span
+                                                }}
+                                                CHF</span
                                             >
                                         </div>
                                     </div>
@@ -301,7 +345,8 @@
                                                     article,
                                                     index,
                                                 ).toFixed(2)
-                                            }}.-
+                                            }}
+                                            CHF
                                         </span>
                                     </div>
                                 </div>
@@ -325,13 +370,13 @@
                         class="flex justify-between items-center mb-3 text-sm font-bold text-gray-800"
                     >
                         <span>Sous-total</span>
-                        <span>{{ sousTotal.toFixed(2) }}.-</span>
+                        <span>{{ sousTotal.toFixed(2) }} CHF</span>
                     </div>
                     <div
                         class="flex justify-between items-center mb-6 text-sm font-bold text-gray-800"
                     >
                         <span>Frais de service</span>
-                        <span>{{ fraisService }}.-</span>
+                        <span>{{ fraisService }} CHF</span>
                     </div>
 
                     <hr class="border-gray-200 mb-6" />
@@ -341,7 +386,7 @@
                             >Total</span
                         >
                         <span class="text-xl font-black text-[#0e0f54]"
-                            >{{ total }}.-</span
+                            >{{ total }} CHF</span
                         >
                     </div>
 
@@ -849,12 +894,14 @@ const procederPaiement = async () => {
                 if (article.type === "options_supplementaires") {
                     try {
                         // Sauvegarder les options supplémentaires pour l'inscription existante
-                        const optionsAjoutes = (article.options ?? []).map((opt) => ({
-                            id_inscription: article.inscription_id,
-                            id_option: opt.option.id,
-                            quantite: opt.quantiteTotale ?? opt.quantite,  // Utiliser quantité totale finale
-                        }));
-                        
+                        const optionsAjoutes = (article.options ?? []).map(
+                            (opt) => ({
+                                id_inscription: article.inscription_id,
+                                id_option: opt.option.id,
+                                quantite: opt.quantiteTotale ?? opt.quantite, // Utiliser quantité totale finale
+                            }),
+                        );
+
                         if (optionsAjoutes.length > 0) {
                             await choixOptionParticipantService.saveChoix({
                                 choix: optionsAjoutes,
@@ -1051,23 +1098,31 @@ const procederPaiement = async () => {
                           )
                         : parseFloat(tarifFinal || 0);
 
-                    if (article.type_article === 'membership') {
+                    if (article.type_article === "membership") {
                         // Special handling for membership: call membership checkout endpoint
                         try {
                             const payload = {
                                 formulaire: article.formulaire_membership || {},
-                                invitation_id: article.formulaire_membership?.id_invitation || article.id_invitation || null,
-                                prix: article.tarif || article.tarif_base || 25.00,
+                                invitation_id:
+                                    article.formulaire_membership
+                                        ?.id_invitation ||
+                                    article.id_invitation ||
+                                    null,
+                                prix:
+                                    article.tarif || article.tarif_base || 25.0,
                             };
 
                             await membershipService.checkoutMembership(payload);
                         } catch (e) {
-                            console.error('Erreur lors du checkout membership pour le panier :', e);
+                            console.error(
+                                "Erreur lors du checkout membership pour le panier :",
+                                e,
+                            );
                             throw e;
                         }
                     } else {
-                        const response = await inscriptionService.createInscription(
-                            {
+                        const response =
+                            await inscriptionService.createInscription({
                                 id_course: article.courseDetails.id,
                                 id_participant: p.id,
                                 tarif: tarifApresChangement,
@@ -1075,7 +1130,8 @@ const procederPaiement = async () => {
                                 id_groupe: idGroupeFinal,
                                 id_ancienne_inscription:
                                     article.ancienneInscriptionId || null,
-                                code_participant: article.codeParticipation || null,
+                                code_participant:
+                                    article.codeParticipation || null,
                                 montant_rabais: article.montant_rabais || 0,
                                 code_rabais: article.code_rabais || null,
                                 code_dossard: article.code_dossard || null,
@@ -1089,8 +1145,7 @@ const procederPaiement = async () => {
                                     article.type?.id === "challenge"
                                         ? article.nom_equipe
                                         : null,
-                            },
-                        );
+                            });
                         const id_inscription =
                             response.data.inscription?.id ?? response.data.id;
                         await finaliserInscription(id_inscription, article);
@@ -1114,7 +1169,7 @@ const procederPaiement = async () => {
         );
 
         // On attend que tout soit en base de données (filtre les promesses null pour les options supplémentaires)
-        await Promise.all(promessesInscriptions.filter(p => p !== null));
+        await Promise.all(promessesInscriptions.filter((p) => p !== null));
         const montantTotal = parseFloat(total.value);
 
         // Si le total est à 0 (Downgrade gratuit), on valide sans passer par Payrexx
