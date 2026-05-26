@@ -80,7 +80,7 @@ const routes = [
   },
   {
     path: "/echange-dossard",
-    name: "Échange de dossard",
+    name: "Céder mon dossard",
     component: () => import("../views/EchangeDossard.vue"),
     meta: { requiresAuth: true }
   },
