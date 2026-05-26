@@ -88,8 +88,7 @@ function handleClick(course) {
 
 /**
  * Formate la date d'évènement pour affichage localisé.
- * @author Perroud Rémi
- * @param {string} dateStr Date brute au format ISO.
+ * @param {string|Date} dateInput Date brute au format ISO ou objet Date.
  * @returns {string}
  */
 </script>

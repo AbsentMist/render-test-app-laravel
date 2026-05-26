@@ -424,9 +424,8 @@ export default {
       this.popupChangement = true;
     },
     /**
-     * Exporte les inscriptions au format demandé (CSV ou XLSX).
-     * @author Ngoie Steven
-     * @param {'csv'|'xlsx'} format Format de sortie souhaité.
+     * Exporte les inscriptions selon l'action demandée.
+     * @param {'email'|'logistique'|'banque'} action Action d'export souhaitée.
      * @returns {Promise<void>}
      */
     async exporter(format) {

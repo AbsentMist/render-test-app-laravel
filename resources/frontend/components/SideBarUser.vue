@@ -1,3 +1,51 @@
+<script setup>
+/**
+ * @fileoverview Composant SideBarUser.
+ * @description Barre latérale de navigation dédiée aux utilisateurs participants.
+ * @remarks La navigation expose les parcours participants et conserve la cohérence visuelle
+ * avec le thème dynamique appliqué par l'utilisateur.
+ */
+import { Icon } from '@iconify/vue';
+import { useAuthStore } from '../stores/auth';
+import { useThemeStore } from '../stores/theme';
+import { useRoute } from 'vue-router';
+import { onMounted, ref, computed } from 'vue';
+import membershipService from '../services/membershipService';
+
+const authStore = useAuthStore();
+const themeStore = useThemeStore();
+const route = useRoute();
+const hasMembershipAccess = ref(false);
+
+/**
+ * Retourne le style du lien "Liste des évènements" en fonction de si on est sur ListeCourses
+ * @returns {Object}
+ */
+const getLienEvenementsStyle = computed(() => {
+  // Si on est sur la page ListeCourses et qu'il y a une couleur secondaire d'événement
+  if (route.name === 'ListeCourses' && themeStore.secondaryColor) {
+    return {
+      backgroundColor: themeStore.secondaryColor
+    };
+  }
+  return {};
+});
+
+onMounted(async () => {
+   if (!authStore.user?.participant) {
+      hasMembershipAccess.value = false;
+      return;
+   }
+
+   try {
+      const response = await membershipService.accesMembershipParticipant();
+      hasMembershipAccess.value = !!response?.data?.has_access;
+   } catch (_error) {
+      hasMembershipAccess.value = false;
+   }
+});
+</script>
+
 <template>
   <aside 
     id="separator-sidebar" 
