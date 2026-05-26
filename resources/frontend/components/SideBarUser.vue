@@ -1,3 +1,51 @@
+<script setup>
+/**
+ * @fileoverview Composant SideBarUser.
+ * @description Barre latérale de navigation dédiée aux utilisateurs participants.
+ * @remarks La navigation expose les parcours participants et conserve la cohérence visuelle
+ * avec le thème dynamique appliqué par l'utilisateur.
+ */
+import { Icon } from '@iconify/vue';
+import { useAuthStore } from '../stores/auth';
+import { useThemeStore } from '../stores/theme';
+import { useRoute } from 'vue-router';
+import { onMounted, ref, computed } from 'vue';
+import membershipService from '../services/membershipService';
+
+const authStore = useAuthStore();
+const themeStore = useThemeStore();
+const route = useRoute();
+const hasMembershipAccess = ref(false);
+
+/**
+ * Retourne le style du lien "Liste des évènements" en fonction de si on est sur ListeCourses
+ * @returns {Object}
+ */
+const getLienEvenementsStyle = computed(() => {
+  // Si on est sur la page ListeCourses et qu'il y a une couleur secondaire d'événement
+  if (route.name === 'ListeCourses' && themeStore.secondaryColor) {
+    return {
+      backgroundColor: themeStore.secondaryColor
+    };
+  }
+  return {};
+});
+
+onMounted(async () => {
+   if (!authStore.user?.participant) {
+      hasMembershipAccess.value = false;
+      return;
+   }
+
+   try {
+      const response = await membershipService.accesMembershipParticipant();
+      hasMembershipAccess.value = !!response?.data?.has_access;
+   } catch (_error) {
+      hasMembershipAccess.value = false;
+   }
+});
+</script>
+
 <template>
   <aside 
     id="separator-sidebar" 
@@ -30,6 +78,7 @@
                 class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200" 
                 :class="themeStore.primaryColor ? 'hover:bg-white/50 text-[#0e0f54]' : 'text-secondary hover:bg-tertiary hover:text-primary'"
                 :active-class="themeStore.primaryColor ? 'bg-white shadow-sm font-bold' : 'bg-tertiary !text-primary'"
+                :style="getLienEvenementsStyle"
               >
                  <Icon icon="lucide:calendar-days" class="w-5 h-5 opacity-90 transition duration-75" />
                  <span class="ms-3 font-medium">Liste des évènements</span>
@@ -60,7 +109,7 @@
               </router-link>
            </li>
 
-                <li v-if="hasMembershipAccess">
+           <li v-if="hasMembershipAccess">
               <router-link 
                 to="/membership" 
                 class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200" 
@@ -95,13 +144,6 @@
                  <span class="ms-3 font-medium">Echange de dossard</span>
               </router-link>
            </li>
-           
-           <li>
-            <button @click="handleLogout" class="flex items-center px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors w-full text-left mt-2">
-               <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-               <span class="font-medium">Se déconnecter</span>
-            </button>
-         </li>
         </ul>
      </div>
   </aside>

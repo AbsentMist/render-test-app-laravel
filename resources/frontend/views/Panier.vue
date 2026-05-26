@@ -69,12 +69,14 @@
                                 >
                                     <img
                                         v-if="
+                                            article.courseLogoColorized ||
                                             getLogoSource(
                                                 article.courseDetails
                                                     ?.evenement,
                                             )
                                         "
                                         :src="
+                                            article.courseLogoColorized ||
                                             getLogoSource(
                                                 article.courseDetails
                                                     ?.evenement,
@@ -140,8 +142,12 @@
                                         }}
                                     </p>
 
-                                    <p class="font-bold mt-1 text-gray-700">
+                                    <p class="font-semibold text-gray-700 flex items-center">
                                         <template v-if="article.type !== 'options_supplementaires'">
+                                            <Icon
+                                                :icon="'mdi:account'"
+                                                class="w-4 h-4 mr-1"
+                                            />
                                             {{
                                                 (article.participant?.length
                                                     ? article.participant
@@ -160,8 +166,7 @@
                                     <div
                                         v-if="
                                             article.options &&
-                                            Array.isArray(article.options) &&
-                                            article.options.length > 0
+                                            (Array.isArray(article.options) ? article.options.length > 0 : Object.keys(article.options).length > 0)
                                         "
                                         class="mt-1"
                                     >
@@ -173,7 +178,7 @@
                                             class="font-medium text-xs text-gray-600 flex flex-row justify-between"
                                         >
                                             <span>
-                                                {{
+                                               - {{
                                                     opt.quantite
                                                         ? opt.quantite + "x "
                                                         : ""
@@ -469,6 +474,7 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../stores/cart";
 import { useAuthStore } from "../stores/auth";
+import { useThemeStore } from "../stores/theme";
 import inscriptionService from "../services/inscriptionService";
 import groupeService from "../services/groupeService";
 import choixOptionParticipantService from "../services/choixOptionParticipantService";
@@ -478,10 +484,12 @@ import membershipService from "../services/membershipService";
 import api from "../services/api";
 import prixEvolutifService from "../services/prixEvolutifService";
 import PopupConfirmation from "../components/PopupConfirmation.vue";
+import { Icon } from "@iconify/vue";
 
 const router = useRouter();
 const cartStore = useCartStore();
 const authStore = useAuthStore();
+const themeStore = useThemeStore();
 
 // Données du panier via le store Pinia
 const panier = computed(() => cartStore.inscriptions);
@@ -546,6 +554,67 @@ function getLogoSource(evenement) {
     const logo = evenement?.logo_base64 || evenement?.logo;
     if (!logo) return null;
     return logo.startsWith("data:") ? logo : `data:image/png;base64,${logo}`;
+}
+
+/**
+ * Applique une couleur de teinte à un logo via canvas.
+ * Utilise le mode composite `source-atop` pour coloriser l'image.
+ * @param {string} logoSrc - Data URI du logo
+ * @param {string} couleur - Couleur hexadécimale (ex: '#FF0000')
+ * @returns {Promise<string>} Data URI de l'image colorisée
+ */
+function coloriserLogo(logoSrc, couleur) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+
+            // Dessiner l'image originale
+            ctx.drawImage(img, 0, 0);
+
+            // Appliquer la couleur avec composite mode
+            ctx.fillStyle = couleur;
+            ctx.globalCompositeOperation = "source-atop";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            resolve(canvas.toDataURL("image/png"));
+        };
+        img.onerror = () => {
+            reject(new Error("Erreur chargement image"));
+        };
+        img.src = logoSrc;
+    });
+}
+
+/**
+ * Colorise les logos du panier avec la couleur secondaire de l'événement.
+ * @param {Array} panier - Tableau des articles du panier
+ */
+async function coloriserLogosParier(panier) {
+    for (const article of panier) {
+        const logoSrc = getLogoSource(article.courseDetails?.evenement);
+        const couleurSecondaire =
+            article.courseDetails?.evenement?.couleur_secondaire || "#FFFFFF";
+
+        if (logoSrc && couleurSecondaire) {
+            try {
+                article.courseLogoColorized = await coloriserLogo(
+                    logoSrc,
+                    couleurSecondaire,
+                );
+            } catch (e) {
+                console.error("Erreur colorisation logo panier:", e);
+                // En cas d'erreur, utiliser le logo original
+                article.courseLogoColorized = logoSrc;
+            }
+        } else {
+            article.courseLogoColorized = logoSrc;
+        }
+    }
 }
 
 /**
@@ -730,6 +799,19 @@ watch(
         }
     },
     { immediate: true },
+);
+
+/**
+ * Surveille le panier pour coloriser les logos des articles.
+ */
+watch(
+    panier,
+    async (nouveauPanier) => {
+        if (nouveauPanier && nouveauPanier.length > 0) {
+            await coloriserLogosParier(nouveauPanier);
+        }
+    },
+    { immediate: true, deep: true },
 );
 
 /**

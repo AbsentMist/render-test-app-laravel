@@ -536,6 +536,7 @@ if (!empty($validatedData['code_rabais'])) {
 
         // On récupère le format depuis l'URL (csv ou xlsx), par défaut xlsx
         $format = $request->query('format', 'xlsx');
+        $preset = $request->query('preset', 'logistique');
         $filters = $request->only(['recherche', 'status', 'type']);
         $inscriptions = $this->adminInscriptionsQuery([])->get();
         $inscriptions = $inscriptions
@@ -544,9 +545,9 @@ if (!empty($validatedData['code_rabais'])) {
             ->values();
         
         $extension = $format === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX;
-        $fileName = 'export_inscriptions_' . date('Y-m-d_H-i') . '.' . $format;
+        $fileName = 'export_inscriptions_' . $preset . '_' . date('Y-m-d_H-i') . '.' . $format;
 
-        return Excel::download(new InscriptionsExport($inscriptions), $fileName, $extension);
+        return Excel::download(new InscriptionsExport($inscriptions, $preset), $fileName, $extension);
     }
 
     /**
