@@ -427,6 +427,11 @@ export default {
     },
 
     computed: {
+        /**
+         * Retourne les courses groupées avec au moins une progression disponible pour la comparaison.
+         * @author Guillermet Jean-Daniel
+         * @returns {Array} Liste des courses avec évolution
+         */
         coursesAvecEvolution() {
             const map = {};
             for (const r of this.resultats) {
@@ -439,6 +444,11 @@ export default {
             return Object.values(map).filter((c) => c.resultats.length >= 1);
         },
 
+        /**
+         * Retourne la liste des événements uniques avec leurs courses associées.
+         * @author Guillermet Jean-Daniel
+         * @returns {Array} Tableau des événements avec leurs courses
+         */
         evenements() {
             const map = {};
             for (const r of this.resultats) {
@@ -453,6 +463,11 @@ export default {
             }));
         },
 
+        /**
+         * Retourne les courses de l'événement sélectionné.
+         * @author Guillermet Jean-Daniel
+         * @returns {Array} Liste des noms de courses
+         */
         coursesDeEvenement() {
             if (!this.evenementSelectionne) return [];
             const ev = this.evenements.find(
@@ -461,6 +476,11 @@ export default {
             return ev ? ev.courses : [];
         },
 
+        /**
+         * Retourne les données du graphique (résultats filtrés par événement et course).
+         * @author Guillermet Jean-Daniel
+         * @returns {Array} Résultats triés par date de course
+         */
         donneesGraphique() {
             if (!this.evenementSelectionne || !this.courseSelectionnee)
                 return [];
@@ -477,12 +497,22 @@ export default {
                 );
         },
 
+        /**
+         * Convertit les temps du graphique en secondes pour les calculs.
+         * @author Guillermet Jean-Daniel
+         * @returns {Array<number>} Tableau des temps en secondes
+         */
         tempsEnSecondes() {
             return this.donneesGraphique.map((r) =>
                 this.tempsToSecondes(r.temps_course),
             );
         },
 
+        /**
+         * Calcule les positions x,y des points du graphique SVG avec les temps et dates.
+         * @author Guillermet Jean-Daniel
+         * @returns {Array<Object>} Points du graphique avec x, y, temps et date
+         */
         pointsGraphique() {
             if (this.donneesGraphique.length === 0) return [];
             const secondes = this.tempsEnSecondes;
@@ -508,10 +538,20 @@ export default {
             }));
         },
 
+        /**
+         * Génère la chaîne de points pour la polyline du graphique SVG.
+         * @author Guillermet Jean-Daniel
+         * @returns {string} Coordonnées au format SVG "x,y x,y ..."
+         */
         pointsLigne() {
             return this.pointsGraphique.map((p) => `${p.x},${p.y}`).join(" ");
         },
 
+        /**
+         * Génère la zone sous la courbe pour remplir le graphique SVG.
+         * @author Guillermet Jean-Daniel
+         * @returns {string} Coordonnées au format SVG polygon
+         */
         pointsZone() {
             if (this.pointsGraphique.length === 0) return "";
             const first = this.pointsGraphique[0];
@@ -520,6 +560,11 @@ export default {
             return `${first.x},${base} ${this.pointsLigne} ${last.x},${base}`;
         },
 
+        /**
+         * Retourne les labels de temps pour l'axe Y du graphique.
+         * @author Guillermet Jean-Daniel
+         * @returns {Array<string>} Labels formatés au format XX:XX
+         */
         labelsY() {
             if (this.tempsEnSecondes.length === 0) return [];
             const min = Math.min(...this.tempsEnSecondes);
@@ -530,6 +575,11 @@ export default {
             );
         },
 
+        /**
+         * Retourne la meilleure performance avec sa progression par rapport à l'édition précédente.
+         * @author Guillermet Jean-Daniel
+         * @returns {Object|null} Objet avec temps, date et progression, ou null si pas de données
+         */
         meilleurePerf() {
             if (this.donneesGraphique.length === 0) return null;
             const meilleur = this.donneesGraphique.reduce((best, r) =>
@@ -555,6 +605,11 @@ export default {
                 progression,
             };
         },
+        /**
+         * Retourne les résultats affichés selon le paramètre d'affichage (tout ou premiers 4).
+         * @author Guillermet Jean-Daniel
+         * @returns {Array} Résultats à afficher
+         */
         resultatsAffiches() {
             return this.afficherTout
                 ? this.resultats
@@ -567,6 +622,12 @@ export default {
     },
 
     methods: {
+        /**
+         * Charge la liste des résultats depuis l'API.
+         * @author Guillermet Jean-Daniel
+         * @async
+         * @returns {Promise<void>}
+         */
         async chargerResultats() {
             this.chargement = true;
             try {
@@ -584,6 +645,12 @@ export default {
             }
         },
 
+        /**
+         * Convertit le logo en URL d'image valide (data URI ou base64).
+         * @author Guillermet Jean-Daniel
+         * @param {string} logo - Le logo en base64 ou data URI
+         * @returns {string|null} URL valide ou null
+         */
         getLogoSource(logo) {
             if (!logo) return null;
             return logo.startsWith("data:")
@@ -591,6 +658,12 @@ export default {
                 : `data:image/png;base64,${logo}`;
         },
 
+        /**
+         * Calcule la progression entre deux résultats successifs de la même course.
+         * @author Guillermet Jean-Daniel
+         * @param {Object} resultat - Le résultat à analyser
+         * @returns {Object|null} Objet avec positif et texte, ou null si pas de progression
+         */
         getProgression(resultat) {
             if (!resultat.temps_course) return null;
             const memesCourses = this.resultats
@@ -613,6 +686,12 @@ export default {
             };
         },
 
+        /**
+         * Convertit un temps au format HH:MM:SS ou MM:SS en secondes.
+         * @author Guillermet Jean-Daniel
+         * @param {string} temps - Le temps au format HH:MM:SS ou MM:SS
+         * @returns {number} Nombre de secondes
+         */
         tempsToSecondes(temps) {
             if (!temps) return 0;
             const p = temps.split(":").map(Number);
@@ -621,6 +700,12 @@ export default {
                 : p[0] * 60 + p[1];
         },
 
+        /**
+         * Convertit un nombre de secondes en format XhYYmZZs.
+         * @author Guillermet Jean-Daniel
+         * @param {number} sec - Nombre de secondes
+         * @returns {string} Temps formaté
+         */
         secondesToTemps(sec) {
             const h = Math.floor(sec / 3600);
             const m = Math.floor((sec % 3600) / 60);
@@ -629,6 +714,12 @@ export default {
             return `${m}m${String(s).padStart(2, "0")}s`;
         },
 
+        /**
+         * Formate un temps pour l'affichage lisible (YYmZZs ou YhZZmZZs).
+         * @author Guillermet Jean-Daniel
+         * @param {string} temps - Le temps au format HH:MM:SS ou MM:SS
+         * @returns {string} Temps formaté pour affichage
+         */
         formatTemps(temps) {
             if (!temps) return "—";
             const p = temps.split(":");
@@ -641,6 +732,12 @@ export default {
             return temps;
         },
 
+        /**
+         * Formate une date au format JJ.MM.AAAA (format suisse).
+         * @author Guillermet Jean-Daniel
+         * @param {string} dateStr - La date ISO à formater
+         * @returns {string} Date formatée
+         */
         formatDate(dateStr) {
             return new Date(dateStr).toLocaleDateString("fr-CH", {
                 day: "2-digit",
@@ -649,6 +746,12 @@ export default {
             });
         },
 
+        /**
+         * Retourne les classes CSS du badge pour une position donnée.
+         * @author Guillermet Jean-Daniel
+         * @param {number} position - La position à formatter
+         * @returns {string} Classes CSS pour le badge
+         */
         badgePosition(position) {
             if (!position) return "bg-gray-100 text-gray-400";
             if (position === 1) return "bg-yellow-100 text-yellow-600";
@@ -657,6 +760,12 @@ export default {
             return "bg-neutral-secondary-medium text-heading";
         },
 
+        /**
+         * Supprime l'année à la fin d'un nom d'événement.
+         * @author Guillermet Jean-Daniel
+         * @param {string} nom - Le nom de l'événement
+         * @returns {string} Nom sans l'année
+         */
         nomSansAnnee(nom) {
             return nom ? nom.replace(/\s*\d{4}\s*$/, "").trim() : nom;
         },

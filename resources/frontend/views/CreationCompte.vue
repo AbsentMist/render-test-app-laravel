@@ -679,6 +679,12 @@ const form = reactive({
     photo: null,
 });
 
+/**
+ * Formate le numéro de téléphone à mesure que l'utilisateur tape.
+ * @author Guillermet Jean-Daniel
+ * @param {Event} event - L'événement de modification du champ input
+ * @returns {void}
+ */
 function formaterTelephone(event) {
     let valeur = event.target.value.replace(/\D/g, ""); // garde uniquement les chiffres
     if (valeur.length <= 3) {
@@ -711,6 +717,12 @@ onBeforeUnmount(() => {
     document.removeEventListener("mousedown", handleAdresseClickOutside);
 });
 
+/**
+ * Recherche les suggestions d'adresses via l'API geo.admin.ch de la Confédération Suisse.
+ * @author Guillermet Jean-Daniel
+ * @param {string} valeur - La valeur de recherche d'adresse
+ * @returns {Promise<void>}
+ */
 async function rechercherAdresse(valeur) {
     clearTimeout(adresseTimeout);
     if (!valeur || valeur.length < 3) {
@@ -732,6 +744,12 @@ async function rechercherAdresse(valeur) {
     }, 300);
 }
 
+/**
+ * Traite la sélection d'une adresse et remplit les champs adresse, numéro, NPA et commune.
+ * @author Guillermet Jean-Daniel
+ * @param {object} suggestion - L'objet suggestion retourné par l'API geo.admin.ch
+ * @returns {void}
+ */
 function selectionnerAdresse(suggestion) {
     const attrs = suggestion.attrs;
 
@@ -763,11 +781,23 @@ function selectionnerAdresse(suggestion) {
     showAdresseDropdown.value = false;
 }
 
+/**
+ * Ferme le dropdown des suggestions d'adresses lors d'un clic en dehors du champ.
+ * @author Guillermet Jean-Daniel
+ * @param {MouseEvent} e - L'événement de clic
+ * @returns {void}
+ */
 function handleAdresseClickOutside(e) {
     if (adresseRef.value && !adresseRef.value.contains(e.target)) {
         showAdresseDropdown.value = false;
     }
 }
+/**
+ * Formate la date de naissance au format JJ/MM/AAAA à mesure que l'utilisateur tape.
+ * @author Guillermet Jean-Daniel
+ * @param {Event} event - L'événement de modification du champ date
+ * @returns {void}
+ */
 function formaterDate(event) {
     let valeur = event.target.value.replace(/\D/g, ""); // garde uniquement les chiffres
     if (valeur.length >= 3 && valeur.length <= 4) {
@@ -783,6 +813,12 @@ function formaterDate(event) {
     form.dateNaissance = valeur;
 }
 
+/**
+ * Convertit la date sélectionnée depuis le calendrier natif au format JJ/MM/AAAA.
+ * @author Guillermet Jean-Daniel
+ * @param {Event} event - L'événement de changement du calendrier
+ * @returns {void}
+ */
 function dateDepuisCalendrier(event) {
     const date = new Date(event.target.value);
     if (!isNaN(date)) {
@@ -796,6 +832,11 @@ function dateDepuisCalendrier(event) {
     datePickerRef.value.showPicker?.();
 }
 
+/**
+ * Valide tous les champs de l'étape 1 (identifiants, email, mot de passe).
+ * @author Guillermet Jean-Daniel
+ * @returns {boolean} - true si tous les champs sont valides, false sinon
+ */
 function validateStep1() {
     ["prenom", "nom", "email", "password", "passwordConfirm"].forEach(
         (k) => delete errors[k],
@@ -843,6 +884,11 @@ function validateStep1() {
     return valid;
 }
 
+/**
+ * Valide tous les champs de l'étape 2 (genre, date de naissance, téléphone, nationalité).
+ * @author Guillermet Jean-Daniel
+ * @returns {boolean} - true si tous les champs sont valides, false sinon
+ */
 function validateStep2() {
     ["genre", "dateNaissance", "telephone", "nationalite"].forEach(
         (k) => delete errors[k],
@@ -871,6 +917,11 @@ function validateStep2() {
     return valid;
 }
 
+/**
+ * Valide tous les champs de l'étape 3 (adresse, numéro, NPA, commune).
+ * @author Guillermet Jean-Daniel
+ * @returns {boolean} - true si tous les champs sont valides, false sinon
+ */
 function validateStep3() {
     ["adresse", "npa", "commune"].forEach((k) => delete errors[k]);
     delete errors.numeroRue;
@@ -894,20 +945,41 @@ function validateStep3() {
     return valid;
 }
 
+/**
+ * Valide l'étape actuelle et passe à l'étape suivante si la validation est positive.
+ * @author Guillermet Jean-Daniel
+ * @returns {void}
+ */
 function nextStep() {
     const validators = { 1: validateStep1, 2: validateStep2 };
     if (validators[currentStep.value]()) currentStep.value++;
 }
 
+/**
+ * Revient à l'étape précédente ou redirige vers la page de connexion si déjà à l'étape 1.
+ * @author Guillermet Jean-Daniel
+ * @returns {void}
+ */
 function previousStep() {
     if (currentStep.value > 1) currentStep.value--;
     else router.push("/login");
 }
 
+/**
+ * Déclenche le clic sur l'input file pour permettre à l'utilisateur de sélectionner une photo de profil.
+ * @author Guillermet Jean-Daniel
+ * @returns {void}
+ */
 function triggerFileInput() {
     fileInput.value?.click();
 }
 
+/**
+ * Traite le changement de photo de profil et génère une prévisualisation en base64.
+ * @author Guillermet Jean-Daniel
+ * @param {Event} event - L'événement de changement du input file
+ * @returns {void}
+ */
 function handlePhotoChange(event) {
     const file = event.target.files[0];
     if (file) {
@@ -920,6 +992,12 @@ function handlePhotoChange(event) {
     }
 }
 
+/**
+ * Valide l'étape 3 et soumet le formulaire d'enregistrement au serveur backend.
+ * Gère les erreurs de validation du backend et redirige vers la page de connexion en cas de succès.
+ * @author Guillermet Jean-Daniel
+ * @returns {Promise<void>}
+ */
 async function handleRegister() {
     if (!validateStep3()) return;
 

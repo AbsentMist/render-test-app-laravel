@@ -63,6 +63,7 @@ export default {
     emits: ['update:modelValue'],
     /**
      * Initialise le dictionnaire local des réponses indexé par identifiant de question.
+     * @author Guillermet Jean-Daniel
      * @returns {{reponses: Object}} État local des réponses utilisateur.
      */
     data() {
@@ -75,6 +76,7 @@ export default {
             immediate: true,
             /**
              * Prépare une structure de réponses vide à chaque changement de questionnaire.
+             * @author Guillermet Jean-Daniel
              * @param {Array} qs Liste des questions actives pour la course.
              * @returns {void}
              */
@@ -88,6 +90,7 @@ export default {
     methods: {
         /**
          * Agrège les réponses courantes puis notifie le parent.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         mettreAJour() {

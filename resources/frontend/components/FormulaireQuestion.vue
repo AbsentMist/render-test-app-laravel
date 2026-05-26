@@ -105,6 +105,7 @@ export default {
     computed: {
         /**
          * Indique si le formulaire est en mode édition.
+         * @author Neris Alessandro
          * @returns {boolean}
          */
         isEditing() {
@@ -114,6 +115,7 @@ export default {
     methods: {
         /**
          * Convertit une question API vers le format local du formulaire.
+         * @author Neris Alessandro
          * @param {Object} question Donnée question brute.
          * @returns {Object} Donnée question normalisée.
          */
@@ -134,6 +136,7 @@ export default {
         },
         /**
          * Copie un modèle existant dans le formulaire courant.
+         * @author Neris Alessandro
          * @param {Object} question Modèle source sélectionné.
          * @returns {void}
          */
@@ -147,6 +150,7 @@ export default {
         },
         /**
          * Réinitialise le formulaire et quitte le mode édition.
+         * @author Neris Alessandro
          * @returns {void}
          */
         resetForm() {
@@ -156,6 +160,7 @@ export default {
         },
         /**
          * Prépare une question pour comparaison de contenu.
+         * @author Neris Alessandro
          * @param {Object} question Donnée question à comparer.
          * @returns {Object} Version simplifiée de la question.
          */
@@ -170,6 +175,7 @@ export default {
         },
         /**
          * Indique si un modèle doit être affiché en surbrillance.
+         * @author Neris Alessandro
          * @param {Object} question Modèle de question de la liste.
          * @returns {boolean}
          */
@@ -193,6 +199,7 @@ export default {
         },
         /**
          * Prépare la suppression d'un modèle de question.
+         * @author Neris Alessandro
          * @param {number} index Position du modèle dans la liste.
          * @returns {void}
          */
@@ -203,6 +210,7 @@ export default {
         },
         /**
          * Supprime la question confirmée puis met à jour la liste locale.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async confirmerSuppressionQuestion() {
@@ -223,6 +231,7 @@ export default {
         },
         /**
          * Synchronise les choix d'une question après sa création ou sa modification.
+         * @author Neris Alessandro
          * @param {number} questionId Identifiant de la question cible.
          * @param {boolean} updateMode Active le mode mise à jour des choix existants.
          * @returns {Promise<void>}
@@ -265,6 +274,7 @@ export default {
         },
         /**
          * Recharge la liste des modèles de questions depuis l'API.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async chargerModeles() {
@@ -273,6 +283,7 @@ export default {
         },
         /**
          * Applique les actions communes après création/modification réussie.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async handleSuccessSubmit() {
@@ -283,6 +294,7 @@ export default {
         },
         /**
          * Crée un nouveau modèle de question à partir du formulaire courant.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async createQuestion() {
@@ -308,6 +320,7 @@ export default {
         },
         /**
          * Modifie le modèle de question actuellement sélectionné.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async modifyQuestion() {
@@ -333,6 +346,7 @@ export default {
     },
     /**
      * Charge les modèles de question au montage du composant.
+     * @author Neris Alessandro
      * @returns {Promise<void>}
      */
     async mounted() {

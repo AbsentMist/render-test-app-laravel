@@ -40,6 +40,7 @@
 
 <script>
 /**
+ * @author Neris Alessandro
  * @fileoverview Composant PopupAvertissementCourse.
  * @description Modale d'affichage d'un avertissement course avec confirmation explicite du participant.
  * @remarks Ce composant impose une validation utilisateur avant de poursuivre

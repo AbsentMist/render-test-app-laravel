@@ -78,6 +78,7 @@ const emit = defineEmits(['selectionner']);
 
 /**
  * Relaye la sélection d'une course au composant parent.
+ * @author Perroud Rémi
  * @param {Object} course Course sélectionnée.
  * @returns {void}
  */
@@ -87,6 +88,7 @@ function handleClick(course) {
 
 /**
  * Formate la date d'évènement pour affichage localisé.
+ * @author Perroud Rémi
  * @param {string} dateStr Date brute au format ISO.
  * @returns {string}
  */

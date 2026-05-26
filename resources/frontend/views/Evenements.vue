@@ -31,6 +31,7 @@ const chargement = ref(true);
 
 /**
  * Charge les évènements accessibles au participant.
+ * @author Perroud Rémi
  * @returns {Promise<void>}
  */
 async function chargerEvenements() {

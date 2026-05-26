@@ -362,6 +362,11 @@ export default {
     },
 
     methods: {
+        /**
+         * Charge les inscriptions du participant, ses demandes reçues et ses demandes envoyées.
+         * @author Guillermet Jean-Daniel
+         * @returns {Promise<void>}
+         */
         async chargerDonnees() {
             this.chargement = true;
             try {
@@ -387,6 +392,9 @@ export default {
 
         /**
          * Vérifie si une inscription a déjà un échange en cours (demande envoyée non répondue).
+         * @author Guillermet Jean-Daniel
+         * @param {number} idInscription - L'identifiant de l'inscription
+         * @returns {boolean} - true si un échange est en cours, false sinon
          */
         echangeEnCoursPour(idInscription) {
             return this.demandesEnvoyees.some(
@@ -394,6 +402,11 @@ export default {
             );
         },
 
+        /**
+         * Envoie une demande d'échange de dossard au destinataire spécifié.
+         * @author Guillermet Jean-Daniel
+         * @returns {Promise<void>}
+         */
         async initierEchange() {
             if (!this.inscriptionSelectionnee || !this.emailDestinataire)
                 return;
@@ -420,21 +433,44 @@ export default {
             }
         },
 
+        /**
+         * Ouvre la popup de confirmation avant d'accepter une demande d'échange reçue.
+         * @author Guillermet Jean-Daniel
+         * @param {object} demande - L'objet demande d'échange à accepter
+         * @returns {void}
+         */
         ouvrirPopupAccepter(demande) {
             this.demandeEnCours = demande;
             this.popupAccepter = true;
         },
 
+        /**
+         * Ouvre la popup de confirmation avant de refuser une demande d'échange reçue.
+         * @author Guillermet Jean-Daniel
+         * @param {object} demande - L'objet demande d'échange à refuser
+         * @returns {void}
+         */
         ouvrirPopupRefuser(demande) {
             this.demandeEnCours = demande;
             this.popupRefuser = true;
         },
 
+        /**
+         * Ouvre la popup de confirmation avant d'annuler une demande d'échange envoyée.
+         * @author Guillermet Jean-Daniel
+         * @param {object} demande - L'objet demande d'échange à annuler
+         * @returns {void}
+         */
         ouvrirPopupAnnuler(demande) {
             this.demandeEnCours = demande;
             this.popupAnnuler = true;
         },
 
+        /**
+         * Accepte une demande d'échange et transfère le dossard au cédant.
+         * @author Guillermet Jean-Daniel
+         * @returns {Promise<void>}
+         */
         async confirmerAcceptation() {
             this.popupAccepter = false;
             this.chargementAction = true;
@@ -453,6 +489,11 @@ export default {
             }
         },
 
+        /**
+         * Refuse une demande d'échange reçue et maintient l'inscription originale.
+         * @author Guillermet Jean-Daniel
+         * @returns {Promise<void>}
+         */
         async confirmerRefus() {
             this.popupRefuser = false;
             this.chargementAction = true;
@@ -470,6 +511,11 @@ export default {
             }
         },
 
+        /**
+         * Annule une demande d'échange envoyée et restaure l'inscription à son état initial.
+         * @author Guillermet Jean-Daniel
+         * @returns {Promise<void>}
+         */
         async confirmerAnnulation() {
             this.popupAnnuler = false;
             this.chargementAction = true;
@@ -487,6 +533,12 @@ export default {
             }
         },
 
+        /**
+         * Formate une date au format JJ/MM/AAAA selon la locale fr-CH.
+         * @author Guillermet Jean-Daniel
+         * @param {string} dateStr - La chaîne de date à formater
+         * @returns {string} - La date formatée
+         */
         formatDate(dateStr) {
             return new Date(dateStr).toLocaleDateString("fr-CH", {
                 day: "2-digit",

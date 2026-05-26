@@ -22,6 +22,7 @@
 
 <script>
 /**
+ * @author Neris Alessandro
  * @fileoverview Composant PopupConfirmation.
  * @description Modale de confirmation réutilisable pour valider ou annuler une action utilisateur.
  * @remarks Le composant est générique et piloté par props pour être réutilisé

@@ -57,6 +57,7 @@ export default {
     computed: {
         /**
          * Détermine les modes d'inscription autorisés pour la course courante.
+         * @author Guillermet Jean-Daniel
          * @returns {Array<{id: string, nom: string, icone: string}>} Liste des modes sélectionnables.
          */
         typesCourse() {
@@ -76,6 +77,7 @@ export default {
         },
         /**
          * Proxy de la valeur sélectionnée pour usage avec v-model.
+         * @author Guillermet Jean-Daniel
          * @type {{get: function(): Object|null, set: function(Object|null): void}}
          */
         typeSelectionne: {
@@ -86,6 +88,7 @@ export default {
     methods: {
         /**
          * Applique un type d'inscription choisi par l'utilisateur.
+         * @author Guillermet Jean-Daniel
          * @param {{id: string, nom: string, icone: string}} type Type sélectionné.
          * @returns {void}
          */
@@ -93,6 +96,7 @@ export default {
     },
     /**
      * Pré-sélectionne un mode à l'ouverture lorsque nécessaire.
+     * @author Guillermet Jean-Daniel
      * @returns {void}
      */
     mounted() {

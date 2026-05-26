@@ -163,6 +163,11 @@ export default {
         };
     },
     computed: {
+        /**
+         * Vérifie si le type d'inscription est un groupe ou un relais.
+         * @author Guillermet Jean-Daniel
+         * @returns {boolean} True si groupe ou relais, false sinon
+         */
         estGroupeOuRelais() {
             return (
                 this.typeInscription === "groupe" ||
@@ -171,6 +176,13 @@ export default {
         },
     },
     methods: {
+        /**
+         * Applique un code (dossard ou rabais) selon le contexte d'inscription.
+         * Pour groupe/relais: uniquement code rabais. Pour participant: essaie dossard puis rabais.
+         * @author Guillermet Jean-Daniel
+         * @async
+         * @returns {Promise<void>}
+         */
         async appliquerCode() {
             const code = this.codeUnique.trim();
             if (!code || !this.idCourse) return;
@@ -222,12 +234,22 @@ export default {
             this.chargement = false;
         },
 
+        /**
+         * Retire le code dossard appliqué et émet les événements de suppression.
+         * @author Guillermet Jean-Daniel
+         * @returns {void}
+         */
         retirerDossard() {
             this.codeDossardValide = null;
             this.$emit("update:codeParticipation", "");
             this.$emit("dossard-retire");
         },
 
+        /**
+         * Retire le code rabais appliqué et émet l'événement de suppression.
+         * @author Guillermet Jean-Daniel
+         * @returns {void}
+         */
         retirerRabais() {
             this.rabaisApplique = null;
             this.$emit("rabais-retire");

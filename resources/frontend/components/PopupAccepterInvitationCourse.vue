@@ -1,83 +1,3 @@
-<script setup>
-/**
- * @fileoverview Composant PopupAccepterInvitationCourse.
- * @description Popup pour accepter une invitation de groupe avec remplissage du questionnaire de la course.
- * @remarks Permet à l'utilisateur de répondre aux questions avant d'accepter son invitation à un groupe.
- */
-import { ref, computed } from 'vue';
-import { Icon } from '@iconify/vue';
-import EtapeQuestionnaire from './EtapeQuestionnaire.vue';
-import groupeService from '../services/groupeService';
-
-const props = defineProps({
-  invitation: {
-    type: Object,
-    required: true,
-    description: 'Objet invitation contenant { id, nom, course, ... }'
-  }
-});
-
-const emit = defineEmits(['close', 'accepte']);
-
-const reponses = ref({});
-const chargement = ref(false);
-const erreur = ref(null);
-
-/**
- * Calcul du questionnaire de la course associée à l'invitation.
- * @returns {Array}
- */
-const questionnaire = computed(() => {
-  return props.invitation?.course?.questionnaire || [];
-});
-
-/**
- * Indique s'il y a des questions à répondre.
- * @returns {boolean}
- */
-const aDesQuestions = computed(() => {
-  return questionnaire.value && questionnaire.value.length > 0;
-});
-
-/**
- * Formate les réponses pour l'API (structure compatible avec ReponseQuestion).
- * @returns {Array}
- */
-const reponsesPourApi = computed(() => {
-  return Object.entries(reponses.value).map(([id_question, valeur]) => ({
-    id_question: parseInt(id_question),
-    id_option_choisie: valeur?.reponse?.id ?? null,
-  }));
-});
-
-/**
- * Accepte l'invitation avec les réponses au questionnaire.
- * @returns {Promise<void>}
- */
-const accepterInvitation = async () => {
-  erreur.value = null;
-  chargement.value = true;
-
-  try {
-    const payload = aDesQuestions.value ? { reponses: reponsesPourApi.value } : {};
-    
-    await groupeService.accepterInvitation(props.invitation.id, payload);
-    
-    emit('accepte', {
-      idGroupe: props.invitation.id,
-      reponses: reponsesPourApi.value
-    });
-    
-    emit('close');
-  } catch (e) {
-    console.error('Erreur lors de l\'acceptation de l\'invitation', e);
-    erreur.value = e.response?.data?.message || 'Une erreur est survenue lors de l\'acceptation de l\'invitation.';
-  } finally {
-    chargement.value = false;
-  }
-};
-</script>
-
 <template>
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 flex flex-col overflow-hidden" style="height: auto; max-height: 90vh">
@@ -205,3 +125,87 @@ const accepterInvitation = async () => {
     </div>
   </div>
 </template>
+
+<script setup>
+/**
+ * @fileoverview Composant PopupAccepterInvitationCourse.
+ * @description Popup pour accepter une invitation de groupe avec remplissage du questionnaire de la course.
+ * @remarks Permet à l'utilisateur de répondre aux questions avant d'accepter son invitation à un groupe.
+ */
+import { ref, computed } from 'vue';
+import { Icon } from '@iconify/vue';
+import EtapeQuestionnaire from './EtapeQuestionnaire.vue';
+import groupeService from '../services/groupeService';
+
+const props = defineProps({
+  invitation: {
+    type: Object,
+    required: true,
+    description: 'Objet invitation contenant { id, nom, course, ... }'
+  }
+});
+
+const emit = defineEmits(['close', 'accepte']);
+
+const reponses = ref({});
+const chargement = ref(false);
+const erreur = ref(null);
+
+/**
+ * Calcul du questionnaire de la course associée à l'invitation.
+ * @author Neris Alessandro
+ * @returns {Array}
+ */
+const questionnaire = computed(() => {
+  return props.invitation?.course?.questionnaire || [];
+});
+
+/**
+ * Indique s'il y a des questions à répondre.
+ * @author Neris Alessandro
+ * @returns {boolean}
+ */
+const aDesQuestions = computed(() => {
+  return questionnaire.value && questionnaire.value.length > 0;
+});
+
+/**
+ * Formate les réponses pour l'API (structure compatible avec ReponseQuestion).
+ * @author Neris Alessandro
+ * @returns {Array}
+ */
+const reponsesPourApi = computed(() => {
+  return Object.entries(reponses.value).map(([id_question, valeur]) => ({
+    id_question: parseInt(id_question),
+    id_option_choisie: valeur?.reponse?.id ?? null,
+  }));
+});
+
+/**
+ * Accepte l'invitation avec les réponses au questionnaire.
+ * @author Ngoie Steven, Neris Alessandro
+ * @returns {Promise<void>}
+ */
+const accepterInvitation = async () => {
+  erreur.value = null;
+  chargement.value = true;
+
+  try {
+    const payload = aDesQuestions.value ? { reponses: reponsesPourApi.value } : {};
+    
+    await groupeService.accepterInvitation(props.invitation.id, payload);
+    
+    emit('accepte', {
+      idGroupe: props.invitation.id,
+      reponses: reponsesPourApi.value
+    });
+    
+    emit('close');
+  } catch (e) {
+    console.error('Erreur lors de l\'acceptation de l\'invitation', e);
+    erreur.value = e.response?.data?.message || 'Une erreur est survenue lors de l\'acceptation de l\'invitation.';
+  } finally {
+    chargement.value = false;
+  }
+};
+</script>

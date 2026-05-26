@@ -7,6 +7,7 @@
 
 <script>
 /**
+ * @author Neris Alessandro
  * @fileoverview Composant Title.
  * @description En-tête de section réutilisable pour harmoniser les titres des écrans.
  * @remarks Ce composant encapsule le style de titre principal avec un soulignement coloré

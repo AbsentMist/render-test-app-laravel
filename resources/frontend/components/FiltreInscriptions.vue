@@ -108,6 +108,7 @@ export default {
   emits: ['update:filtres', 'exporter'],
   /**
    * Initialise les filtres manipulés localement dans l'interface.
+   * @author Guillermet Jean-Daniel
    * @returns {{filtresInternes: {recherche: string, status: string, type: string}}}
    */
   data() {
@@ -122,6 +123,7 @@ export default {
   computed: {
     /**
      * Indique si au moins un filtre est actif.
+     * @author Guillermet Jean-Daniel
      * @returns {boolean}
      */
     filtresActifs() {
@@ -133,6 +135,7 @@ export default {
   methods: {
     /**
      * Émet l'état courant des filtres vers le parent.
+     * @author Guillermet Jean-Daniel
      * @returns {void}
      */
     emitFiltres() {
@@ -140,6 +143,7 @@ export default {
     },
     /**
      * Réinitialise les filtres puis notifie le parent.
+     * @author Guillermet Jean-Daniel
      * @returns {void}
      */
     reinitialiser() {

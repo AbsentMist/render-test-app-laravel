@@ -1275,6 +1275,7 @@ export default {
     methods: {
         /**
          * Formate une date ISO en JJ.MM.AAAA.
+         * @author Neris Alessandro
          * @param {string} dateStr
          * @returns {string}
          */
@@ -1292,6 +1293,7 @@ export default {
 
         /**
          * Charge la course complète liée à l'inscription pour afficher options et questionnaire.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async chargerCourseComplete() {
@@ -1307,6 +1309,7 @@ export default {
 
         /**
          * Active le mode édition avec une copie locale des données modifiables.
+         * @author Neris Alessandro
          * @returns {void}
          */
         activerEdition() {
@@ -1329,6 +1332,7 @@ export default {
 
         /**
          * Annule l'édition locale et restaure l'affichage en mode consultation.
+         * @author Neris Alessandro
          * @returns {void}
          */
         annulerEdition() {
@@ -1338,6 +1342,7 @@ export default {
 
         /**
          * Sauvegarde l'édition de l'inscription, des choix d'options et des réponses.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async sauvegarderEdition() {
@@ -1439,6 +1444,7 @@ export default {
 
         /**
          * Retourne le choix existant pour une option donnée.
+         * @author Neris Alessandro
          * @param {number} idOption
          * @returns {object|null}
          */
@@ -1452,6 +1458,7 @@ export default {
 
         /**
          * Retourne le choix d'option à afficher selon le mode courant (édition/lecture).
+         * @author Neris Alessandro
          * @param {number} idOption
          * @returns {object|null}
          */
@@ -1468,6 +1475,7 @@ export default {
 
         /**
          * Retourne la quantité associée à une option.
+         * @author Neris Alessandro
          * @param {number} idOption
          * @returns {number}
          */
@@ -1484,6 +1492,7 @@ export default {
 
         /**
          * Active ou retire une option dans la sélection en mode édition.
+         * @author Neris Alessandro
          * @param {object} option
          * @returns {void}
          */
@@ -1504,6 +1513,7 @@ export default {
 
         /**
          * Met à jour la quantité d'une option sélectionnée.
+         * @author Neris Alessandro
          * @param {number} idOption
          * @param {string|number} valeur
          * @returns {void}
@@ -1517,6 +1527,7 @@ export default {
 
         /**
          * Retourne l'identifiant de réponse choisi pour une question en mode lecture.
+         * @author Neris Alessandro
          * @param {number} idQuestion
          * @returns {number|null}
          */
@@ -1529,6 +1540,7 @@ export default {
 
         /**
          * Vérifie si une option est sélectionnée pour une question donnée.
+         * @author Neris Alessandro
          * @param {number} idQuestion
          * @param {number} idOption
          * @returns {boolean}
@@ -1545,6 +1557,7 @@ export default {
 
         /**
          * Affecte une réponse à une question en mode édition.
+         * @author Neris Alessandro
          * @param {number} idQuestion
          * @param {number} idOption
          * @returns {void}
@@ -1567,6 +1580,7 @@ export default {
 
         /**
          * Télécharge un document sur le poste utilisateur.
+         * @author Neris Alessandro
          * @param {object} doc
          * @returns {Promise<void>}
          */
@@ -1590,6 +1604,7 @@ export default {
 
         /**
          * Ouvre un document dans un nouvel onglet navigateur.
+         * @author Neris Alessandro
          * @param {object} doc
          * @returns {Promise<void>}
          */
@@ -1607,6 +1622,7 @@ export default {
 
         /**
          * Prépare la suppression d'un document en ouvrant la confirmation.
+         * @author Neris Alessandro
          * @param {number} idDoc
          * @returns {Promise<void>}
          */
@@ -1616,6 +1632,7 @@ export default {
 
         /**
          * Confirme la suppression d'un document et met à jour la liste locale.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async confirmerSuppressionDocument() {
@@ -1636,6 +1653,7 @@ export default {
 
         /**
          * Réagit à la sélection d'un fichier via input natif.
+         * @author Neris Alessandro
          * @param {Event} event
          * @returns {Promise<void>}
          */
@@ -1649,6 +1667,7 @@ export default {
 
         /**
          * Gère le dépôt d'un document par glisser-déposer.
+         * @author Neris Alessandro
          * @param {DragEvent} event
          * @returns {void}
          */
@@ -1661,6 +1680,7 @@ export default {
 
         /**
          * Vérifie qu'un document appartient aux formats autorisés.
+         * @author Neris Alessandro
          * @param {File} fichier
          * @returns {boolean}
          */
@@ -1691,6 +1711,7 @@ export default {
 
         /**
          * Envoie un document au serveur et l'ajoute à la liste locale.
+         * @author Neris Alessandro
          * @param {File} fichier
          * @returns {Promise<void>}
          */
@@ -1715,6 +1736,7 @@ export default {
 
         /**
          * Ouvre la modale de changement de course.
+         * @author Neris Alessandro
          * @returns {void}
          */
         ouvrirChangementCourse() {
@@ -1723,6 +1745,7 @@ export default {
 
         /**
          * Ferme la modale de changement et transmet les données au parent.
+         * @author Neris Alessandro
          * @param {object} data
          * @returns {void}
          */
@@ -1733,6 +1756,7 @@ export default {
 
         /**
          * Ferme la modale de changement ET la modale parent d'inscription.
+         * @author Neris Alessandro
          * @returns {void}
          */
         fermerAvecPopup() {

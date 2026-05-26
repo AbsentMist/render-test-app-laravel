@@ -86,6 +86,7 @@ export default {
     emits: ['update:modelValue'],
     /**
      * Initialise l'état d'interface du dépôt de fichiers.
+     * @author Guillermet Jean-Daniel
      * @returns {{glisser: boolean, fichiers: File[]}} État local de drag-and-drop et fichiers sélectionnés.
      */
     data() {
@@ -97,6 +98,7 @@ export default {
     watch: {
         /**
          * Aligne la liste locale si la valeur est modifiée depuis le parent.
+         * @author Guillermet Jean-Daniel
          * @param {File[]} nouvelleValeur Nouvelle liste de fichiers côté parent.
          * @returns {void}
          */
@@ -110,6 +112,7 @@ export default {
     methods: {
         /**
          * Traite la sélection de fichiers depuis l'input natif.
+         * @author Guillermet Jean-Daniel
          * @param {Event} event Événement de changement de l'input file.
          * @returns {void}
          */
@@ -120,6 +123,7 @@ export default {
         },
         /**
          * Traite les fichiers déposés par glisser-déposer.
+         * @author Guillermet Jean-Daniel
          * @param {DragEvent} event Événement de dépôt contenant les fichiers.
          * @returns {void}
          */
@@ -130,6 +134,7 @@ export default {
         },
         /**
          * Ajoute des fichiers à la liste locale puis propage la nouvelle valeur.
+         * @author Guillermet Jean-Daniel
          * @param {File[]} nouveaux Fichiers à ajouter.
          * @returns {void}
          */
@@ -139,6 +144,7 @@ export default {
         },
         /**
          * Retire un fichier de la liste locale selon son index.
+         * @author Guillermet Jean-Daniel
          * @param {number} index Position du fichier à supprimer.
          * @returns {void}
          */
@@ -148,6 +154,7 @@ export default {
         },
         /**
          * Formate une taille en octets pour affichage lisible.
+         * @author Guillermet Jean-Daniel
          * @param {number} octets Taille brute en octets.
          * @returns {string} Valeur formatée en o, Ko ou Mo.
          */

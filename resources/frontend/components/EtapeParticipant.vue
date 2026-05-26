@@ -867,6 +867,7 @@ export default {
 
         /**
          * Organisations challenge filtrées selon le type sélectionné.
+         * @author Guillermet Jean-Daniel
          * @returns {Array<object>}
          */
         organisationsFiltrees() {
@@ -878,6 +879,7 @@ export default {
 
         /**
          * Nom final de l'organisation challenge (liste ou saisie libre).
+         * @author Guillermet Jean-Daniel
          * @returns {string}
          */
         nomOrganisationChallenge() {
@@ -963,6 +965,7 @@ export default {
 
         /**
          * Indique si la personne saisie est mineure (< 18 ans).
+         * @author Guillermet Jean-Daniel
          * @returns {boolean}
          */
         estMineur() {
@@ -974,6 +977,7 @@ export default {
 
         /**
          * Indique si la personne saisie est sous l'âge minimum de la course.
+         * @author Guillermet Jean-Daniel
          * @returns {boolean}
          */
         estSousAgeMinimum() {
@@ -986,6 +990,7 @@ export default {
     methods: {
         /**
          * Émet la mise à jour du groupe (nom + participants).
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         emitGroupe() {
@@ -996,6 +1001,7 @@ export default {
         },
         /**
          * Émet la structure challenge selon le type d'organisation et les participants.
+         * @author Guillermet Jean-Daniel
          * @param {object|null} participant
          * @returns {void}
          */
@@ -1014,6 +1020,7 @@ export default {
         },
         /**
          * Sélectionne une organisation challenge existante.
+         * @author Guillermet Jean-Daniel
          * @param {object} org
          * @returns {void}
          */
@@ -1025,6 +1032,7 @@ export default {
         },
         /**
          * Assigne un participant unique pour le mode challenge.
+         * @author Guillermet Jean-Daniel
          * @param {object} participant
          * @returns {void}
          */
@@ -1035,6 +1043,7 @@ export default {
         },
         /**
          * Charge les organisations challenge disponibles pour la course.
+         * @author Guillermet Jean-Daniel
          * @returns {Promise<void>}
          */
         async chargerOrganisations() {
@@ -1054,6 +1063,7 @@ export default {
         },
         /**
          * Vérifie si un participant est déjà présent dans le groupe local.
+         * @author Guillermet Jean-Daniel
          * @param {number} id
          * @returns {boolean}
          */
@@ -1062,6 +1072,7 @@ export default {
         },
         /**
          * Retourne la position d'un participant dans le groupe local.
+         * @author Guillermet Jean-Daniel
          * @param {number} id
          * @returns {number|null}
          */
@@ -1073,6 +1084,7 @@ export default {
         },
         /**
          * Ajoute ou retire un membre du groupe en respectant les limites.
+         * @author Guillermet Jean-Daniel
          * @param {object} participant
          * @returns {void}
          */
@@ -1092,6 +1104,7 @@ export default {
         },
         /**
          * Indique si un participant est sélectionné.
+         * @author Guillermet Jean-Daniel
          * @param {number} id
          * @returns {boolean}
          */
@@ -1100,6 +1113,7 @@ export default {
         },
         /**
          * Sélectionne ou désélectionne un participant pour le mode individuel.
+         * @author Guillermet Jean-Daniel
          * @param {object} participant
          * @returns {void}
          */
@@ -1119,6 +1133,7 @@ export default {
         },
         /**
          * Ouvre la modale de création/recherche de participant.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         ouvrirFormulaire() {
@@ -1126,6 +1141,7 @@ export default {
         },
         /**
          * Ferme la modale et réinitialise le formulaire.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         fermerFormulaire() {
@@ -1139,6 +1155,7 @@ export default {
         },
         /**
          * Recherche un participant via son email.
+         * @author Guillermet Jean-Daniel
          * @returns {Promise<void>}
          */
         async lancerRecherche() {
@@ -1158,6 +1175,7 @@ export default {
         },
         /**
          * Intègre le participant trouvé à la sélection courante.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         selectionnerTrouve() {
@@ -1183,6 +1201,7 @@ export default {
         },
         /**
          * Valide la création d'un participant puis l'intègre à la sélection/groupe.
+         * @author Guillermet Jean-Daniel
          * @returns {Promise<void>}
          */
         async valider() {

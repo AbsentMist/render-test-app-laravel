@@ -1258,6 +1258,7 @@ export default {
         },
         /**
          * Étapes actives du formulaire selon les options de la course.
+         * @author Neris Alessandro
          * @returns {Array<number>}
          */
         etapesActives() {
@@ -1294,22 +1295,27 @@ export default {
         },
     },
     watch: {
+        // Sync les champs date début → date fin et date fin inscription
         "courseData.date.start"(newStart) {
             if (!newStart) return;
             this.courseData.date.end = newStart;
             this.courseData.date.inscriptionEnd = newStart;
         },
+        // Sync les champs date fin → date début et date début inscription
         "courseData.date.inscriptionStart"(newStart) {
             if (!newStart) return;
             if (this.courseData.date.inscriptionEnd < newStart)
                 this.courseData.date.inscriptionEnd = newStart;
         },
+        // Supprime le contenu de l'avertissement si l'option est désactivée
         "courseData.parameters.avertissement"(val) {
             if (!val) this.courseData.avertissement = { contenu: "" };
         },
+        // Supprime le contenu du document si l'option est désactivée
         "courseData.parameters.document"(val) {
             if (!val) this.courseData.document = { name: "", description: "" };
         },
+        // Supprime les questions si l'option est désactivée
         "courseData.parameters.questionnaire"(val) {
             if (!val) this.courseData.questions = [];
         },
@@ -1374,6 +1380,7 @@ export default {
     methods: {
         /**
          * Valide les champs obligatoires de l'étape "Général".
+         * @author Neris Alessandro
          * @returns {boolean}
          */
         validateGeneralStep() {
@@ -1540,6 +1547,7 @@ export default {
 
         /**
          * Valide et passe à l'étape suivante.
+         * @author Neris Alessandro
          * @returns {void}
          */
         handleNextStep() {
@@ -1556,6 +1564,7 @@ export default {
 
         /**
          * Remet toutes les données du formulaire à leur état initial.
+         * @author Neris Alessandro
          * @returns {void}
          */
         resetFormulaire() {
@@ -1600,6 +1609,7 @@ export default {
 
         /**
          * Charge une course existante puis remplit les sections liées du formulaire.
+         * @author Guillermet Jean-Daniel
          * @returns {Promise<void>}
          */
         async chargerDonneesCourse() {
@@ -1748,6 +1758,7 @@ export default {
         // ── Prix évolutif ────────────────────────────────────────────────────
         /**
          * Initialise les paliers de prix évolutif selon le mode choisi.
+         * @author Guillermet Jean-Daniel 
          * @returns {void}
          */
         initialiserPaliers() {
@@ -1796,6 +1807,7 @@ export default {
 
         /**
          * Change le mode de prix évolutif et réinitialise les paliers si nécessaire.
+         * @author Guillermet Jean-Daniel
          * @param {string} nouveauMode
          * @returns {void}
          */
@@ -1821,6 +1833,7 @@ export default {
 
         /**
          * Ajoute un palier intermédiaire entre le premier et le dernier.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         ajouterPalierIntermediaire() {
@@ -1842,6 +1855,7 @@ export default {
 
         /**
          * Supprime un palier de prix évolutif et réordonne la liste restante.
+         * @author Guillermet Jean-Daniel
          * @param {number} index
          * @param {object} palier
          * @returns {Promise<void>}
@@ -1857,6 +1871,7 @@ export default {
 
         /**
          * Ouvre ou ferme le menu de sélection d'élément.
+         * @author Neris Alessandro
          * @returns {void}
          */
         handleModalState() {
@@ -1868,6 +1883,7 @@ export default {
 
         /**
          * Traite le choix effectué dans le menu d'ajout d'option ou de question.
+         * @author Neris Alessandro
          * @param {string} option
          * @returns {void}
          */
@@ -1911,6 +1927,7 @@ export default {
 
         /**
          * Retire une option ou une question du formulaire lors de la déselection.
+         * @author Neris Alessandro
          * @param {string|object} element - Le nom de l'option ou l'énoncé de la question
          * @returns {void}
          */
@@ -1936,6 +1953,7 @@ export default {
 
         /**
          * Affecte l'évènement sélectionné à la course courante.
+         * @author Neris Alessandro
          * @param {object} event
          * @returns {void}
          */
@@ -1945,6 +1963,7 @@ export default {
         },
         /**
          * Affecte le type de course choisi.
+         * @author Neris Alessandro
          * @param {object} type
          * @returns {void}
          */
@@ -1954,6 +1973,7 @@ export default {
         },
         /**
          * Affecte la catégorie choisie.
+         * @author Neris Alessandro
          * @param {object} category
          * @returns {void}
          */
@@ -1966,6 +1986,7 @@ export default {
         },
         /**
          * Affecte la sous-catégorie choisie.
+         * @author Neris Alessandro
          * @param {object} subCategory
          * @returns {void}
          */
@@ -1979,6 +2000,7 @@ export default {
 
         /**
          * Retire une option de la course et supprime la liaison existante si besoin.
+         * @author Neris Alessandro
          * @param {number} index
          * @returns {Promise<void>}
          */
@@ -1994,6 +2016,7 @@ export default {
          * Prépare le payload API d'une option de course.
          * @param {object} option
          * @returns {object}
+         * @author Neris Alessandro
          */
         buildOptionPayload(option) {
             const payload = {
@@ -2013,6 +2036,7 @@ export default {
         },
         /**
          * Change le mode de prix évolutif et déclenche une confirmation si nécessaire.
+         * @author Guillermet Jean-Daniel
          * @param {string} nouveauMode
          * @returns {void}
          */
@@ -2028,6 +2052,7 @@ export default {
         },
         /**
          * Valide le changement de mode de prix évolutif en attente.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         confirmerChangementModePrixEvolutif() {
@@ -2039,6 +2064,7 @@ export default {
         },
         /**
          * Annule le changement de mode de prix évolutif en attente.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         annulerChangementModePrixEvolutif() {
@@ -2048,6 +2074,7 @@ export default {
 
         /**
          * Ajoute un nouveau palier vide à la configuration de prix évolutif.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         ajouterPalier() {
@@ -2062,6 +2089,7 @@ export default {
 
         /**
          * Crée ou met à jour la course puis synchronise les entités associées.
+         * @author Neris Alessandro, Guillermet Jean-Daniel
          * @returns {Promise<void>}
          */
         async insertCourse() {
@@ -2285,6 +2313,7 @@ export default {
 
         /**
          * Affiche le message de succès puis redirige en mode édition si nécessaire.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         confirmPopup() {
@@ -2302,6 +2331,7 @@ export default {
 
         /**
          * Ajoute une organisation challenge locale en évitant les doublons.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         ajouterOrganisation() {
@@ -2322,6 +2352,7 @@ export default {
 
         /**
          * Supprime une organisation challenge du formulaire et de l'API si besoin.
+         * @author Guillermet Jean-Daniel
          * @param {number} index
          * @param {object} org
          * @returns {Promise<void>}

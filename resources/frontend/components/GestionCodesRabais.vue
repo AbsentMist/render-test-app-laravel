@@ -220,6 +220,11 @@ export default {
     await this.chargerCodes();
   },
   methods: {
+    /**
+     * Retourne un objet formulaire vide avec les valeurs par défaut.
+     * @author Guillermet Jean-Daniel
+     * @returns {Object} Formulaire vide avec code, type, valeur, utilisations_max, date_expiration et actif
+     */
     formulaireVide() {
       return {
         code: '',
@@ -231,6 +236,12 @@ export default {
       };
     },
 
+    /**
+     * Charge la liste des codes de rabais pour la course depuis l'API.
+     * @author Guillermet Jean-Daniel
+     * @async
+     * @returns {Promise<void>}
+     */
     async chargerCodes() {
       this.chargement = true;
       try {
@@ -243,6 +254,12 @@ export default {
       }
     },
 
+    /**
+     * Ouvre le formulaire pour créer un nouveau code rabais ou modifier un code existant.
+     * @author Guillermet Jean-Daniel
+     * @param {Object} [code=null] - Le code à éditer, ou null pour création
+     * @returns {void}
+     */
     ouvrirFormulaire(code = null) {
       this.codeEnEdition = code;
       this.formulaire = code
@@ -259,12 +276,23 @@ export default {
       this.formulaireVisible = true;
     },
 
+    /**
+     * Ferme le formulaire et réinitialise l'état d'édition.
+     * @author Guillermet Jean-Daniel
+     * @returns {void}
+     */
     fermerFormulaire() {
       this.formulaireVisible = false;
       this.codeEnEdition = null;
       this.erreur = null;
     },
 
+    /**
+     * Sauvegarde un code de rabais (création ou modification) après validation.
+     * @author Guillermet Jean-Daniel
+     * @async
+     * @returns {Promise<void>}
+     */
     async sauvegarder() {
       if (!this.formulaire.code || !this.formulaire.valeur) {
         this.erreur = 'Le code et la valeur sont obligatoires.';
@@ -297,11 +325,23 @@ export default {
       }
     },
 
+    /**
+     * Prépare la suppression d'un code en ouvrant le modal de confirmation.
+     * @author Guillermet Jean-Daniel
+     * @param {Object} code - Le code à supprimer
+     * @returns {void}
+     */
     confirmerSuppression(code) {
       this.codeASupprimer = code;
       this.popupSuppression = true;
     },
 
+    /**
+     * Supprime un code de rabais de la course via l'API.
+     * @author Guillermet Jean-Daniel
+     * @async
+     * @returns {Promise<void>}
+     */
     async supprimerCode() {
       this.popupSuppression = false;
       this.chargementAction = true;
@@ -316,6 +356,12 @@ export default {
       }
     },
 
+    /**
+     * Formate une date au format JJ.MM.AAAA (format suisse).
+     * @author Guillermet Jean-Daniel
+     * @param {string} dateStr - La date ISO à formater
+     * @returns {string} Date formatée
+     */
     formatDate(dateStr) {
       return new Date(dateStr).toLocaleDateString('fr-CH', {
         day: '2-digit', month: '2-digit', year: 'numeric',

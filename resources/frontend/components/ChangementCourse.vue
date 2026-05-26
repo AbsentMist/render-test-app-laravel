@@ -45,13 +45,14 @@ const chargement = ref(true);
 const recherche = ref('');
 
 /**
- * Référence réactive de l'évènement transmis par le parent.
+ * Référence de l'évènement transmis par le parent.
  * @type {import('vue').ComputedRef<Object>}
  */
 const evenement = computed(() => props.evenement);
 
 /**
  * Charge les courses liées à l'évènement sélectionné.
+ * @author Neris Alessandro
  * @returns {Promise<void>}
  */
 async function chargerCourses() {
@@ -67,6 +68,7 @@ async function chargerCourses() {
 
 /**
  * Filtre les courses selon la recherche texte.
+ * @author Neris Alessandro
  * @type {import('vue').ComputedRef<Array>}
  */
 const coursesFiltrees = computed(() =>

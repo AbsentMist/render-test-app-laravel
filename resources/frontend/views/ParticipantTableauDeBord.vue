@@ -411,6 +411,7 @@ async function chargerGroupes() {
 
 /**
  * Charge les évènements affichés dans le tableau de bord.
+ * @author Perroud Rémi
  * @returns {Promise<void>}
  */
 async function chargerEvenements() {

@@ -1135,6 +1135,7 @@ export default {
         /**
          * Indique si les inscriptions sont fermées pour la course associée.
          * Quand la date limite est dépassée, les actions d'édition sont verrouillées.
+         * @author Neris Alessandro
          * @returns {boolean}
          */
         inscriptionsFermees() {
@@ -1147,6 +1148,7 @@ export default {
     methods: {
         /**
          * Formate une date ISO en représentation lisible JJ.MM.AAAA.
+         * @author Neris Alessandro
          * @param {string} dateStr
          * @returns {string}
          */
@@ -1159,6 +1161,7 @@ export default {
         /**
          * Charge la version complète de la course liée à l'inscription.
          * Utilisé pour afficher les informations détaillées et les étapes du flux.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async chargerCourseComplete() {
@@ -1175,6 +1178,7 @@ export default {
         /**
          * Charge explicitement les documents liés à l'inscription.
          * Ce fallback évite les cas où la relation n'est pas incluse dans le payload initial.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async chargerDocumentsFournis() {
@@ -1197,6 +1201,7 @@ export default {
         /**
          * Active le mode édition local des choix d'options.
          * Une copie profonde est créée pour éviter de modifier la donnée source avant validation.
+         * @author Neris Alessandro
          * @returns {void}
          */
         activerEdition() {
@@ -1210,6 +1215,7 @@ export default {
 
         /**
          * Annule les modifications locales et quitte le mode édition.
+         * @author Neris Alessandro
          * @returns {void}
          */
         annulerEdition() {
@@ -1220,6 +1226,7 @@ export default {
         /**
          * Enregistre les choix d'options modifiés et ajoute les suppléments au panier.
          * Les options augmentées ou nouvelles sont ajoutées au panier avec détails et prix.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async sauvegarderEdition() {
@@ -1293,6 +1300,7 @@ export default {
 
         /**
          * Construit un libellé pour les options supplémentaires.
+         * @author Neris Alessandro
          * @param {Array} optionsNouvelles Options ajoutées ou augmentées
          * @returns {string} Libellé pour affichage dans le panier
          */
@@ -1311,6 +1319,7 @@ export default {
 
         /**
          * Retourne le choix d'option déjà enregistré pour un identifiant d'option donné.
+         * @author Neris Alessandro
          * @param {number} idOption
          * @returns {object|null}
          */
@@ -1324,6 +1333,7 @@ export default {
 
         /**
          * Retourne le choix d'option affichable en tenant compte du mode édition.
+         * @author Neris Alessandro
          * @param {number} idOption
          * @returns {object|null}
          */
@@ -1340,6 +1350,7 @@ export default {
 
         /**
          * Retourne la quantité sélectionnée pour une option donnée.
+         * @author Neris Alessandro
          * @param {number} idOption
          * @returns {number}
          */
@@ -1356,6 +1367,7 @@ export default {
 
         /**
          * Vérifie si une option était sélectionnée dans l'inscription originale.
+         * @author Neris Alessandro
          * @param {number} idOption
          * @returns {boolean}
          */
@@ -1367,6 +1379,7 @@ export default {
 
         /**
          * Ajoute ou retire une option (originales non retirables).
+         * @author Neris Alessandro
          * @param {object} option
          * @returns {void}
          */
@@ -1389,6 +1402,7 @@ export default {
 
         /**
          * Met à jour quantité (min = quantité originale pour les anciennes options).
+         * @author Neris Alessandro
          * @param {number} idOption
          * @param {string|number} valeur
          * @returns {void}
@@ -1423,6 +1437,7 @@ export default {
         /**
          * Télécharge un document fourni par le participant.
          * Le fichier est sauvegardé localement via un lien temporaire.
+         * @author Neris Alessandro
          * @param {object} doc
          * @returns {Promise<void>}
          */
@@ -1446,6 +1461,7 @@ export default {
 
         /**
          * Ouvre un document dans un nouvel onglet.
+         * @author Neris Alessandro
          * @param {object} doc
          * @returns {Promise<void>}
          */
@@ -1463,6 +1479,7 @@ export default {
 
         /**
          * Prépare la suppression d'un document en affichant la confirmation.
+         * @author Neris Alessandro
          * @param {number} idDoc
          * @returns {Promise<void>}
          */
@@ -1473,6 +1490,7 @@ export default {
         /**
          * Confirme la suppression du document sélectionné.
          * Retire ensuite le document de la liste locale si l'opération réussit.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async confirmerSuppressionDocument() {
@@ -1491,6 +1509,7 @@ export default {
 
         /**
          * Réagit à la sélection d'un fichier depuis un input natif.
+         * @author Neris Alessandro
          * @param {Event} event
          * @returns {Promise<void>}
          */
@@ -1504,6 +1523,7 @@ export default {
 
         /**
          * Gère le dépôt d'un fichier par glisser-déposer.
+         * @author Neris Alessandro
          * @param {DragEvent} event
          * @returns {void}
          */
@@ -1516,6 +1536,7 @@ export default {
 
         /**
          * Vérifie qu'un document appartient aux formats autorisés.
+         * @author Neris Alessandro
          * @param {File} fichier
          * @returns {boolean}
          */
@@ -1546,6 +1567,7 @@ export default {
 
         /**
          * Envoie un document au serveur et l'ajoute à la liste locale des pièces fournies.
+         * @author Neris Alessandro
          * @param {File} fichier
          * @returns {Promise<void>}
          */
@@ -1570,6 +1592,7 @@ export default {
 
         /**
          * Ouvre la modale de changement de course.
+         * @author Neris Alessandro
          * @returns {void}
          */
         ouvrirChangementCourse() {
@@ -1583,6 +1606,7 @@ export default {
 
         /**
          * Ferme la modale de changement de course et transmet le panier à mettre à jour.
+         * @author Neris Alessandro
          * @param {object} data
          * @returns {void}
          */
@@ -1593,6 +1617,7 @@ export default {
 
         /**
          * Ferme la modale de changement ET la modale parent d'inscription.
+         * @author Neris Alessandro
          * @returns {void}
          */
         fermerAvecPopup() {
@@ -1602,6 +1627,7 @@ export default {
 
         /**
          * Vérifie si une réponse donnée correspond à l'affichage d'une question.
+         * @author Neris Alessandro
          * @param {number} idQuestion
          * @param {number} idAnswer
          * @returns {boolean}

@@ -182,6 +182,11 @@ export default {
     await this.chargerCodes();
   },
   methods: {
+    /**
+     * Retourne un objet formulaire vide avec les valeurs par défaut.
+     * @author Guillermet Jean-Daniel
+     * @returns {Object} Formulaire vide avec code, nom_personnalise et utilisations_max
+     */
     formulaireVide() {
       return {
         code: '',
@@ -190,6 +195,12 @@ export default {
       };
     },
 
+    /**
+     * Charge la liste des codes dossard pour la course depuis l'API.
+     * @author Guillermet Jean-Daniel
+     * @async
+     * @returns {Promise<void>}
+     */
     async chargerCodes() {
       this.chargement = true;
       try {
@@ -202,6 +213,12 @@ export default {
       }
     },
 
+    /**
+     * Ouvre le formulaire pour créer un nouveau code ou modifier un code existant.
+     * @author Guillermet Jean-Daniel
+     * @param {Object} [code=null] - Le code à éditer, ou null pour création
+     * @returns {void}
+     */
     ouvrirFormulaire(code = null) {
       this.codeEnEdition = code;
       this.formulaire = code
@@ -215,12 +232,23 @@ export default {
       this.formulaireVisible = true;
     },
 
+    /**
+     * Ferme le formulaire et réinitialise l'état d'édition.
+     * @author Guillermet Jean-Daniel
+     * @returns {void}
+     */
     fermerFormulaire() {
       this.formulaireVisible = false;
       this.codeEnEdition = null;
       this.erreur = null;
     },
 
+    /**
+     * Sauvegarde un code dossard (création ou modification) après validation.
+     * @author Guillermet Jean-Daniel
+     * @async
+     * @returns {Promise<void>}
+     */
     async sauvegarder() {
       if (!this.formulaire.code || !this.formulaire.utilisations_max) {
         this.erreur = 'Le code et le nombre de participants sont obligatoires.';
@@ -252,11 +280,23 @@ export default {
       }
     },
 
+    /**
+     * Prépare la suppression d'un code en ouvrant le modal de confirmation.
+     * @author Guillermet Jean-Daniel
+     * @param {Object} code - Le code à supprimer
+     * @returns {void}
+     */
     confirmerSuppression(code) {
       this.codeASupprimer = code;
       this.popupSuppression = true;
     },
 
+    /**
+     * Supprime un code dossard de la course via l'API.
+     * @author Guillermet Jean-Daniel
+     * @async
+     * @returns {Promise<void>}
+     */
     async supprimerCode() {
       this.popupSuppression = false;
       this.chargementAction = true;

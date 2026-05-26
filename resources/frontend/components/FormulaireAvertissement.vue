@@ -110,6 +110,7 @@ export default {
     computed: {
         /**
          * Indique si le formulaire est en mode édition.
+         * @author Neris Alessandro
          * @returns {boolean}
          */
         isEditing() {
@@ -119,6 +120,7 @@ export default {
     methods: {
         /**
          * Normalise un avertissement API vers le format local du formulaire.
+         * @author Neris Alessandro
          * @param {Object} avertissement Donnée avertissement brute.
          * @returns {Object} Avertissement normalisé.
          */
@@ -132,6 +134,7 @@ export default {
         },
         /**
          * Copie un modèle existant dans le formulaire courant.
+         * @author Neris Alessandro
          * @param {Object} avertissement Modèle source sélectionné.
          * @returns {void}
          */
@@ -141,6 +144,7 @@ export default {
         },
         /**
          * Réinitialise le formulaire et quitte le mode édition.
+         * @author Neris Alessandro
          * @returns {void}
          */
         resetForm() {
@@ -149,6 +153,7 @@ export default {
         },
         /**
          * Prépare un avertissement pour comparaison de contenu.
+         * @author Neris Alessandro
          * @param {Object} avertissement Donnée avertissement à comparer.
          * @returns {Object} Version simplifiée de l'avertissement.
          */
@@ -161,6 +166,7 @@ export default {
         },
         /**
          * Indique si un modèle doit être affiché en surbrillance.
+         * @author Neris Alessandro
          * @param {Object} avertissement Modèle de la liste.
          * @returns {boolean}
          */
@@ -179,6 +185,7 @@ export default {
         },
         /**
          * Recharge la liste des avertissements modèles.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async chargerModeles() {
@@ -187,6 +194,7 @@ export default {
         },
         /**
          * Prépare le payload avertissement pour l'API.
+         * @author Neris Alessandro
          * @returns {FormData}
          */
         buildAvertissementFormData() {
@@ -199,6 +207,7 @@ export default {
         },
         /**
          * Prépare la suppression d'un modèle d'avertissement.
+         * @author Neris Alessandro
          * @param {number} index Position du modèle dans la liste.
          * @returns {void}
          */
@@ -209,6 +218,7 @@ export default {
         },
         /**
          * Supprime le modèle confirmé puis met à jour la liste locale.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async confirmerSuppressionAvertissement() {
@@ -229,6 +239,7 @@ export default {
         },
         /**
          * Applique les actions communes après création/modification réussie.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async handleSuccessSubmit() {
@@ -240,6 +251,7 @@ export default {
         },
         /**
          * Crée un nouvel avertissement modèle à partir du formulaire courant.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async createAvertissement() {
@@ -255,6 +267,7 @@ export default {
         },
         /**
          * Modifie l'avertissement modèle actuellement sélectionné.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async modifyAvertissement() {
@@ -276,6 +289,7 @@ export default {
     },
     /**
      * Charge les modèles d'avertissement au montage du composant.
+     * @author Neris Alessandro
      * @returns {Promise<void>}
      */
     async mounted() {

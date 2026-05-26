@@ -275,12 +275,22 @@ const epingles = computed(() =>
 );
 
 // Index d'un événement parmi les épinglés uniquement
+/**
+ * Calcule l'index d'un événement au sein de la liste des événements épinglés uniquement.
+ * @param {number} indexGlobal - L'index global de l'événement dans la liste complète
+ * @returns {number} - L'index de l'événement parmi les épinglés
+ */
 function indexParmiEpingles(indexGlobal) {
     const e = evenements.value[indexGlobal];
     return epingles.value.findIndex((x) => x.id === e.id);
 }
 
 // Épingler ou désépingler un événement
+/**
+ * Bascule l'épinglage d'un événement. Si épinglé, le désépingle ; sinon, l'épingle.
+ * @param {Object} evenement - L'événement à épingler ou désépingler
+ * @returns {Promise<void>}
+ */
 async function toggleEpingler(evenement) {
     if (evenement.ordre !== null) {
         // Désépingler → ordre = null
@@ -303,6 +313,11 @@ async function toggleEpingler(evenement) {
 }
 
 // Monter un événement épinglé
+/**
+ * Fait monter d'une position un événement épinglé en échangeant ses positions avec le précédent.
+ * @param {number} indexGlobal - L'index global de l'événement dans la liste complète
+ * @returns {Promise<void>}
+ */
 async function monterEvenement(indexGlobal) {
     const idx = indexParmiEpingles(indexGlobal);
     if (idx <= 0) return;
@@ -322,6 +337,11 @@ async function monterEvenement(indexGlobal) {
 }
 
 // Descendre un événement épinglé
+/**
+ * Fait descendre d'une position un événement épinglé en échangeant ses positions avec le suivant.
+ * @param {number} indexGlobal - L'index global de l'événement dans la liste complète
+ * @returns {Promise<void>}
+ */
 async function descendreEvenement(indexGlobal) {
     const idx = indexParmiEpingles(indexGlobal);
     if (idx >= epingles.value.length - 1) return;
@@ -341,9 +361,9 @@ async function descendreEvenement(indexGlobal) {
 }
 
 /**
- * Formate une date brute en locale suisse.
- * @param {string} dateString
- * @returns {string}
+ * Formate une date brute en locale suisse (fr-CH).
+ * @param {string} dateString - La chaîne de date à formater
+ * @returns {string} - La date formatée au format JJ.MM.AAAA ou "—" si invalide
  */
 function formaterDate(dateString) {
     if (!dateString) return "—";
@@ -356,9 +376,9 @@ function formaterDate(dateString) {
 }
 
 /**
- * Retourne la première date d'inscription parmi les courses d'un évènement.
- * @param {Object} evenement
- * @returns {string}
+ * Retourne la première date d'inscription (la plus ancienne) parmi toutes les courses d'un événement.
+ * @param {Object} evenement - L'objet événement contenant la liste des courses
+ * @returns {string} - La date formatée ou "—" si aucune course
  */
 function getDateDebutEvenement(evenement) {
     if (!evenement.courses || evenement.courses.length === 0) return "—";
@@ -374,9 +394,9 @@ function getDateDebutEvenement(evenement) {
 }
 
 /**
- * Retourne la dernière date d'inscription parmi les courses d'un évènement.
- * @param {Object} evenement
- * @returns {string}
+ * Retourne la dernière date d'inscription (la plus récente) parmi toutes les courses d'un événement.
+ * @param {Object} evenement - L'objet événement contenant la liste des courses
+ * @returns {string} - La date formatée ou "—" si aucune course
  */
 function getDateFinEvenement(evenement) {
     if (!evenement.courses || evenement.courses.length === 0) return "—";
@@ -392,7 +412,7 @@ function getDateFinEvenement(evenement) {
 }
 
 /**
- * Charge les évènements organisateur depuis l'API.
+ * Charge tous les événements organisateur depuis l'API.
  * @returns {Promise<void>}
  */
 async function chargerEvenements() {
@@ -409,8 +429,8 @@ async function chargerEvenements() {
 }
 
 /**
- * Redirige vers le formulaire de modification d'évènement.
- * @param {Object} evenement
+ * Redirige vers le formulaire de modification d'un événement.
+ * @param {Object} evenement - L'événement à modifier
  * @returns {void}
  */
 function modifierEvenement(evenement) {
@@ -420,8 +440,8 @@ function modifierEvenement(evenement) {
 }
 
 /**
- * Ouvre la confirmation de suppression d'un évènement.
- * @param {Object} evenement
+ * Prépare la suppression d'un événement en affichant la popup de confirmation.
+ * @param {Object} evenement - L'événement à supprimer
  * @returns {void}
  */
 function confirmerSuppression(evenement) {
@@ -429,7 +449,7 @@ function confirmerSuppression(evenement) {
 }
 
 /**
- * Supprime l'évènement confirmé puis met à jour la liste locale.
+ * Supprime l'événement confirmé via l'API et met à jour la liste locale des événements.
  * @returns {Promise<void>}
  */
 async function supprimerEvenement() {

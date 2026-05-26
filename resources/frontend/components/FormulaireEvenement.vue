@@ -189,6 +189,7 @@ export default {
     computed: {
         /**
          * Indique si le composant est en mode édition à partir de l'URL.
+         * @author Guillermet Jean-Daniel
          * @returns {boolean}
          */
         isEditMode() {
@@ -196,6 +197,7 @@ export default {
         },
         /**
          * Identifiant de l'évènement à charger ou modifier.
+         * @author Guillermet Jean-Daniel
          * @returns {string|undefined}
          */
         eventId() {
@@ -203,6 +205,7 @@ export default {
         },
         /**
          * Source d'image du logo, en priorité à partir du fichier sélectionné.
+         * @author Neris Alessandro
          * @returns {string|null}
          */
         logoSrc() {
@@ -226,6 +229,7 @@ export default {
     methods: {
         /**
          * Valide les champs obligatoires du formulaire.
+         * @author Neris Alessandro
          * @returns {boolean}
          */
         validateForm() {
@@ -242,6 +246,7 @@ export default {
         /**
          * Traite le clic sur le bouton de soumission.
          * Valide le formulaire puis affiche la popup de confirmation.
+         * @author Neris Alessandro
          * @returns {void}
          */
         handleSubmit() {
@@ -251,6 +256,7 @@ export default {
         },
         /**
          * Réinitialise l'intégralité du formulaire à son état initial.
+         * @author Neris Alessandro
          * @returns {void}
          */
         resetFormulaire() {
@@ -271,6 +277,8 @@ export default {
         },
         /**
          * Normalise une couleur hexadécimale vers le format #RRGGBB.
+         * Accepte les entrées avec ou sans #, en majuscules ou minuscules,
+         * @author Neris Alessandro
          * @param {string} value
          * @returns {string|null}
          */
@@ -284,6 +292,7 @@ export default {
         },
         /**
          * Synchronise le champ texte d'une couleur avec la couleur retenue.
+         * @author Neris Alessandro
          * @param {string} key
          * @returns {void}
          */
@@ -296,6 +305,7 @@ export default {
         },
         /**
          * Corrige la couleur saisie si nécessaire lors de la perte de focus.
+         * @author Neris Alessandro
          * @param {string} key
          * @returns {void}
          */
@@ -306,6 +316,7 @@ export default {
         },
         /**
          * Recalibre le champ texte à partir du sélecteur de couleur natif.
+         * @author Neris Alessandro
          * @param {string} key
          * @returns {void}
          */
@@ -314,6 +325,7 @@ export default {
         },
         /**
          * Charge les données de l'évènement pour le mode édition.
+         * @author Guillermet Jean-Daniel
          * @returns {Promise<void>}
          */
         async chargerDonneesEvenement() {
@@ -351,6 +363,7 @@ export default {
 
         /**
          * Envoie le formulaire au service de création ou de mise à jour.
+         * @author Neris Alessandro, Guillermet Jean-Daniel
          * @returns {Promise<void>}
          */
         async insertData() {
@@ -399,6 +412,7 @@ export default {
         },
         /**
          * Affiche la popup de succès puis redirige en mode édition après délai.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         confirmPopup() {

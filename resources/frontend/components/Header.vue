@@ -1,417 +1,3 @@
-<script setup>
-/**
- * @fileoverview Composant Header.
- * @description En-tête principal de l'application avec gestion profil, invitations et mini-panier.
- * @remarks Orchestre l'état d'affichage entre menus profil/panier et adapte la navigation selon le rôle utilisateur.
- */
-import { Icon } from '@iconify/vue';
-import { useAuthStore } from '../stores/auth';
-import { useThemeStore } from '../stores/theme';
-import { useCartStore } from '../stores/cart'; 
-import { useRouter } from 'vue-router';
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
-import groupeService from '../services/groupeService';
-import echangeDossardService from '../services/echangeDossardService';
-import api from '../services/api';
-import PopupAccepterInvitationCourse from './PopupAccepterInvitationCourse.vue';
-
-const authStore = useAuthStore();
-const themeStore = useThemeStore();
-const cartStore = useCartStore(); 
-const router = useRouter();
-
-
-const invitations = ref([]);
-const demandesEchange = ref([]);
-const notificationsInfo = ref([]);
-const isProfileDropdownOpen = ref(false);
-const deductionChangement = ref(0);
-const notificationsRefreshIntervalId = ref(null);
-const notificationsRefreshMs = 10000;
-const invitationEnCoursAcceptation = ref(null);
-const isCartButtonHovered = ref(false);
-const isCartChevronHovered = ref(false);
-const headerLogoUrl = ref(null);
-
-/**
- * Retourne le style dynamique du bouton panier selon le thème et l'état hover.
- * @param {boolean} isHovered État du hover
- * @returns {object}
- */
-const getCartButtonStyle = (isHovered) => {
-  if (!themeStore.primaryColor) {
-    // Sans thème personnalisé, utilise les couleurs par défaut
-    return {
-      backgroundColor: isHovered ? '#bfd309' : '#d9f20b',
-    };
-  }
-  
-  // Avec thème personnalisé, utilise la couleur secondaire
-  const baseColor = themeStore.secondaryColor;
-  // Réduit légèrement l'opacité pour le hover
-  return {
-    backgroundColor: isHovered ? baseColor + 'e6' : baseColor,
-  };
-};
-
-/**
- * Observe le panier pour recalculer la déduction liée aux changements de course.
- */
-watch(() => cartStore.inscriptions, async (nouveauPanier) => {
-  let deduction = 0;
-  for (const article of nouveauPanier) {
-    if (article.ancienneInscriptionId) {
-      try {
-        const res = await api.get(`/participant/inscriptions/${article.ancienneInscriptionId}`);
-        if (res.data && res.data.tarif) {
-          deduction += parseFloat(res.data.tarif);
-        }
-      } catch (e) {
-        console.error('Erreur récupération ancienne inscription', e);
-      }
-    }
-  }
-  deductionChangement.value = deduction;
-}, { immediate: true, deep: true });
-
-/**
- * Total affiché dans le mini-panier après déduction éventuelle.
- * @returns {number}
- */
-const totalMiniPanier = computed(() => {
-  let st = cartStore.cartTotal - deductionChangement.value;
-  return st > 0 ? st : 0; 
-});
-
-/**
- * Bascule entre l'affichage participant et administrateur.
- * @returns {Promise<void>}
- */
-const handleToggleMode = async () => {
-  authStore.toggleAdminMode();
-  if (authStore.showAdminLayout) {
-    router.push('/organisateur/evenements');
-  } else {
-    router.push('/accueil');
-  }
-};
-
-/**
- * Nom d'affichage utilisateur selon le rôle et les données disponibles.
- * @returns {{top: string, bottom: string}}
- */
-const userDisplayName = computed(() => {
-  if (authStore.isAdmin) {
-    return { top: 'Rôle', bottom: 'Administrateur' };
-  }
-  const prenom = authStore.user?.participant?.prenom || 'Utilisateur';
-  const nom = authStore.user?.participant?.nom || '';
-  return { top: prenom, bottom: nom.toUpperCase() };
-});
-
-/**
- * Source de l'avatar utilisateur.
- * Utilise la photo participant si disponible, sinon null pour afficher l'icone par defaut.
- * @returns {string|null}
- */
-const profileAvatarSource = computed(() => {
-  const photo = authStore.user?.participant?.photo;
-  if (!photo) return null;
-  return photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`;
-});
-
-/**
- * Ferme le mini-panier puis navigue vers la page panier.
- * @returns {void}
- */
-const allerAuPanier = () => {
-  cartStore.fermerDropdown();
-  isProfileDropdownOpen.value = false;
-  router.push('/panier');
-};
-
-/**
- * Charge les invitations en attente pour le participant connecté.
- * @returns {Promise<void>}
- */
-const chargerInvitations = async () => {
-  if (authStore.user?.participant) {
-    try {
-      const [groupesRes, echangesRes, infosRes] = await Promise.all([
-        groupeService.getMesInvitations(),
-        echangeDossardService.mesDemandesRecues(),
-        api.get('/participant/notifications-info'),
-      ]);
-
-      invitations.value = (groupesRes.data || []).map((invit) => ({
-        ...invit,
-        tag: 'Invitation à un groupe',
-      }));
-
-      demandesEchange.value = (echangesRes.data || []).map((demande) => ({
-        ...demande,
-        tag: 'Demande échange dossard',
-      }));
-
-      notificationsInfo.value = (Array.isArray(infosRes.data) ? infosRes.data : []).map((notification) => ({
-        ...notification,
-        tag: notification.title || 'Information',
-      }));
-
-    } catch (e) {
-      console.error("Erreur lors du chargement des invitations", e);
-    }
-  }
-};
-
-const rafraichirNotifications = () => {
-  chargerInvitations();
-};
-
-const totalNotifications = computed(() => invitations.value.length + demandesEchange.value.length + notificationsInfo.value.length);
-
-onMounted(() => {
-  chargerInvitations();
-
-  notificationsRefreshIntervalId.value = window.setInterval(() => {
-    rafraichirNotifications();
-  }, notificationsRefreshMs);
-
-  window.addEventListener('membership-notifications-updated', rafraichirNotifications);
-  
-  // Initialise le logo du header
-  mettreAJourLogoHeader();
-});
-
-/**
- * Applique une teinte sur le logo afin de l'adapter à la palette de l'évènement.
- * @param {string} logoSrc Source de l'image à recolorer.
- * @param {string} couleur Couleur cible.
- * @returns {Promise<string>}
- */
-async function coloriserLogo(logoSrc, couleur) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      ctx.globalCompositeOperation = 'source-atop';
-      ctx.fillStyle = couleur;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL());
-    };
-    img.src = logoSrc;
-  });
-}
-
-/**
- * Met à jour l'URL du logo du header en formatant et colorisant le logo du themeStore.
- * @returns {Promise<void>}
- */
-const mettreAJourLogoHeader = async () => {
-  if (themeStore.logo && themeStore.secondaryColor) {
-    const logo = themeStore.logo;
-    const logoDataUri = logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;
-    headerLogoUrl.value = await coloriserLogo(logoDataUri, themeStore.secondaryColor);
-  } else {
-    headerLogoUrl.value = null;
-  }
-};
-
-/**
- * Observe les changements du logo du thème et met à jour l'affichage du header.
- */
-watch(() => themeStore.logo, () => {
-  mettreAJourLogoHeader();
-});
-
-onBeforeUnmount(() => {
-  if (notificationsRefreshIntervalId.value) {
-    window.clearInterval(notificationsRefreshIntervalId.value);
-    notificationsRefreshIntervalId.value = null;
-  }
-
-  window.removeEventListener('membership-notifications-updated', rafraichirNotifications);
-});
-
-watch(isProfileDropdownOpen, (isOpen) => {
-  if (isOpen) {
-    rafraichirNotifications();
-  }
-});
-
-/**
- * Ouvre/ferme le menu profil et garantit l'exclusivité avec le panier.
- * @returns {void}
- */
-const toggleProfileDropdown = () => {
-  isProfileDropdownOpen.value = !isProfileDropdownOpen.value;
-  if (isProfileDropdownOpen.value) {
-    cartStore.fermerDropdown();
-  }
-};
-
-/**
- * Ouvre/ferme le mini-panier et garantit l'exclusivité avec le profil.
- * @returns {void}
- */
-const toggleCartDropdown = () => {
-  cartStore.toggleDropdown();
-  if (cartStore.isDropdownOpen) {
-    isProfileDropdownOpen.value = false;
-  }
-};
-
-/**
- * Indique si une invitation est expirée selon la date de fin d'inscription de la course.
- * @param {object} invit
- * @returns {boolean}
- */
-const estInvitationExpiree = (invit) => {
-  if (!invit.course?.fin_inscription) return false;
-  const fin = new Date(invit.course.fin_inscription);
-  fin.setHours(23, 59, 59, 999);
-  return new Date() > fin;
-};
-
-/**
- * Affiche le popup pour accepter une invitation avec questionnaire, ou accepte directement si pas de questionnaire.
- * @param {object} invit L'invitation à accepter
- * @returns {Promise<void>}
- */
-const afficherPopupAccepterInvitation = async (invit) => {
-  // Si la course n'a pas de questionnaire, accepter directement
-  if (!invit.course?.is_questionnaire) {
-    try {
-      await groupeService.accepterInvitation(invit.id);
-      invitations.value = invitations.value.filter(g => g.id !== invit.id);
-      alert("Invitation acceptée ! Vous êtes maintenant validé dans le groupe.");
-    } catch (error) {
-      console.error("Erreur lors de l'acceptation :", error);
-      alert("Une erreur est survenue lors de l'acceptation de l'invitation.");
-    }
-    return;
-  }
-  
-  // Sinon, afficher le popup pour remplir le questionnaire
-  invitationEnCoursAcceptation.value = invit;
-};
-
-/**
- * Ferme le popup d'acceptation d'invitation.
- * @returns {void}
- */
-const fermerPopupAccepterInvitation = () => {
-  invitationEnCoursAcceptation.value = null;
-};
-
-/**
- * Traite l'acceptation réussie de l'invitation depuis le popup.
- * Retire l'invitation de la liste et ferme le popup.
- * @param {object} data Données d'acceptation ({ idGroupe, reponses })
- * @returns {void}
- */
-const onInvitationAcceptee = (data) => {
-  invitations.value = invitations.value.filter(g => g.id !== data.idGroupe);
-  fermerPopupAccepterInvitation();
-  alert("Invitation acceptée ! Vous êtes maintenant validé dans le groupe.");
-};
-
-/**
- * Refuse une invitation groupe et met à jour la liste locale.
- * @param {number} idGroupe
- * @returns {Promise<void>}
- */
-const refuserInvitation = async (idGroupe) => {
-  try {
-    await groupeService.refuserInvitation(idGroupe);
-    invitations.value = invitations.value.filter(g => g.id !== idGroupe);
-
-    alert("L'invitation a bien été refusée/supprimée."); 
-    
-  } catch (error) {
-    console.error("Erreur lors du refus :", error);
-    alert("Une erreur est survenue lors de l'action."); 
-  }
-};
-
-/**
- * Supprime une notification d'information côté serveur et la retire de l'affichage local.
- * @param {number} idNotification
- * @returns {Promise<void>}
- */
-const supprimerNotificationInfo = async (idNotification) => {
-  try {
-    await api.delete(`/participant/notifications-info/${idNotification}`);
-    notificationsInfo.value = notificationsInfo.value.filter((notification) => notification.id !== idNotification);
-  } catch (error) {
-    console.error('Erreur lors de la suppression de la notification', error);
-  }
-};
-
-const isMembershipInfoNotification = (notification) => [
-  'membership_approved_info',
-  'membership_refused_info',
-  'new_membership_request',
-  'membership_invitation_to_complete',
-  'membership_invitation_info',
-  'membership_invitation_cancelled_info',
-  'membership_invitation_cancelled_participant',
-].includes(notification?.type);
-
-const getInfoNotificationCardClass = (notification) => {
-  if (isMembershipInfoNotification(notification)) {
-    return 'bg-blue-50 border border-blue-200';
-  }
-  return 'bg-amber-50 border border-amber-200';
-};
-
-const getInfoNotificationTagClass = (notification) => {
-  if (isMembershipInfoNotification(notification)) {
-    return 'bg-blue-100 text-blue-700 border border-blue-200';
-  }
-  return 'bg-amber-100 text-amber-700 border border-amber-200';
-};
-
-const getInfoNotificationIcon = (notification) => {
-  if (isMembershipInfoNotification(notification)) {
-    return 'mdi:account-group-outline';
-  }
-  return 'mdi:information-outline';
-};
-
-const getInfoNotificationRoute = (notification) => {
-  if (notification?.type === 'membership_invitation_to_complete') {
-    return '/membership';
-  }
-  return null;
-};
-
-const ouvrirNotificationInfo = async (notification) => {
-  const route = getInfoNotificationRoute(notification);
-  if (route) {
-    isProfileDropdownOpen.value = false;
-    await router.push(route);
-    await supprimerNotificationInfo(notification.id);
-  }
-};
-
-/**
- * Récupère la source du logo d'un événement formatée en data URI.
- * @param {object} evenement
- * @returns {string|null}
- */
-const getLogoSource = (evenement) => {
-  if (!evenement) return null;
-  const logo = evenement.logo_base64 || evenement.logo;
-  if (!logo) return null;
-  return logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;
-};
-</script>
-
 <template>
   <PopupAccepterInvitationCourse
     v-if="invitationEnCoursAcceptation"
@@ -748,3 +334,438 @@ const getLogoSource = (evenement) => {
     </div>
   </nav>
 </template>
+
+<script setup>
+/**
+ * @fileoverview Composant Header.
+ * @description En-tête principal de l'application avec gestion profil, invitations et mini-panier.
+ * @remarks Orchestre l'état d'affichage entre menus profil/panier et adapte la navigation selon le rôle utilisateur.
+ */
+import { Icon } from '@iconify/vue';
+import { useAuthStore } from '../stores/auth';
+import { useThemeStore } from '../stores/theme';
+import { useCartStore } from '../stores/cart'; 
+import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import groupeService from '../services/groupeService';
+import echangeDossardService from '../services/echangeDossardService';
+import api from '../services/api';
+import PopupAccepterInvitationCourse from './PopupAccepterInvitationCourse.vue';
+
+const authStore = useAuthStore();
+const themeStore = useThemeStore();
+const cartStore = useCartStore(); 
+const router = useRouter();
+
+
+const invitations = ref([]);
+const demandesEchange = ref([]);
+const notificationsInfo = ref([]);
+const isProfileDropdownOpen = ref(false);
+const deductionChangement = ref(0);
+const notificationsRefreshIntervalId = ref(null);
+const notificationsRefreshMs = 10000;
+const invitationEnCoursAcceptation = ref(null);
+const isCartButtonHovered = ref(false);
+const isCartChevronHovered = ref(false);
+const headerLogoUrl = ref(null);
+
+/**
+ * Retourne le style dynamique du bouton panier selon le thème et l'état hover.
+ * @author Neris Alessandro
+ * @param {boolean} isHovered État du hover
+ * @returns {object}
+ */
+const getCartButtonStyle = (isHovered) => {
+  if (!themeStore.primaryColor) {
+    // Sans thème personnalisé, utilise les couleurs par défaut
+    return {
+      backgroundColor: isHovered ? '#bfd309' : '#d9f20b',
+    };
+  }
+  
+  // Avec thème personnalisé, utilise la couleur secondaire
+  const baseColor = themeStore.secondaryColor;
+  // Réduit légèrement l'opacité pour le hover
+  return {
+    backgroundColor: isHovered ? baseColor + 'e6' : baseColor,
+  };
+};
+
+/**
+ * Observe le panier pour recalculer la déduction liée aux changements de course.
+ * @author Neris Alessandro
+ */
+watch(() => cartStore.inscriptions, async (nouveauPanier) => {
+  let deduction = 0;
+  for (const article of nouveauPanier) {
+    if (article.ancienneInscriptionId) {
+      try {
+        const res = await api.get(`/participant/inscriptions/${article.ancienneInscriptionId}`);
+        if (res.data && res.data.tarif) {
+          deduction += parseFloat(res.data.tarif);
+        }
+      } catch (e) {
+        console.error('Erreur récupération ancienne inscription', e);
+      }
+    }
+  }
+  deductionChangement.value = deduction;
+}, { immediate: true, deep: true });
+
+/**
+ * Total affiché dans le mini-panier après déduction éventuelle.
+ * @author Neris Alessandro
+ * @returns {number}
+ */
+const totalMiniPanier = computed(() => {
+  let st = cartStore.cartTotal - deductionChangement.value;
+  return st > 0 ? st : 0; 
+});
+
+/**
+ * Bascule entre l'affichage participant et administrateur.
+ * @author Ngoie Steven
+ * @returns {Promise<void>}
+ */
+const handleToggleMode = async () => {
+  authStore.toggleAdminMode();
+  if (authStore.showAdminLayout) {
+    router.push('/organisateur/evenements');
+  } else {
+    router.push('/accueil');
+  }
+};
+
+/**
+ * Nom d'affichage utilisateur selon le rôle et les données disponibles.
+ * @author Ngoie Steven
+ * @returns {{top: string, bottom: string}}
+ */
+const userDisplayName = computed(() => {
+  if (authStore.isAdmin) {
+    return { top: 'Rôle', bottom: 'Administrateur' };
+  }
+  const prenom = authStore.user?.participant?.prenom || 'Utilisateur';
+  const nom = authStore.user?.participant?.nom || '';
+  return { top: prenom, bottom: nom.toUpperCase() };
+});
+
+/**
+ * Source de l'avatar utilisateur.
+ * Utilise la photo participant si disponible, sinon null pour afficher l'icone par defaut.
+ * @author Ngoie Steven
+ * @returns {string|null}
+ */
+const profileAvatarSource = computed(() => {
+  const photo = authStore.user?.participant?.photo;
+  if (!photo) return null;
+  return photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`;
+});
+
+/**
+ * Ferme le mini-panier puis navigue vers la page panier.
+ * @author Ngoie Steven
+ * @returns {void}
+ */
+const allerAuPanier = () => {
+  cartStore.fermerDropdown();
+  isProfileDropdownOpen.value = false;
+  router.push('/panier');
+};
+
+/**
+ * Charge les invitations en attente pour le participant connecté.
+ * @author Ngoie Steven
+ * @returns {Promise<void>}
+ */
+const chargerInvitations = async () => {
+  if (authStore.user?.participant) {
+    try {
+      const [groupesRes, echangesRes, infosRes] = await Promise.all([
+        groupeService.getMesInvitations(),
+        echangeDossardService.mesDemandesRecues(),
+        api.get('/participant/notifications-info'),
+      ]);
+
+      invitations.value = (groupesRes.data || []).map((invit) => ({
+        ...invit,
+        tag: 'Invitation à un groupe',
+      }));
+
+      demandesEchange.value = (echangesRes.data || []).map((demande) => ({
+        ...demande,
+        tag: 'Demande échange dossard',
+      }));
+
+      notificationsInfo.value = (Array.isArray(infosRes.data) ? infosRes.data : []).map((notification) => ({
+        ...notification,
+        tag: notification.title || 'Information',
+      }));
+
+    } catch (e) {
+      console.error("Erreur lors du chargement des invitations", e);
+    }
+  }
+};
+
+const rafraichirNotifications = () => {
+  chargerInvitations();
+};
+
+const totalNotifications = computed(() => invitations.value.length + demandesEchange.value.length + notificationsInfo.value.length);
+
+onMounted(() => {
+  chargerInvitations();
+
+  notificationsRefreshIntervalId.value = window.setInterval(() => {
+    rafraichirNotifications();
+  }, notificationsRefreshMs);
+
+  window.addEventListener('membership-notifications-updated', rafraichirNotifications);
+  
+  // Initialise le logo du header
+  mettreAJourLogoHeader();
+});
+
+/**
+ * Applique une teinte sur le logo afin de l'adapter à la palette de l'évènement.
+ * @author Neris Alessandro
+ * @param {string} logoSrc Source de l'image à recolorer.
+ * @param {string} couleur Couleur cible.
+ * @returns {Promise<string>}
+ */
+async function coloriserLogo(logoSrc, couleur) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.fillStyle = couleur;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL());
+    };
+    img.src = logoSrc;
+  });
+}
+
+/**
+ * Met à jour l'URL du logo du header en formatant et colorisant le logo du themeStore.
+ * @author Neris Alessandro
+ * @returns {Promise<void>}
+ */
+const mettreAJourLogoHeader = async () => {
+  if (themeStore.logo && themeStore.secondaryColor) {
+    const logo = themeStore.logo;
+    const logoDataUri = logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;
+    headerLogoUrl.value = await coloriserLogo(logoDataUri, themeStore.secondaryColor);
+  } else {
+    headerLogoUrl.value = null;
+  }
+};
+
+/**
+ * Observe les changements du logo du thème et met à jour l'affichage du header.
+ * @author Ngoie Steven
+ */
+watch(() => themeStore.logo, () => {
+  mettreAJourLogoHeader();
+});
+
+onBeforeUnmount(() => {
+  if (notificationsRefreshIntervalId.value) {
+    window.clearInterval(notificationsRefreshIntervalId.value);
+    notificationsRefreshIntervalId.value = null;
+  }
+
+  window.removeEventListener('membership-notifications-updated', rafraichirNotifications);
+});
+
+watch(isProfileDropdownOpen, (isOpen) => {
+  if (isOpen) {
+    rafraichirNotifications();
+  }
+});
+
+/**
+ * Ouvre/ferme le menu profil et garantit l'exclusivité avec le panier.
+ * @author Ngoie Steven
+ * @returns {void}
+ */
+const toggleProfileDropdown = () => {
+  isProfileDropdownOpen.value = !isProfileDropdownOpen.value;
+  if (isProfileDropdownOpen.value) {
+    cartStore.fermerDropdown();
+  }
+};
+
+/**
+ * Ouvre/ferme le mini-panier et garantit l'exclusivité avec le profil.
+ * @author Ngoie Steven
+ * @returns {void}
+ */
+const toggleCartDropdown = () => {
+  cartStore.toggleDropdown();
+  if (cartStore.isDropdownOpen) {
+    isProfileDropdownOpen.value = false;
+  }
+};
+
+/**
+ * Indique si une invitation est expirée selon la date de fin d'inscription de la course.
+ * @author Ngoie Steven
+ * @param {object} invit
+ * @returns {boolean}
+ */
+const estInvitationExpiree = (invit) => {
+  if (!invit.course?.fin_inscription) return false;
+  const fin = new Date(invit.course.fin_inscription);
+  fin.setHours(23, 59, 59, 999);
+  return new Date() > fin;
+};
+
+/**
+ * Affiche le popup pour accepter une invitation avec questionnaire, ou accepte directement si pas de questionnaire.
+ * @author Ngoie Steven
+ * @param {object} invit L'invitation à accepter
+ * @returns {Promise<void>}
+ */
+const afficherPopupAccepterInvitation = async (invit) => {
+  // Si la course n'a pas de questionnaire, accepter directement
+  if (!invit.course?.is_questionnaire) {
+    try {
+      await groupeService.accepterInvitation(invit.id);
+      invitations.value = invitations.value.filter(g => g.id !== invit.id);
+      alert("Invitation acceptée ! Vous êtes maintenant validé dans le groupe.");
+    } catch (error) {
+      console.error("Erreur lors de l'acceptation :", error);
+      alert("Une erreur est survenue lors de l'acceptation de l'invitation.");
+    }
+    return;
+  }
+  
+  // Sinon, afficher le popup pour remplir le questionnaire
+  invitationEnCoursAcceptation.value = invit;
+};
+
+/**
+ * Ferme le popup d'acceptation d'invitation.
+ * @author Ngoie Steven
+ * @returns {void}
+ */
+const fermerPopupAccepterInvitation = () => {
+  invitationEnCoursAcceptation.value = null;
+};
+
+/**
+ * Traite l'acceptation réussie de l'invitation depuis le popup.
+ * Retire l'invitation de la liste et ferme le popup.
+ * @author Ngoie Steven
+ * @param {object} data Données d'acceptation ({ idGroupe, reponses })
+ * @returns {void}
+ */
+const onInvitationAcceptee = (data) => {
+  invitations.value = invitations.value.filter(g => g.id !== data.idGroupe);
+  fermerPopupAccepterInvitation();
+  alert("Invitation acceptée ! Vous êtes maintenant validé dans le groupe.");
+};
+
+/**
+ * Refuse une invitation groupe et met à jour la liste locale.
+ * @author Ngoie Steven
+ * @param {number} idGroupe
+ * @returns {Promise<void>}
+ */
+const refuserInvitation = async (idGroupe) => {
+  try {
+    await groupeService.refuserInvitation(idGroupe);
+    invitations.value = invitations.value.filter(g => g.id !== idGroupe);
+
+    alert("L'invitation a bien été refusée/supprimée."); 
+    
+  } catch (error) {
+    console.error("Erreur lors du refus :", error);
+    alert("Une erreur est survenue lors de l'action."); 
+  }
+};
+
+/**
+ * Supprime une notification d'information côté serveur et la retire de l'affichage local.
+ * @author Ngoie Steven
+ * @param {number} idNotification
+ * @returns {Promise<void>}
+ */
+const supprimerNotificationInfo = async (idNotification) => {
+  try {
+    await api.delete(`/participant/notifications-info/${idNotification}`);
+    notificationsInfo.value = notificationsInfo.value.filter((notification) => notification.id !== idNotification);
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la notification', error);
+  }
+};
+
+const isMembershipInfoNotification = (notification) => [
+  'membership_approved_info',
+  'membership_refused_info',
+  'new_membership_request',
+  'membership_invitation_to_complete',
+  'membership_invitation_info',
+  'membership_invitation_cancelled_info',
+  'membership_invitation_cancelled_participant',
+].includes(notification?.type);
+
+const getInfoNotificationCardClass = (notification) => {
+  if (isMembershipInfoNotification(notification)) {
+    return 'bg-blue-50 border border-blue-200';
+  }
+  return 'bg-amber-50 border border-amber-200';
+};
+
+const getInfoNotificationTagClass = (notification) => {
+  if (isMembershipInfoNotification(notification)) {
+    return 'bg-blue-100 text-blue-700 border border-blue-200';
+  }
+  return 'bg-amber-100 text-amber-700 border border-amber-200';
+};
+
+const getInfoNotificationIcon = (notification) => {
+  if (isMembershipInfoNotification(notification)) {
+    return 'mdi:account-group-outline';
+  }
+  return 'mdi:information-outline';
+};
+
+const getInfoNotificationRoute = (notification) => {
+  if (notification?.type === 'membership_invitation_to_complete') {
+    return '/membership';
+  }
+  return null;
+};
+
+const ouvrirNotificationInfo = async (notification) => {
+  const route = getInfoNotificationRoute(notification);
+  if (route) {
+    isProfileDropdownOpen.value = false;
+    await router.push(route);
+    await supprimerNotificationInfo(notification.id);
+  }
+};
+
+/**
+ * Récupère la source du logo d'un événement formatée en data URI.
+ * @author Neris Alessandro
+ * @param {object} evenement
+ * @returns {string|null}
+ */
+const getLogoSource = (evenement) => {
+  if (!evenement) return null;
+  const logo = evenement.logo_base64 || evenement.logo;
+  if (!logo) return null;
+  return logo.startsWith('data:') ? logo : `data:image/png;base64,${logo}`;
+};
+</script>
+

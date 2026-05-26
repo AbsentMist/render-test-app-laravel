@@ -133,6 +133,7 @@ export default {
     computed: {
         /**
          * Indique si le formulaire est en mode édition.
+         * @author Neris Alessandro
          * @returns {boolean}
          */
         isEditing() {
@@ -142,6 +143,7 @@ export default {
     methods: {
         /**
          * Normalise un template API vers le format local du formulaire.
+         * @author Neris Alessandro
          * @param {Object} template Donnée template brute.
          * @returns {Object} Template normalisé.
          */
@@ -154,6 +156,7 @@ export default {
         },
         /**
          * Copie le contenu actuel du template dans le presse-papiers.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async copyTemplateContent() {
@@ -174,6 +177,7 @@ export default {
         },
         /**
          * Affiche temporairement la confirmation visuelle de copie.
+         * @author Neris Alessandro
          * @returns {void}
          */
         showCopyConfirmation() {
@@ -190,6 +194,7 @@ export default {
         },
         /**
          * Copie un modèle existant dans le formulaire courant.
+         * @author Neris Alessandro
          * @param {Object} template Modèle source sélectionné.
          * @returns {void}
          */
@@ -199,6 +204,7 @@ export default {
         },
         /**
          * Réinitialise le formulaire et quitte le mode édition.
+         * @author Neris Alessandro
          * @returns {void}
          */
         resetForm() {
@@ -207,6 +213,7 @@ export default {
         },
         /**
          * Prépare un template pour comparaison de contenu.
+         * @author Neris Alessandro
          * @param {Object} template Donnée template à comparer.
          * @returns {Object} Version simplifiée du template.
          */
@@ -219,6 +226,7 @@ export default {
         },
         /**
          * Indique si un modèle doit être affiché en surbrillance.
+         * @author Neris Alessandro
          * @param {Object} template Modèle de la liste.
          * @returns {boolean}
          */
@@ -237,6 +245,7 @@ export default {
         },
         /**
          * Prépare la suppression d'un modèle de template.
+         * @author Neris Alessandro
          * @param {number} index Position du modèle dans la liste.
          * @returns {void}
          */
@@ -247,6 +256,7 @@ export default {
         },
         /**
          * Supprime le modèle confirmé puis met à jour la liste locale.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async confirmerSuppressionTemplate() {
@@ -267,6 +277,7 @@ export default {
         },
         /**
          * Recharge la liste des templates depuis l'API.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async chargerModeles() {
@@ -275,6 +286,7 @@ export default {
         },
         /**
          * Applique les actions communes après création/modification réussie.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async handleSuccessSubmit() {
@@ -286,6 +298,7 @@ export default {
         },
         /**
          * Crée un nouveau template modèle à partir du formulaire courant.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async createTemplate() {
@@ -305,6 +318,7 @@ export default {
         },
         /**
          * Modifie le template modèle actuellement sélectionné.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async modifyTemplate() {
@@ -327,6 +341,7 @@ export default {
     },
     /**
      * Charge les modèles d'avertissement au montage du composant.
+     * @author Neris Alessandro
      * @returns {Promise<void>}
      */
     async mounted() {

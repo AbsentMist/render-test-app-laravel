@@ -523,6 +523,11 @@ export default {
         };
     },
     methods: {
+        /**
+         * Bascule le menu d'options pour une course donnée.
+         * @param {number} courseId - L'identifiant de la course
+         * @returns {void}
+         */
         toggleOptionMenu(courseId) {
             this.activeOptionCourseId =
                 this.activeOptionCourseId === courseId ? null : courseId;
@@ -530,6 +535,10 @@ export default {
                 this.$nextTick(() => this.updateOptionListPosition());
             }
         },
+        /**
+         * Met à jour la position du menu d'options en fonction de la position du bouton.
+         * @returns {void}
+         */
         updateOptionListPosition() {
             const button = this.optionButtonRefs[this.activeOptionCourseId];
             if (!button) return;
@@ -540,9 +549,20 @@ export default {
                 transform: "translateY(-50%)",
             };
         },
+        /**
+         * Recherche et retourne une course par son identifiant.
+         * @param {number} courseId - L'identifiant de la course à trouver
+         * @returns {object|null} - La course correspondante ou null si non trouvée
+         */
         findCourseById(courseId) {
             return this.courses.find((c) => c.id === courseId) || null;
         },
+        /**
+         * Traite la sélection d'une option (Dupliquer ou Supprimer) pour une course.
+         * @param {object} course - La course concernée par l'option
+         * @param {string} option - L'option sélectionnée ("Dupliquer" ou "Supprimer")
+         * @returns {void}
+         */
         handleOptionSelection(course, option) {
             this.activeOptionCourseId = null;
             switch (option) {
@@ -562,6 +582,11 @@ export default {
                     break;
             }
         },
+        /**
+         * Formate une date au format JJ.MM.AAAA selon la locale fr-CH.
+         * @param {string} dateString - La chaîne de date à formater
+         * @returns {string} - La date formatée ou "—" si la date est invalide
+         */
         formaterDate(dateString) {
             if (!dateString) return "—";
             const date = new Date(dateString);
@@ -571,6 +596,10 @@ export default {
                 year: "numeric",
             });
         },
+        /**
+         * Charge la liste des courses pour l'événement actuel depuis l'API.
+         * @returns {Promise<void>}
+         */
         async chargerCourses() {
             this.chargement = true;
             this.erreur = "";
@@ -585,26 +614,60 @@ export default {
                 this.chargement = false;
             }
         },
+        /**
+         * Redirige vers le formulaire de modification pour une course.
+         * @param {object} course - La course à modifier
+         * @returns {void}
+         */
         modifierCourse(course) {
             this.$router.push(
                 `/organisateur/formulaires?onglet=Course&id=${course.id}&idEvenement=${this.idEvenement}`,
             );
         },
+        /**
+         * Ouvre la popup de gestion des codes de rabais pour une course.
+         * @param {object} course - La course concernée
+         * @returns {void}
+         */
         ouvrirCodesRabais(course) {
             this.courseCodesRabais = course;
         },
+        /**
+         * Ouvre la popup de gestion des codes dossard personnalisés pour une course.
+         * @param {object} course - La course concernée
+         * @returns {void}
+         */
         ouvrirCodesDossard(course) {
             this.courseCodesDossard = course;
         },
+        /**
+         * Prépare la suppression d'une course en l'assignant à courseASupprimer et affiche la popup de confirmation.
+         * @param {object} course - La course à supprimer
+         * @returns {void}
+         */
         confirmerSuppression(course) {
             this.courseASupprimer = course;
         },
+        /**
+         * Affiche la popup des résultats du questionnaire pour une course.
+         * @param {object} course - La course dont afficher les résultats
+         * @returns {void}
+         */
         afficherQuestion(course) {
             this.courseQuestionnaireSelectionnee = course;
         },
+        /**
+         * Ferme la popup des résultats du questionnaire.
+         * @returns {void}
+         */
         fermerQuestionnaire() {
             this.courseQuestionnaireSelectionnee = null;
         },
+        /**
+         * Vérifie si une course possède un questionnaire associé.
+         * @param {object} course - La course à vérifier
+         * @returns {boolean} - true si la course a un questionnaire, false sinon
+         */
         aQuestionnaire(course) {
             return Boolean(
                 course?.is_questionnaire ||
@@ -612,6 +675,10 @@ export default {
                 (course?.questions?.length ?? 0) > 0,
             );
         },
+        /**
+         * Supprime une course et la retire de la liste après confirmation.
+         * @returns {Promise<void>}
+         */
         async supprimerCourse() {
             try {
                 await courseOrganisateurService.deleteCourse(
@@ -626,6 +693,11 @@ export default {
                 this.courseASupprimer = null;
             }
         },
+        /**
+         * Génère un nom unique pour une course dupliquée en ajoutant un compteur.
+         * @param {string} nomOriginal - Le nom original de la course
+         * @returns {string} - Le nouveau nom avec le compteur (ex: "Course (2)")
+         */
         genererNomDuplique(nomOriginal) {
             const baseName = nomOriginal.replace(/\s*\(\d+\)$/, '');
             const count = this.courses.filter((c) =>
@@ -633,6 +705,11 @@ export default {
             ).length;
             return `${baseName} (${count + 1})`;
         },
+        /**
+         * Duplique une course complète avec ses options, avertissements et questionnaires.
+         * @param {object} course - La course à dupliquer
+         * @returns {Promise<void>}
+         */
         async dupliquerCourse(course) {
             try {
                 const courseComplete = await courseOrganisateurService.getCourse(course.id, this.idEvenement);
@@ -784,6 +861,11 @@ export default {
                 this.erreur = messageErreur;
             }
         },
+        /**
+         * Ferme le menu d'options lorsque l'utilisateur clique en dehors.
+         * @param {Event} event - L'événement de clic
+         * @returns {void}
+         */
         handleClickOutside(event) {
             const isClickOnEllipsisButton = event.target.closest(
                 'button[title="Afficher les actions supplémentaires"]',
@@ -793,11 +875,21 @@ export default {
                 this.activeOptionCourseId = null;
             }
         },
+        /**
+         * Ferme le menu d'options quand la touche Échap est pressée.
+         * @param {KeyboardEvent} event - L'événement clavier
+         * @returns {void}
+         */
         handleEscapeKey(event) {
             if (event.key === "Escape") {
                 this.activeOptionCourseId = null;
             }
         },
+        /**
+         * Met à jour la position du dropdown (nom ou année) en fonction du bouton.
+         * @param {string} dropdown - Le dropdown à positionner ("nom" ou "annee")
+         * @returns {void}
+         */
         updateDropdownPosition(dropdown) {
             this.$nextTick(() => {
                 let buttonRef, styleProp;
@@ -820,6 +912,10 @@ export default {
                 };
             });
         },
+        /**
+         * Confirme et exécute la duplication de la course vers l'événement sélectionné.
+         * @returns {void}
+         */
         confirmerDuplication() {
             if (this.popupDuplication.evenementActuel) {
                 // Dupliquer dans l'événement actuel
@@ -844,9 +940,18 @@ export default {
             this.dupliquerCourse(this.popupDuplication.course);
             this.popupDuplication.visible = false;
         },
+        /**
+         * Ouvre la popup d'affichage et d'import des résultats pour une course.
+         * @param {object} course - La course dont afficher les résultats
+         * @returns {void}
+         */
         ouvrirResultats(course) {
             this.courseResultats = course;
         },
+        /**
+         * Charge la liste de tous les événements organisateur depuis l'API.
+         * @returns {Promise<void>}
+         */
         async chargerEvenements() {
             try {
                 const response = await evenementOrganisateurService.getAllEvenements();

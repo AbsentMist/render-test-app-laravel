@@ -227,6 +227,7 @@ export default {
   computed: {
     /**
      * Applique les filtres et le tri sur les inscriptions chargées.
+     * @author Guillermet Jean-Daniel, Neris Alessandro
      * @returns {Array<Object>} Liste d'inscriptions prête pour affichage dans le tableau.
      */
     inscriptionsFiltrees() {
@@ -312,6 +313,7 @@ export default {
   methods: {
     /**
      * Met à jour les filtres courants reçus du composant de filtrage.
+     * @author Guillermet Jean-Daniel
      * @param {{recherche: string, status: string, type: string}} nouveauxFiltres
      * @returns {void}
      */
@@ -320,6 +322,7 @@ export default {
     },
     /**
      * Change la colonne de tri active ou inverse sa direction.
+     * @author Neris Alessandro
      * @param {string} colonne Nom de la colonne triée.
      * @returns {void}
      */
@@ -333,6 +336,7 @@ export default {
     },
     /**
      * Charge les inscriptions administrateur et déduit la liste unique des participants.
+     * @author Neris Alessandro
      * @returns {Promise<void>}
      */
     async chargerInscriptions() {
@@ -354,6 +358,7 @@ export default {
     },
     /**
      * Ferme la popup de changement de course puis recharge les données.
+     * @author Neris Alessandro
      * @returns {Promise<void>}
      */
     async fermerPopupChangement() {
@@ -362,6 +367,7 @@ export default {
     },
     /**
      * Ouvre la popup de détail pour une inscription donnée.
+     * @author Neris Alessandro
      * @param {Object} inscription Inscription ciblée.
      * @returns {void}
      */
@@ -371,6 +377,7 @@ export default {
     },
     /**
      * Répercute en local une inscription mise à jour depuis la popup de détail.
+     * @author Neris Alessandro
      * @param {Object} inscriptionMaj Version modifiée de l'inscription.
      * @returns {void}
      */
@@ -385,6 +392,7 @@ export default {
     },
     /**
      * Prépare l'annulation d'une inscription en ouvrant la confirmation.
+     * @author Neris Alessandro
      * @param {Object} inscription Inscription visée.
      * @returns {Promise<void>}
      */
@@ -393,6 +401,7 @@ export default {
     },
     /**
      * Confirme l'annulation d'une inscription puis recharge la liste.
+     * @author Neris Alessandro
      * @returns {Promise<void>}
      */
     async confirmerSuppression() {
@@ -407,6 +416,7 @@ export default {
     },
     /**
      * Ferme l'avertissement et ouvre la popup de changement de course.
+     * @author Neris Alessandro
      * @returns {void}
      */
     afficherPopupChangement() {
@@ -415,6 +425,7 @@ export default {
     },
     /**
      * Exporte les inscriptions au format demandé (CSV ou XLSX).
+     * @author Ngoie Steven
      * @param {'csv'|'xlsx'} format Format de sortie souhaité.
      * @returns {Promise<void>}
      */
@@ -449,6 +460,7 @@ export default {
     },
     /**
      * Affiche temporairement la confirmation visuelle de copie.
+     * @author Neris Alessandro
      * @returns {void}
      */
     showCopyConfirmationEmail() {
@@ -466,6 +478,7 @@ export default {
   },
   /**
    * Charge les inscriptions dès l'ouverture de la vue.
+   * @author Neris Alessandro
    * @returns {Promise<void>}
    */
   async mounted() {
