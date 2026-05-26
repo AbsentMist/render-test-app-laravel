@@ -69,12 +69,14 @@
                                 >
                                     <img
                                         v-if="
+                                            article.courseLogoColorized ||
                                             getLogoSource(
                                                 article.courseDetails
                                                     ?.evenement,
                                             )
                                         "
                                         :src="
+                                            article.courseLogoColorized ||
                                             getLogoSource(
                                                 article.courseDetails
                                                     ?.evenement,
@@ -140,8 +142,12 @@
                                         }}
                                     </p>
 
-                                    <p class="font-bold mt-1 text-gray-700">
+                                    <p class="font-semibold text-gray-700 flex items-center">
                                         <template v-if="article.type !== 'options_supplementaires'">
+                                            <Icon
+                                                :icon="'mdi:account'"
+                                                class="w-4 h-4 mr-1"
+                                            />
                                             {{
                                                 (article.participant?.length
                                                     ? article.participant
@@ -160,8 +166,7 @@
                                     <div
                                         v-if="
                                             article.options &&
-                                            Array.isArray(article.options) &&
-                                            article.options.length > 0
+                                            (Array.isArray(article.options) ? article.options.length > 0 : Object.keys(article.options).length > 0)
                                         "
                                         class="mt-1"
                                     >
@@ -173,7 +178,7 @@
                                             class="font-medium text-xs text-gray-600 flex flex-row justify-between"
                                         >
                                             <span>
-                                                {{
+                                               - {{
                                                     opt.quantite
                                                         ? opt.quantite + "x "
                                                         : ""
@@ -469,6 +474,7 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../stores/cart";
 import { useAuthStore } from "../stores/auth";
+import { useThemeStore } from "../stores/theme";
 import inscriptionService from "../services/inscriptionService";
 import groupeService from "../services/groupeService";
 import choixOptionParticipantService from "../services/choixOptionParticipantService";
@@ -478,10 +484,12 @@ import membershipService from "../services/membershipService";
 import api from "../services/api";
 import prixEvolutifService from "../services/prixEvolutifService";
 import PopupConfirmation from "../components/PopupConfirmation.vue";
+import { Icon } from "@iconify/vue";
 
 const router = useRouter();
 const cartStore = useCartStore();
 const authStore = useAuthStore();
+const themeStore = useThemeStore();
 
 // Données du panier via le store Pinia
 const panier = computed(() => cartStore.inscriptions);
@@ -489,7 +497,6 @@ const panier = computed(() => cartStore.inscriptions);
 /**
  * Retire un article du panier et supprime le groupe associé si nécessaire.
  * Utilise panier.value[index] pour éviter le problème de cache du handler Vue.
- * @author Ngoie Steven
  */
 async function retirerArticle(idGroupe) {
     const index = panier.value.findIndex((i) => i.id_groupe === idGroupe);
@@ -505,7 +512,6 @@ const redirectionApresPopup = ref(null);
 
 /**
  * Ouvre la popup de confirmation d'inscription avec le message fourni.
- * @author Ngoie Steven
  * @param {string} message
  * @param {string|null} [redirection='/inscriptions']
  */
@@ -517,7 +523,6 @@ function ouvrirPopupInscription(message, redirection = "/inscriptions") {
 
 /**
  * Ferme la popup de confirmation sans redirection.
- * @author Ngoie Steven
  */
 function fermerPopupInscription() {
     popupInscriptionVisible.value = false;
@@ -525,7 +530,6 @@ function fermerPopupInscription() {
 
 /**
  * Confirme la popup puis effectue la redirection cible si définie.
- * @author Ngoie Steven
  */
 function confirmerPopupInscription() {
     popupInscriptionVisible.value = false;
@@ -538,7 +542,6 @@ function confirmerPopupInscription() {
 /**
  * Normalise la source du logo évènement pour l'affichage.
  * Supporte `logo_base64` ou `logo`, avec ou sans préfixe data URI.
- * @author Neris Alessandro
  * @param {Object} evenement
  * @returns {string|null}
  */
@@ -549,8 +552,68 @@ function getLogoSource(evenement) {
 }
 
 /**
+ * Applique une couleur de teinte à un logo via canvas.
+ * Utilise le mode composite `source-atop` pour coloriser l'image.
+ * @param {string} logoSrc - Data URI du logo
+ * @param {string} couleur - Couleur hexadécimale (ex: '#FF0000')
+ * @returns {Promise<string>} Data URI de l'image colorisée
+ */
+function coloriserLogo(logoSrc, couleur) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+
+            // Dessiner l'image originale
+            ctx.drawImage(img, 0, 0);
+
+            // Appliquer la couleur avec composite mode
+            ctx.fillStyle = couleur;
+            ctx.globalCompositeOperation = "source-atop";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            resolve(canvas.toDataURL("image/png"));
+        };
+        img.onerror = () => {
+            reject(new Error("Erreur chargement image"));
+        };
+        img.src = logoSrc;
+    });
+}
+
+/**
+ * Colorise les logos du panier avec la couleur secondaire de l'événement.
+ * @param {Array} panier - Tableau des articles du panier
+ */
+async function coloriserLogosParier(panier) {
+    for (const article of panier) {
+        const logoSrc = getLogoSource(article.courseDetails?.evenement);
+        const couleurSecondaire =
+            article.courseDetails?.evenement?.couleur_secondaire || "#FFFFFF";
+
+        if (logoSrc && couleurSecondaire) {
+            try {
+                article.courseLogoColorized = await coloriserLogo(
+                    logoSrc,
+                    couleurSecondaire,
+                );
+            } catch (e) {
+                console.error("Erreur colorisation logo panier:", e);
+                // En cas d'erreur, utiliser le logo original
+                article.courseLogoColorized = logoSrc;
+            }
+        } else {
+            article.courseLogoColorized = logoSrc;
+        }
+    }
+}
+
+/**
  * Vérifie si une valeur correspond à un fichier uploadable côté navigateur.
- * @author Ngoie Steven
  * @param {unknown} valeur
  * @returns {boolean}
  */
@@ -563,7 +626,6 @@ function estFichierNavigateur(valeur) {
 
 /**
  * Extrait un fichier exploitable depuis différents formats possibles.
- * @author Ngoie Steven
  * @param {unknown} document
  * @returns {File|Blob|null}
  */
@@ -595,7 +657,6 @@ const deductionsParArticle = ref({});
 
 /**
  * Retourne la déduction applicable à une ligne panier.
- * @author Ngoie Steven
  * @param {number} index
  * @returns {number}
  */
@@ -606,7 +667,6 @@ const getDeductionArticle = (index) => {
 /**
  * Retourne le tarif final d'une ligne après déduction de changement.
  * Inclut prixTotal pour les options supplémentaires.
- * @author Ngoie Steven
  * @param {Object} article
  * @param {number} index
  * @returns {number}
@@ -620,7 +680,6 @@ const getTotalLigneArticle = (article, index) => {
 
 /**
  * Calcule le supplément dû aux options pour un article du panier.
- * @author Ngoie Steven
  * @param {Object} article
  * @returns {number}
  */
@@ -650,7 +709,6 @@ function calculerSupplementOptions(article) {
 
 /**
  * Surveille le panier pour recalculer la déduction liée aux anciennes inscriptions.
- * @author Ngoie Steven
  */
 watch(
     panier,
@@ -690,7 +748,6 @@ watch(
 
 /**
  * Somme de toutes les déductions de changement dans le panier.
- * @author Ngoie Steven
  * @type {import('vue').ComputedRef<number>}
  */
 const deductionTotale = computed(() => {
@@ -702,7 +759,6 @@ const deductionTotale = computed(() => {
 
 /**
  * Surveille le panier pour rafraîchir les tarifs évolutifs.
- * @author Ngoie Steven
  */
 watch(
     panier,
@@ -733,8 +789,20 @@ watch(
 );
 
 /**
+ * Surveille le panier pour coloriser les logos des articles.
+ */
+watch(
+    panier,
+    async (nouveauPanier) => {
+        if (nouveauPanier && nouveauPanier.length > 0) {
+            await coloriserLogosParier(nouveauPanier);
+        }
+    },
+    { immediate: true, deep: true },
+);
+
+/**
  * Sous-total après déduction éventuelle.
- * @author Ngoie Steven
  * @type {import('vue').ComputedRef<number>}
  */
 const sousTotal = computed(() => {
@@ -744,7 +812,6 @@ const sousTotal = computed(() => {
 
 /**
  * Frais de service appliqués uniquement si un montant positif est dû.
- * @author Ngoie Steven
  * @type {import('vue').ComputedRef<string>}
  */
 const fraisService = computed(() => {
@@ -755,7 +822,6 @@ const fraisService = computed(() => {
 
 /**
  * Total final à payer, frais inclus.
- * @author Ngoie Steven
  * @type {import('vue').ComputedRef<string>}
  */
 const total = computed(() => {
@@ -768,7 +834,6 @@ const total = computed(() => {
 
 /**
  * Valide le panier: crée inscriptions/options/réponses/documents puis lance le paiement.
- * @author Ngoie Steven, Guillermet Jean-Daniel
  * @returns {Promise<void>}
  */
 const procederPaiement = async () => {

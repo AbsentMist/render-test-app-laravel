@@ -13,7 +13,7 @@
       class="w-48 md:w-56 rounded-xl border-2 border-white flex flex-col items-center justify-center p-4 text-center text-white shrink-0"
       :style="{ backgroundColor: evenement?.couleur_primaire || '#5e7082' }"
     >
-      <h3 class="text-xl font-medium leading-tight whitespace-pre-line">{{ evenement?.nom }}</h3>
+        <h3 class="text-xl font-medium leading-tight whitespace-pre-line">{{ evenement?.nom }}</h3>
       <div class="mt-3 px-4 py-1 rounded-full text-sm text-white font-semibold tracking-wide bg-opacity-30" :style="{ backgroundColor: evenement?.couleur_secondaire + '30' }">
         <span v-if="course.date_debut === course.date_fin">
           {{ course.date_debut }}
@@ -25,11 +25,14 @@
     </div>
     <div class="flex-1 flex flex-col md:flex-row md:items-center justify-between p-4 pl-6">
       <div :style="{ color: evenement?.couleur_primaire }" class="w-full">
-        <h4 class="text-xl font-semibold mb-2">{{ course.nom_course }}</h4>
+        <div class="flex justify-between items-center gap-4">
+          <h4 class="text-xl font-semibold mb-2">{{ course.nom_course }}</h4>
+          <span class="flex items-center border-t-4 " :style="{ borderColor: evenement?.couleur_secondaire }"> {{ course.type }}</span>
+        </div>
         <div class="text-sm font-semibold">Tarif CHF {{ course.tarif }}</div>
         <div class="flex justify-between pr-4">
           <div class="text-xs opacity-80">+ Frais de plateforme et frais bancaire</div>
-          <div class="text-xs font-semibold rounded-lg px-2 py-1 border-1" :style="{ borderColor: evenement?.couleur_primaire }">
+          <div v-if="course.categorie || course.sous_categorie" class="text-xs font-semibold rounded-lg px-2 py-1 border-1" :style="{ borderColor: evenement?.couleur_primaire }">
             <span v-if="course.categorie">{{ course.categorie }}</span>
             <span v-if="course.sous_categorie"> - {{ course.sous_categorie }}</span>
           </div>
