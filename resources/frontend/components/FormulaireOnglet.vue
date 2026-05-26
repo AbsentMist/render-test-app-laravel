@@ -34,6 +34,7 @@ export default {
   methods: {
     /**
      * Propage la sélection d'un onglet vers le parent.
+     * @author Neris Alessandro
      * @param {string} formulaire Nom de l'onglet sélectionné.
      * @returns {void}
      */

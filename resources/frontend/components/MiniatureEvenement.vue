@@ -60,6 +60,7 @@ const emit = defineEmits(['selectionner']);
 
 /**
  * Gère le clic sur une carte selon le mode courant.
+ * @author Perroud Rémi
  * @param {Object} evt Évènement sélectionné.
  * @returns {void}
  */
@@ -73,6 +74,7 @@ function handleClick(evt) {
 
 /**
  * Applique une teinte sur un logo afin de l'adapter à la palette de l'évènement.
+ * @author Neris Alessandro
  * @param {string} logoSrc Source de l'image à recolorer.
  * @param {string} couleur Couleur cible.
  * @returns {Promise<string>}
@@ -97,6 +99,7 @@ async function coloriserLogo(logoSrc, couleur) {
 
 /**
  * Prépare les évènements enrichis avec leur logo colorisé au montage.
+ * @author Neris Alessandro
  * @returns {Promise<void>}
  */
 onMounted(async () => {

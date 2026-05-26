@@ -202,6 +202,7 @@ const showPassword = ref(false);
 
 /**
  * Tente la connexion de l'utilisateur et gère la redirection.
+ * @author Guillermet Jean-Daniel
  * @returns {Promise<void>}
  */
 async function handleLogin() {

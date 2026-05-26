@@ -305,10 +305,20 @@ export default {
   },
 
   methods: {
+    /**
+     * Obtient l'instance du panier. L'instancie si nécessaire.
+     * @author Ngoie Steven
+     * @returns {object} - L'instance du panier (useCartStore)
+     */
     getCart() {
       if (!this.cartStore) this.cartStore = useCartStore();
       return this.cartStore;
     },
+    /**
+     * Initialise la vue en vérifiant l'accès membership et en chargeant les données du profil et de la demande.
+     * @author Ngoie Steven
+     * @returns {Promise<void>}
+     */
     async initialiserVue() {
       this.chargementInitial = true;
       this.messageErreur = '';
@@ -341,6 +351,12 @@ export default {
       }
     },
 
+    /**
+     * Remplit le formulaire avec les données du profil participant actuel.
+     * @author Ngoie Steven
+     * @param {object} profil - Les données du profil participant
+     * @returns {void}
+     */
     prefillDepuisProfil(profil) {
       const adresseComplete = [profil.adresse, profil.numero].filter(Boolean).join(' ').trim();
 
@@ -363,6 +379,12 @@ export default {
       }
     },
 
+    /**
+     * Remplit le formulaire avec les données d'une demande de membership existante.
+     * @author Ngoie Steven
+     * @param {object} demande - L'objet demande membership avec les données précédemment saisies
+     * @returns {void}
+     */
     prefillDepuisDemande(demande) {
       this.formulaire.nom = demande.nom || this.formulaire.nom;
       this.formulaire.prenom = demande.prenom || this.formulaire.prenom;
@@ -384,6 +406,12 @@ export default {
       }
     },
 
+    /**
+     * Normalise un numéro de téléphone au format XXX XXX XX XX.
+     * @author Ngoie Steven
+     * @param {string} value - Le numéro de téléphone à normaliser
+     * @returns {string} - Le numéro formaté
+     */
     normaliserTelephone(value) {
       const chiffres = String(value || '').replace(/\D/g, '').slice(0, 10);
       if (chiffres.length <= 3) return chiffres;
@@ -392,10 +420,22 @@ export default {
       return `${chiffres.slice(0, 3)} ${chiffres.slice(3, 6)} ${chiffres.slice(6, 8)} ${chiffres.slice(8, 10)}`;
     },
 
+    /**
+     * Formate le numéro de téléphone au fur et à mesure que l'utilisateur tape.
+     * @author Ngoie Steven
+     * @param {Event} event - L'événement de modification du champ input
+     * @returns {void}
+     */
     formaterTelephone(event) {
       this.formulaire.telephone = this.normaliserTelephone(event.target.value);
     },
 
+    /**
+     * Recherche les suggestions d'adresses via l'API geo.admin.ch de la Confédération Suisse.
+     * @author Ngoie Steven
+     * @param {string} valeur - La valeur de recherche d'adresse
+     * @returns {Promise<void>}
+     */
     async rechercherAdresse(valeur) {
       if (this.adresseTimeout) {
         clearTimeout(this.adresseTimeout);
@@ -422,6 +462,12 @@ export default {
       }, 250);
     },
 
+    /**
+     * Traite la sélection d'une adresse et remplit les champs adresse, code postal et ville.
+     * @author Ngoie Steven
+     * @param {object} suggestion - L'objet suggestion retourné par l'API geo.admin.ch
+     * @returns {void}
+     */
     selectionnerAdresse(suggestion) {
       const attrs = suggestion.attrs;
       const labelPropre = attrs.label.replace(/<[^>]*>/g, '').trim();
@@ -436,6 +482,12 @@ export default {
       this.showAdresseDropdown = false;
     },
 
+    /**
+     * Ferme le dropdown des suggestions d'adresses lors d'un clic en dehors du champ.
+     * @author Ngoie Steven
+     * @param {MouseEvent} event - L'événement de clic
+     * @returns {void}
+     */
     handleAdresseClickOutside(event) {
       const conteneur = this.$refs.adresseRef;
       if (conteneur && !conteneur.contains(event.target)) {
@@ -443,6 +495,11 @@ export default {
       }
     },
 
+    /**
+     * Valide tous les champs obligatoires du formulaire membership.
+     * @author Ngoie Steven
+     * @returns {boolean} - true si le formulaire est valide, false sinon
+     */
     validerFormulaire() {
       this.errors = {};
       let valide = true;
@@ -489,6 +546,11 @@ export default {
       return valide;
     },
 
+    /**
+     * Soumet la demande de membership en l'ajoutant au panier et redirige vers la page paiement.
+     * @author Ngoie Steven
+     * @returns {Promise<void>}
+     */
     async soumettreDemande() {
       // Désormais: on ajoute l'inscription membership au panier (tarif fixe 25 CHF)
       if (!this.validerFormulaire()) {

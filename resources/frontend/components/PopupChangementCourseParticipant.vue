@@ -160,6 +160,7 @@ export default {
   methods: {
     /**
      * Sélectionne la nouvelle course et passe à l'étape d'inscription.
+     * @author Neris Alessandro
      * @param {object} course
      * @returns {void}
      */
@@ -169,6 +170,7 @@ export default {
     },
     /**
      * Revient à la liste des courses disponibles.
+     * @author Neris Alessandro
      * @returns {void}
      */
     retourCourses() {
@@ -177,6 +179,7 @@ export default {
     },
     /**
      * Ouvre la confirmation finale avec les données du changement préparé.
+     * @author Neris Alessandro
      * @param {object} nouvelleInscription
      * @returns {void}
      */
@@ -186,6 +189,7 @@ export default {
     },
     /**
      * Recolore un logo avec la couleur secondaire de l'évènement.
+     * @author Neris Alessandro
      * @param {string} logoSrc
      * @param {string} couleur
      * @returns {Promise<string>}
@@ -209,6 +213,7 @@ export default {
     },
     /**
      * Valide le changement de course et l'ajoute au panier avec historique.
+     * @author Neris Alessandro
      * @returns {Promise<void>}
      */
     async confirmPopup() {

@@ -98,6 +98,7 @@ export default {
     emits: ['update:modelValue'],
     /**
      * Initialise l'état local des options en cours de sélection.
+     * @author Guillermet Jean-Daniel
      * @returns {{optionsSelectionnees: Object}} Dictionnaire indexé par identifiant d'option.
      */
     data() {
@@ -110,6 +111,7 @@ export default {
             immediate: true,
             /**
              * Réinitialise l'état local à chaque changement de liste d'options.
+             * @author Guillermet Jean-Daniel
              * @param {Array} opts Liste des options renvoyées pour la course sélectionnée.
              * @returns {void}
              */
@@ -129,6 +131,7 @@ export default {
     methods: {
         /**
          * Génère les quantités autorisées pour une option quantifiable.
+         * @author Guillermet Jean-Daniel
          * @param {Object} option Option quantifiable contenant ses bornes min/max.
          * @returns {number[]} Tableau de quantités utilisables dans le sélecteur.
          */
@@ -139,6 +142,7 @@ export default {
         },
         /**
          * Active une option cochable et propage la nouvelle sélection.
+         * @author Guillermet Jean-Daniel
          * @param {Object} option Option cochable à activer.
          * @returns {void}
          */
@@ -148,6 +152,7 @@ export default {
         },
         /**
          * Désactive une option actuellement sélectionnée.
+         * @author Guillermet Jean-Daniel
          * @param {Object} option Option à retirer de la sélection.
          * @returns {void}
          */
@@ -157,6 +162,7 @@ export default {
         },
         /**
          * Active une option quantifiable avec la quantité courante choisie.
+         * @author Guillermet Jean-Daniel
          * @param {Object} option Option quantifiable à ajouter.
          * @returns {void}
          */
@@ -166,6 +172,7 @@ export default {
         },
         /**
          * Construit et émet la charge utile des options effectivement retenues.
+         * @author Guillermet Jean-Daniel
          * @returns {void}
          */
         mettreAJour() {
@@ -181,6 +188,7 @@ export default {
     computed: {
         /**
          * Calcule le total courant des options sélectionnées.
+         * @author Guillermet Jean-Daniel
          * @returns {number} Montant cumulé des options actives.
          */
         totalOptions() {

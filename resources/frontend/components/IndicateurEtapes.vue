@@ -38,6 +38,7 @@
 
 <script setup>
 /**
+ * @author Guillermet Jean-Daniel
  * @fileoverview Composant IndicateurEtapes.
  * @description Indicateur visuel de progression dans un flux multi-étapes.
  * @remarks Le composant représente l'avancement sous forme de jalons et adaptent

@@ -27,6 +27,7 @@ const chargement = ref(true);
 
 /**
  * Charge et normalise les évènements destinés à la sélection.
+ * @author Neris Alessandro
  * @returns {Promise<void>}
  */
 async function chargerEvenements() {

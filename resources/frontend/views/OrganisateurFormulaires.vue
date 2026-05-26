@@ -53,6 +53,7 @@ export default {
   },
   /**
    * Initialise la navigation par onglets des formulaires organisateur.
+   * @author Neris Alessandro
    * @returns {{formulaires: Object, activeTab: string}} État local de la vue.
    */
   data() {
@@ -63,6 +64,7 @@ export default {
   },
   /**
    * Active les comportements modaux globaux requis par la page.
+   * @author Neris Alessandro
    * @returns {void}
    */
   mounted() {

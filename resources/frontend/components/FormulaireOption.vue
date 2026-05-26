@@ -92,6 +92,7 @@ export default {
     computed: {
         /**
          * Indique si le formulaire est en mode édition.
+         * @author Neris Alessandro
          * @returns {boolean}
          */
         isEditing() {
@@ -101,6 +102,7 @@ export default {
     methods: {
         /**
          * Normalise une option API vers le format du formulaire.
+         * @author Neris Alessandro
          * @param {Object} option Donnée option brute.
          * @returns {Object} Option normalisée.
          */
@@ -121,6 +123,7 @@ export default {
         },
         /**
          * Copie un modèle existant dans le formulaire courant.
+         * @author Neris Alessandro
          * @param {Object} option Option source sélectionnée dans la liste des modèles.
          * @returns {void}
          */
@@ -130,6 +133,7 @@ export default {
         },
         /**
          * Réinitialise le formulaire et quitte le mode édition.
+         * @author Neris Alessandro
          * @returns {void}
          */
         resetForm() {
@@ -138,6 +142,7 @@ export default {
         },
         /**
          * Prépare une option pour comparaison de contenu.
+         * @author Neris Alessandro
          * @param {Object} option Donnée option à comparer.
          * @returns {Object} Version simplifiée de l'option.
          */
@@ -154,6 +159,7 @@ export default {
         },
         /**
          * Indique si un modèle doit être affiché en surbrillance.
+         * @author Neris Alessandro
          * @param {Object} option Modèle de la liste.
          * @returns {boolean}
          */
@@ -185,6 +191,7 @@ export default {
         },
         /**
          * Prépare le payload d'option pour l'API.
+         * @author Neris Alessandro
          * @returns {FormData}
          */
         buildOptionFormData() {
@@ -205,6 +212,7 @@ export default {
         },
         /**
          * Recharge la liste des options modèles.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async chargerModeles() {
@@ -213,6 +221,7 @@ export default {
         },
         /**
          * Prépare la suppression d'un modèle en ouvrant la confirmation.
+         * @author Neris Alessandro
          * @param {number} index Position du modèle dans la liste.
          * @returns {void}
          */
@@ -223,6 +232,7 @@ export default {
         },
         /**
          * Supprime le modèle confirmé puis met à jour la liste locale.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async confirmerSuppressionOption() {
@@ -243,6 +253,7 @@ export default {
         },
         /**
          * Applique les actions communes après création/modification réussie.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async handleSuccessSubmit() {
@@ -253,6 +264,7 @@ export default {
         },
         /**
          * Crée une nouvelle option modèle à partir du formulaire courant.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async createOption() {
@@ -268,6 +280,7 @@ export default {
         },
         /**
          * Modifie l'option modèle actuellement sélectionnée.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async modifyOption() {
@@ -286,6 +299,7 @@ export default {
     },
     /**
      * Charge les modèles d'options à l'ouverture du composant.
+     * @author Neris Alessandro
      * @returns {Promise<void>}
      */
     async mounted(){

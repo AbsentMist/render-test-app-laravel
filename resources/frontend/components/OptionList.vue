@@ -49,6 +49,7 @@ export default {
   methods: {
     /**
      * Retourne les classes CSS du wrapper en fonction du placement.
+     * @author Neris Alessandro
      * @returns {string}
      */
     getWrapperClass() {
@@ -62,6 +63,7 @@ export default {
     },
     /**
      * Émet l'élément choisi vers le parent.
+     * @author Neris Alessandro
      * @param {string} element Valeur sélectionnée dans la liste.
      * @returns {void}
      */

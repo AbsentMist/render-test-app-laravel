@@ -81,6 +81,7 @@ const emit = defineEmits(['selectionner']);
 
 /**
  * Relaye la sélection d'une course au composant parent.
+ * @author Perroud Rémi
  * @param {Object} course Course sélectionnée.
  * @returns {void}
  */

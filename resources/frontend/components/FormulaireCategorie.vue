@@ -142,6 +142,7 @@ export default {
     computed: {
         /**
          * Indique si l'action en cours correspond à une édition.
+         * @author Neris Alessandro
          * @returns {boolean}
          */
         isEditAction() {
@@ -149,6 +150,7 @@ export default {
         },
         /**
          * Indique si l'action en cours correspond à une suppression.
+         * @author Neris Alessandro
          * @returns {boolean}
          */
         isDeleteAction() {
@@ -156,6 +158,7 @@ export default {
         },
         /**
          * Génère le texte de confirmation pour les suppressions.
+         * @author Neris Alessandro
          * @returns {string}
          */
         actionDescription() {
@@ -167,6 +170,7 @@ export default {
     methods: {
         /**
          * Nettoie une liste brute en conservant uniquement les entrées valides.
+         * @author Neris Alessandro
          * @param {Array} payload Données reçues de l'API.
          * @returns {Array<Object>}
          */
@@ -176,6 +180,7 @@ export default {
         },
         /**
          * Charge les catégories et sous-catégories depuis l'API.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async fetchDatas() {
@@ -193,6 +198,7 @@ export default {
 
         /**
          * Ouvre la modale de création/édition avec préremplissage éventuel.
+         * @author Neris Alessandro
          * @param {'categorie'|'sous-categorie'} type Type d'entité concernée.
          * @param {'create'|'edit'} action Action visée.
          * @param {?number} index Index de l'élément ciblé.
@@ -210,6 +216,7 @@ export default {
 
         /**
          * Ferme et réinitialise la modale de création/édition.
+         * @author Neris Alessandro
          * @returns {void}
          */
         closeModal() {
@@ -222,6 +229,7 @@ export default {
 
         /**
          * Ouvre la modale de confirmation d'action destructive.
+         * @author Neris Alessandro
          * @param {string} type Type d'action à confirmer.
          * @param {number} index Index de l'élément ciblé.
          * @returns {void}
@@ -235,6 +243,7 @@ export default {
 
         /**
          * Ferme la modale de confirmation et réinitialise son état.
+         * @author Neris Alessandro
          * @returns {void}
          */
         closeActionModal() {
@@ -247,6 +256,7 @@ export default {
 
         /**
          * Exécute la suppression confirmée d'une catégorie ou sous-catégorie.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async confirmAction() {
@@ -280,6 +290,7 @@ export default {
 
         /**
          * Valide la création ou l'édition depuis la modale principale.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async confirmModal() {
@@ -328,6 +339,7 @@ export default {
         },
         /**
          * Ouvre la modale d'édition d'une catégorie.
+         * @author Neris Alessandro
          * @param {number} index Index de la catégorie ciblée.
          * @returns {Promise<void>}
          */
@@ -339,6 +351,7 @@ export default {
         },
         /**
          * Ouvre la confirmation de suppression d'une catégorie.
+         * @author Neris Alessandro
          * @param {number} index Index de la catégorie ciblée.
          * @returns {Promise<void>}
          */
@@ -347,6 +360,7 @@ export default {
         },
         /**
          * Ouvre la modale d'édition d'une sous-catégorie.
+         * @author Neris Alessandro
          * @param {number} index Index de la sous-catégorie ciblée.
          * @returns {Promise<void>}
          */
@@ -358,6 +372,7 @@ export default {
         },
         /**
          * Ouvre la confirmation de suppression d'une sous-catégorie.
+         * @author Neris Alessandro
          * @param {number} index Index de la sous-catégorie ciblée.
          * @returns {Promise<void>}
          */
@@ -367,6 +382,7 @@ export default {
     },
     /**
      * Charge les données initiales au montage.
+     * @author Neris Alessandro
      * @returns {Promise<void>}
      */
     async mounted() {

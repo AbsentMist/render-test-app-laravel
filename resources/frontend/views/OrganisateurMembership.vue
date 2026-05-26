@@ -409,6 +409,11 @@ export default {
   },
 
   computed: {
+    /**
+     * Filtre les demandes membership selon les critères de recherche et de statut.
+     * @author Ngoie Steven
+     * @returns {Array} Liste des demandes filtrées
+     */
     demandesFiltrees() {
       const recherche = this.recherche.trim().toLowerCase();
       const source = Array.isArray(this.demandes) ? this.demandes : [];
@@ -439,6 +444,12 @@ export default {
   },
 
   methods: {
+    /**
+     * Charge la liste des demandes de membership depuis l'API.
+     * @author Ngoie Steven
+     * @async
+     * @returns {Promise<void>}
+     */
     async chargerDemandes() {
       this.chargement = true;
       this.messageErreur = '';
@@ -454,15 +465,32 @@ export default {
       }
     },
 
+    /**
+     * Ferme le dropdown du filtre de statut lors d'un clic extérieur.
+     * @author Ngoie Steven
+     * @returns {void}
+     */
     handleOutsideClick() {
       this.showStatusDropdown = false;
     },
 
+    /**
+     * Définit le filtre de statut sélectionné et ferme le dropdown.
+     * @author Ngoie Steven
+     * @param {string} status - Le statut choisi
+     * @returns {void}
+     */
     choisirStatus(status) {
       this.filtreStatus = status;
       this.showStatusDropdown = false;
     },
 
+    /**
+     * Retourne les classes CSS Tailwind pour le badge de statut du formulaire.
+     * @author Ngoie Steven
+     * @param {string} status - Le statut du formulaire
+     * @returns {string} Classes CSS pour le badge
+     */
     badgeFormulaireClass(status) {
       if (status === 'En attente de validation') return 'bg-yellow-100 text-yellow-700';
       if (status === 'Approuvée') return 'bg-green-100 text-green-700';
@@ -471,6 +499,12 @@ export default {
       return 'bg-gray-100 text-gray-700';
     },
 
+    /**
+     * Retourne les classes CSS Tailwind pour le badge de statut d'invitation.
+     * @author Ngoie Steven
+     * @param {string} status - Le statut de l'invitation
+     * @returns {string} Classes CSS pour le badge
+     */
     badgeInvitationClass(status) {
       if (status === 'En cours') return 'bg-blue-100 text-blue-700';
       if (status === 'Complété') return 'bg-green-100 text-green-700';
@@ -478,6 +512,12 @@ export default {
       return 'bg-gray-100 text-gray-700';
     },
 
+    /**
+     * Retourne le label lisible du statut du formulaire.
+     * @author Ngoie Steven
+     * @param {string} status - Le statut du formulaire
+     * @returns {string} Label du statut formaté
+     */
     labelStatusFormulaire(status) {
       if (!status) return '—';
 
@@ -489,6 +529,12 @@ export default {
       }[status] || status;
     },
 
+    /**
+     * Retourne le label lisible du statut d'invitation.
+     * @author Ngoie Steven
+     * @param {string} status - Le statut de l'invitation
+     * @returns {string} Label du statut formaté
+     */
     labelStatusInvitation(status) {
       if (!status) return '—';
 
@@ -499,16 +545,33 @@ export default {
       }[status] || status;
     },
 
+    /**
+     * Formate une date au format JJ.MM.AAAA (format suisse).
+     * @author Ngoie Steven
+     * @param {string|Date} date - La date à formater
+     * @returns {string} Date formatée ou '—' si vide
+     */
     formatDate(date) {
       if (!date) return '—';
       return new Date(date).toLocaleDateString('fr-CH');
     },
 
+    /**
+     * Ouvre le modal de détail pour une demande membership sélectionnée.
+     * @author Ngoie Steven
+     * @param {Object} demande - La demande à afficher
+     * @returns {void}
+     */
     ouvrirDetail(demande) {
       this.demandeSelectionnee = JSON.parse(JSON.stringify(demande));
       this.modalDetail = true;
     },
 
+    /**
+     * Ouvre le modal pour créer une nouvelle invitation membership.
+     * @author Ngoie Steven
+     * @returns {void}
+     */
     ouvrirNouvelleInvitation() {
       this.invitationForm = {
         email: '',
@@ -520,6 +583,12 @@ export default {
       this.modalNouvelleInvitation = true;
     },
 
+    /**
+     * Recherche un participant par email pour l'inviter en membership.
+     * @author Ngoie Steven
+     * @async
+     * @returns {Promise<void>}
+     */
     async rechercherParticipantInvitation() {
       this.invitationForm.erreur = '';
       this.invitationForm.participant = null;
@@ -539,12 +608,23 @@ export default {
       }
     },
 
+    /**
+     * Marque le participant trouvé comme sélectionné pour l'invitation.
+     * @author Ngoie Steven
+     * @returns {void}
+     */
     selectionnerParticipantTrouve() {
       if (this.invitationForm.participant) {
         this.invitationForm.selectionnee = true;
       }
     },
 
+    /**
+     * Crée et envoie une invitation membership au participant sélectionné.
+     * @author Ngoie Steven
+     * @async
+     * @returns {Promise<void>}
+     */
     async creerInvitation() {
       if (!this.invitationForm.participant || !this.invitationForm.selectionnee) return;
 
@@ -568,11 +648,23 @@ export default {
       }
     },
 
+    /**
+     * Ouvre le modal de confirmation pour approuver une demande membership.
+     * @author Ngoie Steven
+     * @param {Object} demande - La demande à approuver
+     * @returns {void}
+     */
     ouvrirApprouve(demande) {
       this.demandeSelectionnee = demande;
       this.modalApprouver = true;
     },
 
+    /**
+     * Approuve la demande membership sélectionnée.
+     * @author Ngoie Steven
+     * @async
+     * @returns {Promise<void>}
+     */
     async approuverDemande() {
       if (!this.demandeSelectionnee) return;
       this.messageSucces = '';
@@ -593,12 +685,24 @@ export default {
       }
     },
 
+    /**
+     * Ouvre le modal pour remettre une demande à compléter.
+     * @author Ngoie Steven
+     * @param {Object} demande - La demande à remettre à compléter
+     * @returns {void}
+     */
     ouvrirACompleter(demande) {
       this.demandeSelectionnee = demande;
       this.commentaireACompleter = '';
       this.modalACompleter = true;
     },
 
+    /**
+     * Remet une demande membership à compléter avec commentaire.
+     * @author Ngoie Steven
+     * @async
+     * @returns {Promise<void>}
+     */
     async remettreACompleterDemande() {
       if (!this.demandeSelectionnee || !this.commentaireACompleter.trim()) return;
       this.messageSucces = '';
@@ -619,12 +723,24 @@ export default {
       }
     },
 
+    /**
+     * Ouvre le modal pour annuler une invitation membership.
+     * @author Ngoie Steven
+     * @param {Object} demande - La demande dont l'invitation doit être annulée
+     * @returns {void}
+     */
     ouvrirAnnulerInvitation(demande) {
       this.demandeSelectionnee = demande;
       this.commentaireAnnulation = '';
       this.modalAnnulerInvitation = true;
     },
 
+    /**
+     * Annule l'invitation membership de la demande sélectionnée.
+     * @author Ngoie Steven
+     * @async
+     * @returns {Promise<void>}
+     */
     async annulerInvitation() {
       const invitationId = this.demandeSelectionnee?.id_invitation;
       if (!invitationId) return;

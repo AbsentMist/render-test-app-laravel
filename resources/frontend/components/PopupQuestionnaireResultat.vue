@@ -103,6 +103,7 @@ export default {
     computed: {
         /**
          * Questionnaire normalisé pour l'affichage.
+         * @author Neris Alessandro
          * @returns {Array}
          */
         questionnaire() {
@@ -120,6 +121,7 @@ export default {
     methods: {
       /**
        * Charge la course complète puis ses statistiques de réponses.
+       * @author Neris Alessandro
        * @returns {Promise<void>}
        */
       async chargerQuestionnaireEtStatistiques() {
@@ -157,6 +159,7 @@ export default {
       },
         /**
          * Transforme le questionnaire reçu en structure homogène pour le rendu.
+         * @author Neris Alessandro
          * @param {Array} questions
          * @returns {Array}
          */
@@ -172,6 +175,7 @@ export default {
         },
         /**
          * Compte le nombre de sélections par réponse pour une question donnée.
+         * @author Neris Alessandro
          * @param {Array} reponses
          * @returns {Object}
          */
@@ -189,6 +193,7 @@ export default {
         },
         /**
          * Retourne le nombre de sélections pour une réponse.
+         * @author Neris Alessandro
          * @param {number|string} idQuestion
          * @param {number|string} idAnswer
          * @returns {number}
@@ -198,6 +203,7 @@ export default {
         },
         /**
          * Retourne le total des réponses enregistrées pour une question.
+         * @author Neris Alessandro
          * @param {number|string} idQuestion
          * @returns {number}
          */
@@ -206,6 +212,7 @@ export default {
         },
         /**
          * Échappe une valeur CSV pour un séparateur `;`.
+         * @author Neris Alessandro
          * @param {unknown} valeur
          * @returns {string}
          */
@@ -215,6 +222,7 @@ export default {
         },
         /**
          * Génère et télécharge un CSV des résultats du questionnaire.
+         * @author Neris Alessandro
          * @returns {void}
          */
         exporterCsv() {

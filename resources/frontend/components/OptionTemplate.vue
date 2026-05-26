@@ -84,6 +84,7 @@ export default {
     methods: {
         /**
          * Demande au parent de retirer l'option courante.
+         * @author Neris Alessandro
          * @returns {void}
          */
         removeOption() {

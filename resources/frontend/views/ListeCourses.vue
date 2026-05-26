@@ -62,6 +62,11 @@ const cartStore = useCartStore();
 
 const participants = ref([]);
 
+/**
+ * Charge la liste des participants du compte actuel.
+ * @author Perroud Rémi
+ * @returns {Promise<void>}
+ */
 async function chargerParticipants() {
     try {
         const response = await participantService.getMesParticipants();
@@ -86,7 +91,8 @@ const courseSelectionnee = ref(null);
 
 /**
  * Ouvre la popup d'inscription pour la course choisie.
- * @param {Object} course
+ * @author Ngoie Steven
+ * @param {Object} course - La course pour laquelle ouvrir l'inscription
  * @returns {void}
  */
 function ouvrirInscription(course) {
@@ -96,7 +102,8 @@ function ouvrirInscription(course) {
 
 /**
  * Ajoute l'inscription préparée au panier puis ferme la popup.
- * @param {Object} donneesInscription
+ * @author Ngoie Steven
+ * @param {Object} donneesInscription - Les données complètes de l'inscription à ajouter
  * @returns {void}
  */
 function gererAjoutPanier(donneesInscription) {
@@ -105,7 +112,8 @@ function gererAjoutPanier(donneesInscription) {
 }
 
 /**
- * Charge l'évènement courant et ses courses.
+ * Charge l'évènement courant, ses courses et synchronise le thème avec les couleurs de l'évènement.
+ * @author Perroud Rémi
  * @returns {Promise<void>}
  */
 async function chargerDonnees() {
@@ -141,7 +149,8 @@ async function chargerDonnees() {
 }
 
 /**
- * Filtre les courses selon la recherche texte.
+ * Filtre les courses selon la recherche texte entrée par l'utilisateur.
+ * @author Perroud Rémi
  * @type {import('vue').ComputedRef<Array>}
  */
 const coursesFiltrees = computed(() => {
@@ -150,7 +159,12 @@ const coursesFiltrees = computed(() => {
   );
 });
 
-// Formatage de la date (JJ.MM.AAAA)
+/**
+ * Formate une date au format JJ.MM.AAAA selon la locale fr-CH.
+ * @author Perroud Rémi
+ * @param {string} dateStr - La chaîne de date à formater
+ * @returns {string} - La date formatée ou une chaîne vide si la date est invalide
+ */
 function formaterDate(dateStr) {
   if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('fr-CH');

@@ -181,6 +181,7 @@ export default {
   methods: {
     /**
      * Sélectionne un évènement puis avance à l'étape de choix de course.
+     * @author Neris Alessandro
      * @param {Object} evenement Évènement choisi par l'utilisateur.
      * @returns {void}
      */
@@ -190,6 +191,7 @@ export default {
     },
     /**
      * Sélectionne la nouvelle course puis ouvre l'étape d'inscription détaillée.
+     * @author Neris Alessandro
      * @param {Object} course Course choisie dans l'évènement ciblé.
      * @returns {void}
      */
@@ -199,6 +201,7 @@ export default {
     },
     /**
      * Revient à la première étape et purge les sélections en cours.
+     * @author Neris Alessandro
      * @returns {void}
      */
     retourEvenements() {
@@ -208,6 +211,7 @@ export default {
     },
     /**
      * Revient à l'étape de choix de course en conservant l'évènement sélectionné.
+     * @author Neris Alessandro
      * @returns {void}
      */
     retourCourses() {
@@ -216,6 +220,7 @@ export default {
     },
     /**
      * Enregistre les données d'inscription proposées puis ouvre la confirmation finale.
+     * @author Neris Alessandro
      * @param {Object} nouvelleInscription Données complètes remontées par le composant d'inscription.
      * @returns {void}
      */
@@ -225,6 +230,7 @@ export default {
     },
     /**
      * Recolore le logo de l'évènement avec la couleur secondaire pour l'affichage de la modale.
+     * @author Neris Alessandro
      * @param {string} logoSrc Source image (base64 ou URL data).
      * @param {string} couleur Couleur de teinte à appliquer.
      * @returns {Promise<string>} Image recolorée au format data URL.
@@ -248,6 +254,7 @@ export default {
     },
     /**
      * Valide définitivement le changement de course après confirmation utilisateur.
+     * @author Neris Alessandro
      * @returns {Promise<void>}
      */
     async confirmPopup() {
@@ -284,6 +291,7 @@ export default {
   },
   /**
    * Prépare le store panier et le logo recoloré à l'ouverture de la modale.
+   * @author Neris Alessandro
    * @returns {Promise<void>}
    */
   async mounted() {

@@ -63,6 +63,7 @@ export default {
     methods: {
         /**
          * Demande la suppression de la question courante au composant parent.
+         * @author Neris Alessandro
          * @returns {void}
          */
         removeQuestion() {

@@ -176,6 +176,12 @@ export default {
     await this.chargerResultats();
   },
   methods: {
+    /**
+     * Charge la liste des résultats importés pour la course depuis l'API.
+     * @author Guillermet Jean-Daniel
+     * @async
+     * @returns {Promise<void>}
+     */
     async chargerResultats() {
       this.chargement = true;
       try {
@@ -188,11 +194,23 @@ export default {
       }
     },
 
+    /**
+     * Gère la sélection d'un fichier Excel via l'input de fichier.
+     * @author Guillermet Jean-Daniel
+     * @param {Event} event - L'événement de changement de fichier
+     * @returns {void}
+     */
     selectionnerFichier(event) {
       this.fichierSelectionne = event.target.files[0] || null;
       this.messageImport = null;
     },
 
+    /**
+     * Gère le dépôt d'un fichier Excel via drag & drop.
+     * @author Guillermet Jean-Daniel
+     * @param {DragEvent} event - L'événement de dépôt
+     * @returns {void}
+     */
     deposerFichier(event) {
       this.glisser = false;
       const fichier = event.dataTransfer.files[0];
@@ -202,6 +220,12 @@ export default {
       }
     },
 
+    /**
+     * Importe le fichier Excel sélectionné via l'API et recharge les résultats.
+     * @author Guillermet Jean-Daniel
+     * @async
+     * @returns {Promise<void>}
+     */
     async importerFichier() {
       if (!this.fichierSelectionne) return;
       this.chargementImport = true;
@@ -222,6 +246,12 @@ export default {
       }
     },
 
+    /**
+     * Supprime tous les résultats de la course et affiche la zone d'import.
+     * @author Guillermet Jean-Daniel
+     * @async
+     * @returns {Promise<void>}
+     */
     async supprimerResultats() {
       this.confirmerSuppression = false;
       try {
@@ -233,6 +263,12 @@ export default {
       }
     },
 
+    /**
+     * Retourne les classes CSS du badge pour une position donnée.
+     * @author Guillermet Jean-Daniel
+     * @param {number} position - La position à formatter
+     * @returns {string} Classes CSS pour le badge
+     */
     badgePosition(position) {
       if (!position) return 'bg-gray-100 text-gray-400';
       if (position === 1) return 'bg-yellow-100 text-yellow-600';

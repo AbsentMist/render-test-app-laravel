@@ -924,12 +924,22 @@ const passwordErrors = reactive({
     newPasswordConfirmation: "",
 });
 
+/**
+ * Réinitialise tous les messages d'erreur du formulaire de mot de passe.
+ * @author Ngoie Steven
+ * @returns {void}
+ */
 const resetPasswordErrors = () => {
     passwordErrors.currentPassword = "";
     passwordErrors.newPassword = "";
     passwordErrors.newPasswordConfirmation = "";
 };
 
+/**
+ * Réinitialise l'état complet du formulaire et des erreurs de mot de passe.
+ * @author Ngoie Steven
+ * @returns {void}
+ */
 const resetPasswordFormState = () => {
     resetPasswordErrors();
     passwordFeedback.message = "";
@@ -939,16 +949,32 @@ const resetPasswordFormState = () => {
     passwordForm.newPasswordConfirmation = "";
 };
 
+/**
+ * Ouvre le modal de modification du mot de passe.
+ * @author Ngoie Steven
+ * @returns {void}
+ */
 const openPasswordModal = () => {
     resetPasswordFormState();
     showPasswordForm.value = true;
 };
 
+/**
+ * Ferme le modal de modification du mot de passe et réinitialise le formulaire.
+ * @author Ngoie Steven
+ * @returns {void}
+ */
 const closePasswordModal = () => {
     showPasswordForm.value = false;
     resetPasswordFormState();
 };
 
+/**
+ * Applique les erreurs retournées par l'API aux champs du formulaire.
+ * @author Ngoie Steven
+ * @param {Object} apiErrors - Les erreurs retournées par l'API
+ * @returns {void}
+ */
 const applyApiErrors = (apiErrors) => {
     const fieldMap = {
         dateNaissance: "dateNaissance",
@@ -973,6 +999,12 @@ const applyApiErrors = (apiErrors) => {
     });
 };
 
+/**
+ * Applique les données du profil au formulaire.
+ * @author Ngoie Steven
+ * @param {Object} data - Les données du profil
+ * @returns {void}
+ */
 const applyProfileData = (data) => {
     form.nom = data.nom || "";
     form.prenom = data.prenom || "";
@@ -993,6 +1025,12 @@ const applyProfileData = (data) => {
     }
 };
 
+/**
+ * Charge les données du profil utilisateur depuis l'API.
+ * @author Ngoie Steven
+ * @async
+ * @returns {Promise<void>}
+ */
 const loadProfile = async () => {
     try {
         const response = await profilService.getProfil();
@@ -1005,7 +1043,10 @@ const loadProfile = async () => {
 };
 
 /**
- * Formater la date au format JJ/MM/AAAA
+ * Formate la date au format JJ/MM/AAAA au fur et à mesure de la saisie.
+ * @author Ngoie Steven
+ * @param {Event} event - L'événement d'input
+ * @returns {void}
  */
 const formaterDate = (event) => {
     let value = event.target.value.replace(/\D/g, "");
@@ -1021,12 +1062,21 @@ const formaterDate = (event) => {
 };
 
 /**
- * Formater le numéro de téléphone
+ * Formate le numéro de téléphone au fur et à mesure de la saisie.
+ * @author Ngoie Steven
+ * @param {Event} event - L'événement d'input
+ * @returns {void}
  */
 const formaterTelephone = (event) => {
     form.telephone = formaterTelephoneValeur(event.target.value);
 };
 
+/**
+ * Formate une valeur de téléphone au format XX XXX XX XX.
+ * @author Ngoie Steven
+ * @param {string} valeur - La valeur du téléphone à formater
+ * @returns {string} Le téléphone formaté
+ */
 const formaterTelephoneValeur = (valeur) => {
     const chiffres = valeur.replace(/\D/g, "");
 
@@ -1057,6 +1107,13 @@ const formaterTelephoneValeur = (valeur) => {
     );
 };
 
+/**
+ * Recherche des adresses via l'API geo.admin.ch avec débounce.
+ * @author Ngoie Steven
+ * @async
+ * @param {string} valeur - Le texte d'adresse à rechercher
+ * @returns {Promise<void>}
+ */
 const rechercherAdresse = async (valeur) => {
     clearTimeout(adresseTimeout);
 
@@ -1082,6 +1139,12 @@ const rechercherAdresse = async (valeur) => {
     }, 300);
 };
 
+/**
+ * Sélectionne une adresse des suggestions et remplissage automatique des champs adresse, numéro, NPA, commune.
+ * @author Ngoie Steven
+ * @param {Object} suggestion - La suggestion d'adresse sélectionnée
+ * @returns {void}
+ */
 const selectionnerAdresse = (suggestion) => {
     const attrs = suggestion.attrs;
     const labelPropre = attrs.label.replace(/<[^>]*>/g, "").trim();
@@ -1102,6 +1165,12 @@ const selectionnerAdresse = (suggestion) => {
     showAdresseDropdown.value = false;
 };
 
+/**
+ * Gère le clic extérieur au dropdown d'adresses pour le fermer.
+ * @author Ngoie Steven
+ * @param {MouseEvent} event - L'événement de clic
+ * @returns {void}
+ */
 const handleAdresseClickOutside = (event) => {
     if (adresseRef.value && !adresseRef.value.contains(event.target)) {
         showAdresseDropdown.value = false;
@@ -1109,7 +1178,9 @@ const handleAdresseClickOutside = (event) => {
 };
 
 /**
- * Valider le formulaire
+ * Valide tous les champs du formulaire de profil.
+ * @author Ngoie Steven
+ * @returns {boolean} True si le formulaire est valide, false sinon
  */
 const validerFormulaire = () => {
     // Réinitialiser les erreurs
@@ -1188,7 +1259,10 @@ const validerFormulaire = () => {
 };
 
 /**
- * Valider un email
+ * Valide le format d'une adresse email.
+ * @author Ngoie Steven
+ * @param {string} email - L'email à valider
+ * @returns {boolean} True si l'email est valide
  */
 const isValidEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1196,7 +1270,10 @@ const isValidEmail = (email) => {
 };
 
 /**
- * Valider une date au format JJ/MM/AAAA
+ * Valide le format d'une date au format JJ/MM/AAAA.
+ * @author Ngoie Steven
+ * @param {string} dateStr - La date à valider
+ * @returns {boolean} True si la date est valide
  */
 const isValidDate = (dateStr) => {
     const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
@@ -1216,7 +1293,10 @@ const isValidDate = (dateStr) => {
 };
 
 /**
- * Valider un numéro de téléphone
+ * Valide le format d'un numéro de téléphone (XX XXX XX XX).
+ * @author Ngoie Steven
+ * @param {string} phone - Le numéro de téléphone à valider
+ * @returns {boolean} True si le téléphone est valide
  */
 const isValidPhone = (phone) => {
     const regex = /^(\d{3})\s(\d{3})\s(\d{2})\s(\d{2})$/;
@@ -1224,7 +1304,10 @@ const isValidPhone = (phone) => {
 };
 
 /**
- * Soumettre le formulaire
+ * Soumet le formulaire de profil à l'API après validation.
+ * @author Ngoie Steven
+ * @async
+ * @returns {Promise<void>}
  */
 const submitForm = async () => {
     formFeedback.message = "";
@@ -1266,12 +1349,19 @@ const submitForm = async () => {
 };
 
 /**
- * Retour à la page précédente
+ * Retourne à la page précédente du navigateur.
+ * @author Ngoie Steven
+ * @returns {void}
  */
 const handleRetour = () => {
     router.back();
 };
 
+/**
+ * Navigue vers la page des inscriptions en s'assurant de revenir à la vue participant.
+ * @author Ngoie Steven
+ * @returns {Promise<void>}
+ */
 const goToMesInscriptions = () => {
     // Si l'utilisateur est admin et actuellement en vue organisateur,
     // on repasse explicitement en vue participant avant la navigation.
@@ -1283,12 +1373,20 @@ const goToMesInscriptions = () => {
 };
 
 /**
- * Déclencher l'input de photo de profil
+ * Déclenche l'input de fichier pour changer la photo de profil.
+ * @author Ngoie Steven
+ * @returns {void}
  */
 const triggerProfileImageInput = () => {
     profileImageInput.value.click();
 };
 
+/**
+ * Définit la photo de profil et crée un URL d'aperçu.
+ * @author Ngoie Steven
+ * @param {File} file - Le fichier image sélectionné
+ * @returns {void}
+ */
 const setProfileImage = (file) => {
     if (!file || !file.type.startsWith("image/")) {
         return;
@@ -1300,19 +1398,34 @@ const setProfileImage = (file) => {
 };
 
 /**
- * Gérer le changement de photo de profil
+ * Gère le changement de photo de profil via l'input de fichier.
+ * @author Ngoie Steven
+ * @param {Event} event - L'événement de changement de fichier
+ * @returns {void}
  */
 const handleProfileImageChange = (event) => {
     const file = event.target.files[0];
     setProfileImage(file);
 };
 
+/**
+ * Gère le drop de fichier photo sur la zone de dépôt.
+ * @author Ngoie Steven
+ * @param {DragEvent} event - L'événement de dépôt
+ * @returns {void}
+ */
 const handleDropProfileImage = (event) => {
     isDropzoneActive.value = false;
     const file = event.dataTransfer?.files?.[0];
     setProfileImage(file);
 };
 
+/**
+ * Soumet le formulaire de modification du mot de passe à l'API.
+ * @author Ngoie Steven
+ * @async
+ * @returns {Promise<void>}
+ */
 const submitPasswordForm = async () => {
     resetPasswordErrors();
     passwordFeedback.message = "";
@@ -1391,12 +1504,22 @@ const formEdition = reactive({
     nationalite: "Suisse",
 });
 
-// Sous-profils = participants liés au compte mais différents du participant principal
+/**
+ * Filtre et retourne les sous-profils de participants (autres que l'utilisateur courant).
+ * @author Ngoie Steven
+ * @returns {Array} Liste des sous-profils participants
+ */
 const sousProfilsParticipants = computed(() => {
     const moi = authStore.user?.participant?.id;
     return tousParticipants.value.filter((p) => p.id !== moi);
 });
 
+/**
+ * Charge la liste de tous les participants liés au compte utilisateur.
+ * @author Ngoie Steven
+ * @async
+ * @returns {Promise<void>}
+ */
 async function chargerParticipants() {
     chargementParticipants.value = true;
     try {
@@ -1409,6 +1532,12 @@ async function chargerParticipants() {
     }
 }
 
+/**
+ * Ouvre le modal d'édition pour un participant sélectionné.
+ * @author Ngoie Steven
+ * @param {Object} p - Le participant à éditer
+ * @returns {void}
+ */
 function ouvrirEditionParticipant(p) {
     participantEdite.value = p;
     erreurEdition.value = null;
@@ -1423,6 +1552,12 @@ function ouvrirEditionParticipant(p) {
     });
 }
 
+/**
+ * Enregistre les modifications apportées à un participant.
+ * @author Ngoie Steven
+ * @async
+ * @returns {Promise<void>}
+ */
 async function sauvegarderEditionParticipant() {
     if (!formEdition.nom.trim() || !formEdition.prenom.trim()) return;
     isSavingEdition.value = true;
@@ -1442,11 +1577,23 @@ async function sauvegarderEditionParticipant() {
     }
 }
 
+/**
+ * Prépare la suppression d'un participant en ouvrant le modal de confirmation.
+ * @author Ngoie Steven
+ * @param {Object} p - Le participant à supprimer
+ * @returns {void}
+ */
 function confirmerSuppressionParticipant(p) {
     participantASupprimer.value = p;
     erreurSuppression.value = null;
 }
 
+/**
+ * Supprime le participant confirmé via l'API.
+ * @author Ngoie Steven
+ * @async
+ * @returns {Promise<void>}
+ */
 async function supprimerParticipantConfirme() {
     isSuppression.value = true;
     erreurSuppression.value = null;
