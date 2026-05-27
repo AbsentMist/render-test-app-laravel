@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
@@ -10,10 +9,15 @@ use App\Models\Participant;
 use App\Enums\StatutParticipant;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Tests feature pour la gestion des groupes.
+ *
+ * @author Alessandro Neris
+ * @return void
+ */
 class GroupeTest extends TestCase
 {
-    // Roll back DB changes after each test
-    use DatabaseTransactions; 
+    // Roll back DB changes after each test 
 
     protected $user;   
     protected $participantId; 

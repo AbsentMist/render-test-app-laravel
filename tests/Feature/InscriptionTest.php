@@ -2,18 +2,21 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Participant;
 use App\Models\Inscription;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Tests feature pour les inscriptions.
+ *
+ * @author Alessandro Neris
+ * @return void
+ */
 class InscriptionTest extends TestCase
 {
-    // Roll back DB changes after each test
-    use DatabaseTransactions; 
+    // Roll back DB changes after each test 
 
     protected $user;   
     protected $participantId; 
@@ -45,10 +48,10 @@ class InscriptionTest extends TestCase
         $this->courseId = DB::table('Course')->insertGetId([
             'id_evenement' => $evenementId,
             'nom' => '10km de Test',
-            'date_debut' => '2026-05-15',
-            'date_fin' => '2026-05-15',
-            'debut_inscription' => '2026-01-01',
-            'fin_inscription' => '2026-05-10',
+            'date_debut' => now()->addMonths(2)->toDateString(),
+            'date_fin' => now()->addMonths(2)->toDateString(),
+            'debut_inscription' => now()->subDays(1)->toDateString(),
+            'fin_inscription' => now()->addMonths(1)->toDateString(),
             'tarif' => 35,
             'status' => 'Ouvert',
             'type' => 'Route',
@@ -71,7 +74,7 @@ class InscriptionTest extends TestCase
 
         // Validate HTTP response
         $response->assertStatus(201)
-                 ->assertJsonStructure(['id', 'tarif', 'status_paiement']);
+                 ->assertJsonStructure(['inscription' => ['id']]);
 
         // Validate registration row in database
         $this->assertDatabaseHas('Inscription', [

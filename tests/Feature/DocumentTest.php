@@ -5,15 +5,20 @@ namespace Tests\Feature;
 use App\Enums\StatutParticipant;
 use App\Models\Participant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour les documents.
+ *
+ * @author Alessandro Neris
+ * @return void
+ */
 class DocumentTest extends TestCase
 {
-    use DatabaseTransactions;
 
     private int $courseId;
 

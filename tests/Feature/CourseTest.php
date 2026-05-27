@@ -6,15 +6,19 @@ use App\Models\Course;
 use App\Models\Evenement;
 use App\Models\User;
 use App\Models\Avertissement;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour les courses.
+ *
+ * @author Alesssandro Neris
+ * @return void
+ */
 class CourseTest extends TestCase
 {
-    use DatabaseTransactions;
 
     protected $admin;
     protected $evenement;
@@ -52,10 +56,10 @@ class CourseTest extends TestCase
             'nom'             => 'Course active',
             'is_actif'        => true,
             'tarif'           => 35,
-            'date_debut'      => '2027-05-15',
-            'date_fin'        => '2027-05-15',
-            'debut_inscription' => '2027-01-01',
-            'fin_inscription' => '2027-05-10',
+            'date_debut'      => now()->addMonths(2)->toDateString(),
+            'date_fin'        => now()->addMonths(2)->toDateString(),
+            'debut_inscription' => now()->addMonths(1)->toDateString(),
+            'fin_inscription' => now()->addMonths(2)->subDays(1)->toDateString(),
             'status'          => 'Ouvert',
             'type'            => 'Route',
             'max_inscription' => 500,
@@ -189,10 +193,10 @@ class CourseTest extends TestCase
                              'id_evenement'      => $this->evenement->id,
                              'nom'               => 'Nouvelle course',
                              'tarif'             => 40,
-                             'date_debut'        => '2025-06-01',
-                             'date_fin'          => '2025-06-01',
-                             'debut_inscription' => '2025-01-01',
-                             'fin_inscription'   => '2025-05-30',
+                            'date_debut'        => now()->addMonths(3)->toDateString(),
+                            'date_fin'          => now()->addMonths(3)->toDateString(),
+                            'debut_inscription' => now()->addMonths(1)->toDateString(),
+                            'fin_inscription'   => now()->addMonths(2)->toDateString(),
                              'status'            => 'Ouvert',
                              'type'              => 'Route',
                              'max_inscription'   => 300,

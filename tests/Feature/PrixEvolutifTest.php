@@ -6,14 +6,19 @@ use App\Models\Course;
 use App\Models\Evenement;
 use App\Models\PrixEvolutif;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour les paliers de prix evolutif.
+ *
+ * @author Alessandro Neris
+ * @return void
+ */
 class PrixEvolutifTest extends TestCase
 {
-    use DatabaseTransactions;
 
     protected User $admin;
     protected Course $course;
