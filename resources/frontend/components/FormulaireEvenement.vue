@@ -38,14 +38,14 @@
                 <div>
                     <p>Couleurs</p>
                     <div class="flex flex-col m-4 gap-2">
-                        <div class="flex flex-row justify-between items-center">
+                        <div class="flex flex-row gap-4 justify-between items-center">
                             <label class="text-sm font-medium text-heading">Primaire</label>
-                            <div class="items-center flex gap-4 bg-neutral-secondary-medium p-2 rounded-base border border-default-medium">
+                            <div class="lg:basis-1/3 md:basis-1/2 items-center flex gap-4 bg-neutral-secondary-medium p-2 rounded-base border border-default-medium">
                                 <Icon icon="mdi:pipette" />
                                 <input
                                     v-model="colorLabels.primary"
                                     type="text"
-                                    class="w-28 bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1"
+                                    class="w-full bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1"
                                     placeholder="#0E0F54"
                                     @input="onColorLabelInput('primary')"
                                     @blur="onColorLabelBlur('primary')"
@@ -59,14 +59,14 @@
                                 />
                             </div>
                         </div>
-                        <div class="flex flex-row justify-between items-center ">
+                        <div class="flex flex-row gap-4 justify-between items-center ">
                             <label class="text-sm font-medium text-heading">Secondaire</label>
-                            <div class="items-center flex gap-4 bg-neutral-secondary-medium p-2 rounded-base border border-default-medium">
+                            <div class="lg:basis-1/3 md:basis-1/2 items-center flex gap-4 bg-neutral-secondary-medium p-2 rounded-base border border-default-medium">
                                 <Icon icon="mdi:pipette" />
                                 <input
                                     v-model="colorLabels.secondary"
                                     type="text"
-                                    class="w-28 bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1"
+                                    class="w-full bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1"
                                     placeholder="#D9F20B"
                                     @input="onColorLabelInput('secondary')"
                                     @blur="onColorLabelBlur('secondary')"
