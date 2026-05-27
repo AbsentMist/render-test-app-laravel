@@ -1,19 +1,3 @@
-<script setup>
-/**
- * @fileoverview Composant SideBarAdmin.
- * @description Barre latérale de navigation pour l'interface administrateur/organisateur.
- * @remarks La sidebar adapte son style à la couleur de thème active et centralise
- * la déconnexion depuis l'espace d'administration.
- * @author Ngoie Steven
- */
-import { Icon } from '@iconify/vue';
-import { useAuthStore } from '../stores/auth';
-import { useThemeStore } from '../stores/theme';
-
-const authStore = useAuthStore();
-const themeStore = useThemeStore();
-</script>
-
 <template>
   <aside 
     id="separator-sidebar" 
@@ -80,3 +64,19 @@ const themeStore = useThemeStore();
      </div>
   </aside>
 </template>
+
+<script setup>
+/**
+ * @fileoverview Composant SideBarAdmin.
+ * @description Barre latérale de navigation pour l'interface administrateur/organisateur.
+ * @remarks La sidebar adapte son style à la couleur de thème active et centralise
+ * la déconnexion depuis l'espace d'administration.
+ * @author Ngoie Steven
+ */
+import { Icon } from '@iconify/vue';
+import { useAuthStore } from '../stores/auth';
+import { useThemeStore } from '../stores/theme';
+
+const authStore = useAuthStore();
+const themeStore = useThemeStore();
+</script>
