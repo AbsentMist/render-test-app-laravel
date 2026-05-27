@@ -1,4 +1,13 @@
 <?php
+
+/**
+ * @fileoverview OptionPourCourseController.php
+ * @description Contrôleur gérant les associations entre les options et les courses.
+ *              Représente la table pivot OptionPourCourse qui lie une Option à une Course.
+ *              Protège contre les doublons sur la clé composite (id_course, id_option).
+ * @author Neris Alessandro
+ */
+
 namespace App\Http\Controllers;
 
 use App\Models\OptionPourCourse;
@@ -8,7 +17,9 @@ use Illuminate\Http\JsonResponse;
 class OptionPourCourseController extends Controller
 {
     /**
-     * GET : Liste toutes les options de toutes les courses (Admin)
+     * Retourne toutes les associations option-course avec leurs relations (vue admin).
+     * @author Neris Alessandro
+     * @return JsonResponse Liste complète des associations avec leurs courses et options.
      */
     public function indexAdmin(): JsonResponse
     {
@@ -17,7 +28,10 @@ class OptionPourCourseController extends Controller
     }
 
     /**
-     * GET : Liste les options d'une course spécifique
+     * Retourne les options associées à une course spécifique (vue participant).
+     * @author Neris Alessandro
+     * @param  int $id_course Identifiant de la course.
+     * @return JsonResponse Options de la course ou 404 si aucune.
      */
     public function indexParticipant($id_course): JsonResponse
     {
@@ -33,7 +47,11 @@ class OptionPourCourseController extends Controller
     }
 
     /**
-     * POST : Associer une option à une course (Admin)
+     * Associe une option existante à une course (vue admin).
+     * Vérifie l'unicité de la combinaison (id_course, id_option) avant création.
+     * @author Neris Alessandro
+     * @param  Request $request Doit contenir `id_course` et `id_option`.
+     * @return JsonResponse Association créée (201) ou 409 si doublon.
      */
     public function store(Request $request): JsonResponse
     {
@@ -42,7 +60,7 @@ class OptionPourCourseController extends Controller
             'id_option' => 'required|integer|exists:Options,id',
         ]);
 
-        // Éviter les doublons sur la clé composite
+        // Vérifie l'unicité sur la clé composite avant d'insérer
         $exists = OptionPourCourse::where('id_course', $validatedData['id_course'])
             ->where('id_option', $validatedData['id_option'])
             ->exists();
@@ -60,7 +78,11 @@ class OptionPourCourseController extends Controller
     }
 
     /**
-     * GET : Voir une association spécifique via id_course + id_option
+     * Retourne une association spécifique identifiée par la clé composite (id_course, id_option).
+     * @author Neris Alessandro
+     * @param  int $id_course Identifiant de la course.
+     * @param  int $id_option Identifiant de l'option.
+     * @return JsonResponse Association avec ses relations ou 404.
      */
     public function show($id_course, $id_option): JsonResponse
     {
@@ -73,7 +95,11 @@ class OptionPourCourseController extends Controller
     }
 
     /**
-     * DELETE : Supprimer une association via id_course + id_option (Admin)
+     * Supprime une association option-course identifiée par la clé composite.
+     * @author Neris Alessandro
+     * @param  int $id_course Identifiant de la course.
+     * @param  int $id_option Identifiant de l'option.
+     * @return JsonResponse Message de confirmation ou 404 si l'association n'existe pas.
      */
     public function destroy($id_course, $id_option): JsonResponse
     {
@@ -88,12 +114,19 @@ class OptionPourCourseController extends Controller
         return response()->json(['message' => 'Association option-course supprimée avec succès.']);
     }
 
+    /**
+     * Supprime toutes les associations option-course d'une course donnée.
+     * Utilisé lors de la suppression d'une course pour nettoyer ses liaisons.
+     * @author Neris Alessandro
+     * @param  int $id_course Identifiant de la course dont toutes les associations sont supprimées.
+     * @return JsonResponse Nombre d'associations supprimées.
+     */
     public function destroyByCourse($id_course): JsonResponse
     {
         $deleted = OptionPourCourse::where('id_course', $id_course)->delete();
 
         return response()->json([
-            'message' => "$deleted association(s) supprimée(s) pour la course $id_course."
+            'message' => "{$deleted} association(s) supprimée(s) pour la course {$id_course}."
         ]);
     }
 }

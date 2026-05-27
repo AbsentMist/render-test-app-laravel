@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * @fileoverview ChoixOption.php
+ * @description Modèle Eloquent représentant le choix d'une option par un participant
+ *              lors de son inscription (ex: 2 repas, transport inclus, t-shirt XL).
+ *              Correspond à la table pivot entre Inscription et Option, enrichie
+ *              du champ `quantite` pour les options de type Quantifiable.
+ *              La clé primaire est composite (id_inscription, id_option) ;
+ *              l'auto-incrément est désactivé en conséquence.
+ *              Les timestamps automatiques sont désactivés.
+ * @author Neris Alessandro
+ */
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -7,24 +19,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ChoixOption extends Model
 {
-    // On précise le nom de la table
     protected $table = 'ChoixOption';
-    
-    public $timestamps = false;
+    public    $timestamps  = false;
 
-    // Puisque c'est une table pivot avec une clé primaire composée, 
-    // on désactive l'auto-incrément
-    public $incrementing = false;
-    protected $primaryKey = ['id_inscription', 'id_option'];
+    /**
+     * Clé primaire composite : l'auto-incrément est désactivé
+     * car la combinaison (id_inscription, id_option) est unique.
+     */
+    public    $incrementing = false;
+    protected $primaryKey   = ['id_inscription', 'id_option'];
 
     protected $fillable = [
-        'id_option', 
-        'id_inscription', 
-        'quantite'
+        'id_option',
+        'id_inscription',
+        'quantite', // Null pour les options Cochables, entier pour les options Quantifiables
     ];
 
     /**
-     * L'option choisie (T-shirt, Médaille, Repas, etc.)
+     * Option choisie (ex: T-shirt, Médaille, Repas).
+     * @author Neris Alessandro
      */
     public function option(): BelongsTo
     {
@@ -32,7 +45,8 @@ class ChoixOption extends Model
     }
 
     /**
-     * L'inscription à laquelle ce choix est rattaché
+     * Inscription à laquelle ce choix d'option est rattaché.
+     * @author Neris Alessandro
      */
     public function inscription(): BelongsTo
     {
