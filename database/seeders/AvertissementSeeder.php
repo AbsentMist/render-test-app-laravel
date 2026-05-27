@@ -12,8 +12,12 @@ class AvertissementSeeder extends Seeder
     {
         $avertissements = [
             [
-                'titre'   => 'Course urbaine — risque de chute',
-                'contenu' => 'Course urbaine avec de nombreux ponts à traverser. En cas de pluie, les surfaces peuvent être glissantes. Chaussures adaptées recommandées.',
+                'titre'   => 'Charte participant geneva urban trail',
+                'contenu' => "CHARTE DU PARTICIPANT DU GENEVA URBAN TRAIL
+                                Tout participant aux courses Geneva Urban trail s'engage de facto à la confirmation de son inscription à respecter les règles de circulation routières en vigueur (la LCR) sur les parcours.  
+                                Le participant s'engage à courir sur les trottoirs, traverser les routes sur les passages piétons ou sur les endroits indiqués par les commissaires de course ou par la signalétique de la course (signalétique de couleur jaune)
+                                Dans le même temps le participant s'engage à respecter son environnement naturel. Il ne jettera aucun déchet durant sa course sur les parcours. Il attendra son arrivée sur le village course pour bénéficier des poubelles de tris mis à sa disposition.
+                                Le comité vous remercie de respecter la charte du participant au Geneva Urban Trail et vous souhaite une excellente course trail.",
                 'modele'  => true,
                 'courses' => ['10km des Ponts', '20km Groupe des Ponts'],
             ],
@@ -30,8 +34,12 @@ class AvertissementSeeder extends Seeder
                 'courses' => [],
             ],
             [
-                'titre'   => 'Forte chaleur',
-                'contenu' => 'Risque de forte chaleur. Hydratation régulière fortement recommandée aux postes de ravitaillement. Casquette et crème solaire conseillées.',
+                'titre'   => 'Charte participant trail du grand geneve',
+                'contenu' => "CHARTE DU PARTICIPANT DU TRAI DU GRAND GENÈVE
+                                Tout participant aux courses du Trail du GRAND GENÈVE s'engage de facto à la confirmation de son inscription à respecter les règles de circulation routières en vigueur (la LCR) sur les parcours.  
+                                Le participant s'engage à courir sur les trottoirs, traverser les routes sur les passages piétons ou sur les endroits indiqués par les commissaires de course ou par la signalétique de la course (signalétique de couleur jaune)
+                                Dans le même temps le participant s'engage à respecter son environnement naturel. Il ne jettera aucun déchet durant sa course sur les parcours. Il attendra son arrivée sur le village course pour bénéficier des poubelles de tris mis à sa disposition.
+                                Le comité vous remercie de respecter étroitement cette charte et vous souhaite une excellente course trail.",
                 'modele'  => true,
                 'courses' => [],
             ],
