@@ -119,14 +119,14 @@
                 </div>
             </div>
 
-            <div class="flex justify-between items-center gap-4 my-4">
+            <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 my-4">
                 <label
                     for="inscriptionpicker-start"
                     class="block mb-2.5 text-sm font-medium text-heading"
                     >Interval d'inscription
                     <span class="text-accent">*</span></label
                 >
-                <div class="flex row gap-4 basis-1/2">
+                <div class="flex flex-col sm:flex-row gap-4 w-full lg:basis-1/2">
                     <div class="w-full">
                         <input
                             id="inscriptionpicker-start"
@@ -165,8 +165,8 @@
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
             <!-- Distance + Nb coureurs max -->
-            <div class="flex gap-4 mb-4">
-                <div class="w-48">
+            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                <div class="w-full sm:w-48">
                     <label
                         for="distance"
                         class="block mb-2.5 text-sm font-medium text-heading"
@@ -343,7 +343,7 @@
                         v-for="(palier, index) in courseData.prixEvolutif
                             .paliers"
                         :key="index"
-                        class="flex items-center gap-2 bg-neutral-secondary-medium rounded-base px-3 py-2"
+                        class="flex flex-col sm:flex-row items-start sm:items-center gap-2 bg-neutral-secondary-medium rounded-base px-3 py-2"
                     >
                         <template
                             v-if="courseData.prixEvolutif.type === 'dossards'"
@@ -353,13 +353,13 @@
                                 v-model="palier.valeur_debut"
                                 :disabled="index === 0"
                                 :class="[
-                                    'w-28 border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs',
+                                    'w-full sm:w-28 border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs',
                                     index === 0
                                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                         : 'bg-white',
                                 ]"
                             />
-                            <span class="text-body text-xs">→</span>
+                            <span class="text-body text-xs hidden sm:inline">→</span>
                             <input
                                 type="number"
                                 v-model="palier.valeur_fin"
@@ -368,7 +368,7 @@
                                     courseData.prixEvolutif.paliers.length - 1
                                 "
                                 :class="[
-                                    'w-28 border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs',
+                                    'w-full sm:w-28 border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs',
                                     index ===
                                     courseData.prixEvolutif.paliers.length - 1
                                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -383,7 +383,7 @@
                                 v-model="palier.valeur_debut"
                                 :disabled="index === 0"
                                 :class="[
-                                    'w-36 border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs',
+                                    'w-full sm:w-36 border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs',
                                     index === 0
                                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                         : 'bg-white',
@@ -398,7 +398,7 @@
                                     courseData.prixEvolutif.paliers.length - 1
                                 "
                                 :class="[
-                                    'w-36 border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs',
+                                    'w-full sm:w-36 border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs',
                                     index ===
                                     courseData.prixEvolutif.paliers.length - 1
                                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -407,12 +407,12 @@
                             />
                         </template>
 
-                        <span class="text-body text-xs ml-1">CHF</span>
+                        <span class="text-body text-xs hidden sm:inline ml-1">CHF</span>
                         <input
                             type="number"
                             v-model="palier.tarif"
                             placeholder="Tarif"
-                            class="w-24 bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs"
+                            class="w-full sm:w-24 bg-white border border-default-medium text-heading text-sm rounded-base px-2 py-1.5 shadow-xs"
                         />
 
                         <!-- Supprimer uniquement les paliers intermédiaires -->
@@ -505,11 +505,11 @@
                     courseData.type.name === 'Relais' ||
                     courseData.type.name === 'Groupe'
                 "
-                class="flex justify-between items-center gap-4 my-4"
+                class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 my-4"
             >
                 <label
                     for="maxNbPersonne"
-                    class="basis-1/3 block mb-2.5 text-sm font-medium text-heading"
+                    class="w-full lg:basis-1/3 block mb-2.5 text-sm font-medium text-heading"
                 >
                     {{
                         courseData.type.name === "Relais"
@@ -518,7 +518,7 @@
                     }}
                     <span class="text-accent">*</span>
                 </label>
-                <div class="w-full flex flex-col gap-1">
+                <div class="w-full lg:flex-1 flex flex-col gap-1">
                     <input
                         type="number"
                         id="maxNbPersonne"
@@ -643,7 +643,7 @@
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
             <!-- Ages + temps moyen -->
-            <div class="flex flex-col-3 gap-4 mb-4">
+            <div class="flex flex-col md:flex-row gap-4 mb-4">
                 <div class="w-full">
                     <label
                         for="ageMin"
@@ -793,19 +793,19 @@
 
             <hr class="border-t border-gray-200 mt-6 mb-4 mx-4" />
 
-            <div class="flex flex-col-2 gap-4">
+            <div class="flex flex-col lg:flex-row gap-4">
                 <div
-                    class="flex justify-between items-center gap-4 my-4 w-full"
+                    class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 my-4 w-full lg:basis-1/2"
                 >
                     <label
                         for="dropdown"
                         class="text-sm font-medium text-heading"
                         >Catégorie</label
                     >
-                    <div class="relative">
+                    <div class="relative w-full sm:flex-1 lg:w-auto">
                         <button
                             data-dropdown-toggle="dropdownCategory"
-                            class="inline-flex items-center justify-center shadow-xs font-medium text-sm px-4 py-2.5"
+                            class="inline-flex items-center justify-center shadow-xs font-medium text-sm px-4 py-2.5 w-full"
                             :class="[
                                 courseData.category.nom
                                     ? 'border-b-2 text-primary border-tertiary hover:bg-gray-100 rounded-t-base'
@@ -844,17 +844,17 @@
                     </div>
                 </div>
                 <div
-                    class="flex justify-between items-center gap-4 my-4 w-full"
+                    class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 my-4 w-full lg:basis-1/2"
                 >
                     <label
                         for="dropdownSubcategory"
                         class="text-sm font-medium text-heading"
                         >Sous-catégorie</label
                     >
-                    <div class="relative">
+                    <div class="relative w-full sm:flex-1 lg:w-auto">
                         <button
                             data-dropdown-toggle="dropdownSubcategory"
-                            class="inline-flex items-center justify-center shadow-xs font-medium text-sm px-4 py-2.5"
+                            class="inline-flex items-center justify-center shadow-xs font-medium text-sm px-4 py-2.5 w-full"
                             :class="[
                                 courseData.subCategory.nom
                                     ? 'border-b-2 text-primary border-tertiary hover:bg-gray-100 rounded-t-base'
@@ -942,16 +942,16 @@
                 Cette page apparaitra dès la sélection de la course. Elle sert à
                 avertir les participants de risques potentiels.
             </p>
-            <div class="flex flex-col-2 gap-4 h-128">
+            <div class="flex flex-col lg:flex-row gap-4 h-auto lg:h-128">
                 <textarea
                     type="text"
                     id="avertissement"
                     v-model="courseData.avertissement.contenu"
-                    class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                    class="bg-neutral-secondary-medium w-full lg:basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block px-2.5 py-2 shadow-xs placeholder:text-body"
                     placeholder=""
                     required
                 />
-                <div class="basis-1/3">
+                <div class="w-full lg:basis-1/3">
                     <h2 class="text-sm font-medium text-heading mb-2.5">
                         Mes modèles
                     </h2>
@@ -978,16 +978,16 @@
                 Décrivez quels documents doivent être fournis et quels type de
                 personnes sont concernées.
             </p>
-            <div class="flex flex-col-2 gap-4 h-128">
+            <div class="flex flex-col lg:flex-row gap-4 h-auto lg:h-128">
                 <textarea
                     type="text"
                     id="documents"
                     v-model="courseData.document.description"
-                    class="bg-neutral-secondary-medium basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body"
+                    class="bg-neutral-secondary-medium w-full lg:basis-2/3 border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block px-2.5 py-2 shadow-xs placeholder:text-body"
                     placeholder=""
                     required
                 />
-                <div class="basis-1/3">
+                <div class="w-full lg:basis-1/3">
                     <h2 class="text-sm font-medium text-heading mb-2.5">
                         Mes modèles
                     </h2>
