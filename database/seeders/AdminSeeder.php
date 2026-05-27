@@ -20,6 +20,15 @@ class AdminSeeder extends Seeder
 
         // 2. Liste de l'équipe avec infos participant
         $admins = [
+            // Admin de test
+            [
+                'email'     => 'admin@test.ch',
+                'password'  => 'AdminRGVA2026!',
+                'prenom'    => 'Admin',
+                'nom'       => 'Rgva',
+                'sexe'      => 'F',
+                'telephone' => '0000000006',
+            ],
             // Mandante
             [
                 'email'     => 'pb@runningeneva.ch',

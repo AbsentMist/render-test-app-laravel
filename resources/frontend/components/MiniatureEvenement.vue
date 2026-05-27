@@ -6,11 +6,14 @@
     class="relative h-48 rounded-xl p-4 flex flex-col justify-end cursor-pointer transition-transform hover:-translate-y-1 shadow-sm"
     :style="{ backgroundColor: evt.couleur_primaire || '#53687e', isolation: 'isolate' }"
   >
-    <div
+    <div v-if="evt.site != null"
       class="absolute top-4 right-4 w-6 h-6 rounded-full border flex items-center justify-center text-xs font-medium"
       :style="{ borderColor: evt.couleur_secondaire, color: evt.couleur_secondaire }"
     >
-      <Icon icon="mdi:exclamation-thick" class="w-4 h-4" />
+      <Icon @click.stop="togglePopup(evt)" icon="mdi:exclamation-thick" class="w-4 h-4 cursor-pointer" />
+    </div>
+    <div v-if="popupOpenForEventId === evt.id" @click.stop class="absolute top-4 right-4 -translate-y-full bg-white text-primary rounded-lg shadow-lg p-2 z-50 whitespace-nowrap text-sm">
+      <span @click="ouvrirSiteExterne(evt.site, evt.id)" class="cursor-pointer hover:underline">Site de la course</span>
     </div>
     <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-6">
       <img
@@ -57,19 +60,58 @@ const props = defineProps({
 const router = useRouter();
 const evenementsColorises = ref([]);
 const emit = defineEmits(['selectionner']);
+const popupOpenForEventId = ref(null);
+const popupTimeoutId = ref(null);
 
 /**
  * Gère le clic sur une carte selon le mode courant.
- * @author Perroud Rémi
+ * Ferme le popup s'il est ouvert avant de procéder à l'action.
+ * @author Neris Alessandro
  * @param {Object} evt Évènement sélectionné.
  * @returns {void}
  */
 function handleClick(evt) {
+  if (popupTimeoutId.value) clearTimeout(popupTimeoutId.value);
+  popupOpenForEventId.value = null;
   if (props.mode === 'selection') {
     emit('selectionner', evt);
   } else {
     router.push({ name: 'ListeCourses', params: { idEvenement: evt.id } });
   }
+}
+
+/**
+ * Bascule l'affichage du popup pour un événement.
+ * Ferme automatiquement le popup après 5000ms s'il n'est pas interagi.
+ * @author Neris Alessandro
+ * @param {Object} evt Évènement ciblé.
+ * @returns {void}
+ */
+function togglePopup(evt) {
+  if (popupTimeoutId.value) clearTimeout(popupTimeoutId.value);
+  
+  const isOpening = popupOpenForEventId.value !== evt.id;
+  popupOpenForEventId.value = isOpening ? evt.id : null;
+  
+  if (isOpening) {
+    popupTimeoutId.value = setTimeout(() => {
+      popupOpenForEventId.value = null;
+      popupTimeoutId.value = null;
+    }, 5000);
+  }
+}
+
+/**
+ * Ouvre une URL externe dans un nouvel onglet et ferme le popup.
+ * @author Neris Alessandro
+ * @param {string} url URL à ouvrir.
+ * @param {number} eventId ID de l'événement pour fermer le popup.
+ * @returns {void}
+ */
+function ouvrirSiteExterne(url, eventId) {
+  if (popupTimeoutId.value) clearTimeout(popupTimeoutId.value);
+  window.open(url, '_blank');
+  popupOpenForEventId.value = null;
 }
 
 /**
