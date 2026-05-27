@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author JeanDaniel
+ * @returns {void}
+ */
+
 import { vi } from 'vitest'
 
 vi.stubGlobal('localStorage', {

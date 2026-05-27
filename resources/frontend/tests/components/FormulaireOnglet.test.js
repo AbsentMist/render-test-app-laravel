@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author MurasameMk5
+ * @returns {void}
+ */
+
 import { describe, test, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
 import FormulaireOnglet from '../../components/FormulaireOnglet.vue';

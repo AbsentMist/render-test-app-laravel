@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author Ngozoo
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
@@ -158,10 +165,12 @@ describe('ParticipantInscriptions', () => {
     expect(wrapper.vm.expandedRows).not.toContain(99)
 
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const cartStore = wrapper.vm.cartStore
+    const ajoutSpy = vi.spyOn(cartStore, 'ajouterInscription')
     wrapper.vm.onChangementConfirme({ panier: true })
     warnSpy.mockRestore()
     expect(wrapper.vm.popupDetail).toBe(false)
-    expect(wrapper.emitted('ajouter-panier')[0]).toEqual([{ panier: true }])
+    expect(ajoutSpy).toHaveBeenCalledWith({ panier: true }, undefined)
   })
 
   // Affiche un message en cas d erreur de chargement

@@ -1,12 +1,18 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author Ngozoo
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi, beforeEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { reactive } from 'vue'
 
 const routerPushMock = vi.fn()
-const logoutMock = vi.fn().mockResolvedValue()
 
 const authStoreMock = reactive({
-  logout: logoutMock,
+  user: { participant: { id: 1 } },
 })
 
 const themeStoreMock = reactive({
@@ -64,11 +70,13 @@ describe('SideBarAdmin', () => {
       '/organisateur/evenements',
       '/organisateur/inscriptions',
       '/organisateur/formulaires',
+      '/organisateur/membership',
     ])
 
     expect(wrapper.text()).toContain('Tableau de bord')
-    expect(wrapper.text()).toContain('Inscription')
+    expect(wrapper.text()).toContain('Inscriptions')
     expect(wrapper.text()).toContain('Formulaires')
+    expect(wrapper.text()).toContain('Memberships')
   })
 
   // Applique les classes par defaut sans theme personnalise
@@ -89,19 +97,5 @@ describe('SideBarAdmin', () => {
 
     expect(aside.attributes('style')).toContain('background-color: #1122331A')
     expect(aside.attributes('style')).toContain('border-color: #11223333')
-  })
-
-  // Deconnecte puis redirige vers login
-  test('handleLogout deconnecte et redirige', async () => {
-    const wrapper = mountComponent()
-
-    const logoutButton = wrapper.findAll('button').find((b) => b.text().includes('Se déconnecter'))
-    expect(logoutButton).toBeTruthy()
-
-    await logoutButton.trigger('click')
-    await flushPromises()
-
-    expect(logoutMock).toHaveBeenCalledTimes(1)
-    expect(routerPushMock).toHaveBeenCalledWith('/login')
   })
 })

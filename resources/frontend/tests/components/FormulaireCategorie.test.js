@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author MurasameMk5
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import FormulaireCategorie from '../../components/FormulaireCategorie.vue';

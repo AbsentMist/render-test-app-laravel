@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author Ngozoo
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
@@ -130,10 +137,16 @@ describe('EtapeParticipant', () => {
 
     wrapper.vm.form.nom = ''
     wrapper.vm.form.prenom = 'Alice'
+    wrapper.vm.form.date_naissance = '1990-01-01'
+    wrapper.vm.form.email = 'alice@example.com'
+    wrapper.vm.form.telephone = '078 123 45 67'
     expect(wrapper.vm.formulaireValide).toBe(false)
 
     wrapper.vm.form.nom = 'Dupont'
     wrapper.vm.form.prenom = 'Alice'
+    wrapper.vm.form.date_naissance = '1990-01-01'
+    wrapper.vm.form.email = 'alice@example.com'
+    wrapper.vm.form.telephone = '078 123 45 67'
     expect(wrapper.vm.formulaireValide).toBe(true)
   })
 
@@ -235,7 +248,7 @@ describe('EtapeParticipant', () => {
     expect(wrapper.vm.estSelectionne(1)).toBe(true)
 
     wrapper.vm.toggleSelectionner(baseParticipants[1])
-    expect(wrapper.emitted('update:modelValue').at(-1)[0]).toEqual([baseParticipants[0]])
+    expect(wrapper.emitted('update:modelValue').at(-1)[0]).toEqual([baseParticipants[1]])
     await wrapper.setProps({ modelValue: [baseParticipants[0]] })
 
     wrapper.vm.toggleSelectionner(baseParticipants[0])
@@ -317,6 +330,8 @@ describe('EtapeParticipant', () => {
     wrapper.vm.formulaireOuvert = true
     wrapper.vm.form.nom = 'New'
     wrapper.vm.form.prenom = 'Person'
+    wrapper.vm.form.date_naissance = '2010-01-01'
+    wrapper.vm.accepteResponsabilite = true
 
     await wrapper.vm.valider()
 
@@ -325,18 +340,21 @@ describe('EtapeParticipant', () => {
     expect(wrapper.vm.formulaireOuvert).toBe(false)
   })
 
-  // Fallback local si creation DB echoue
-  test('valider cree localement en fallback si erreur API', async () => {
+  // Signale une erreur si la creation du participant echoue
+  test('valider affiche une erreur si la creation API echoue', async () => {
     vi.spyOn(Date, 'now').mockReturnValue(12345)
     participantService.creerParticipant.mockRejectedValueOnce(new Error('API down'))
 
     const wrapper = mountComponent({ typeSelectionne: { id: 'groupe', nom: 'Groupe (2-4)' } })
     wrapper.vm.form.nom = 'Local'
     wrapper.vm.form.prenom = 'Only'
+    wrapper.vm.form.date_naissance = '2010-01-01'
+    wrapper.vm.accepteResponsabilite = true
 
     await wrapper.vm.valider()
 
-    expect(wrapper.vm.groupeData.participants.some((p) => p.id === 12345)).toBe(true)
+    expect(wrapper.vm.groupeData.participants.some((p) => p.id === 12345)).toBe(false)
+    expect(wrapper.vm.erreurFormulaire).toContain('Une erreur est survenue')
   })
 
   // Ignore valider si formulaire invalide

@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author MurasameMk5
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import DropdownList from '../../components/OptionList.vue'
