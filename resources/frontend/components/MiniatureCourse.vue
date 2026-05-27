@@ -57,7 +57,7 @@
                     >
                 </div>
                 <div class="text-sm font-semibold">
-                    Tarif CHF {{ course.tarif }}
+                    Tarif {{ course.tarif }} CHF
                 </div>
                 <div class="flex justify-between pr-4">
                     <div class="text-xs opacity-80">
