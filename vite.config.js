@@ -24,5 +24,6 @@ export default defineConfig({
         globals: true,
         environment: 'happy-dom',
         include: ['resources/frontend/tests/**/*.test.js'],
+        setupFiles: 'resources/frontend/tests/setupTests.js',
     }
 });
