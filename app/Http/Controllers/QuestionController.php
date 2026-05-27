@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * @fileoverview QuestionController.php
+ * @description Contrôleur gérant les questions du questionnaire d'inscription.
+ *              Chaque question peut être liée à plusieurs courses via la table pivot
+ *              CourseQuestion (qui stocke aussi l'ordre d'affichage).
+ *              Le flag `modele` distingue les questions réutilisables des questions
+ *              créées spécifiquement pour une course.
+ * @author Neris Alessandro
+ */
+
 namespace App\Http\Controllers;
 
 use App\Models\Question;
@@ -9,7 +19,12 @@ use Illuminate\Support\Facades\DB;
 
 class QuestionController extends Controller
 {
-    // GET (Admin) - Modèles de questions réutilisables
+    /**
+     * Retourne toutes les questions marquées comme modèles réutilisables, avec leurs
+     * cours associées et leurs choix de réponses (vue admin).
+     * @author Neris Alessandro
+     * @return JsonResponse Liste des questions modèles avec leurs relations.
+     */
     public function indexAdmin(): JsonResponse
     {
         $questions = Question::where('modele', true)
@@ -19,7 +34,13 @@ class QuestionController extends Controller
         return response()->json($questions, 200);
     }
 
-    // GET (Participant) - Questions d'une course, triées par ordre du pivot
+    /**
+     * Retourne les questions d'une course spécifique, triées par l'ordre défini
+     * dans la table pivot CourseQuestion (vue participant).
+     * @author Neris Alessandro
+     * @param  int $id_course Identifiant de la course.
+     * @return JsonResponse Questions triées par ordre avec leurs choix, ou 404 si aucune.
+     */
     public function indexParticipant($id_course): JsonResponse
     {
         $questions = Question::whereHas('courses', function ($query) use ($id_course) {
@@ -27,6 +48,7 @@ class QuestionController extends Controller
         })
         ->with(['choix'])
         ->get()
+        // Tri par le champ `ordre` de la table pivot pour respecter l'ordre défini par l'admin
         ->sortBy(fn($q) => $q->courses->firstWhere('id', $id_course)?->pivot->ordre ?? 0)
         ->values();
 
@@ -37,7 +59,12 @@ class QuestionController extends Controller
         return response()->json($questions, 200);
     }
 
-    // GET
+    /**
+     * Retourne le détail d'une question avec ses cours, choix et réponses.
+     * @author Neris Alessandro
+     * @param  int $id Identifiant de la question.
+     * @return JsonResponse Question avec ses relations ou 404.
+     */
     public function show($id): JsonResponse
     {
         $question = Question::with(['courses', 'choix', 'reponses'])->find($id);
@@ -49,15 +76,21 @@ class QuestionController extends Controller
         return response()->json($question, 200);
     }
 
-    // POST (Admin)
-    // POST (Admin)
+    /**
+     * Crée une nouvelle question et l'associe aux courses fournies.
+     * L'ordre est calculé automatiquement pour chaque course : max(ordre) + 1.
+     * La création est atomique : question + liaisons sont créées ensemble ou pas du tout.
+     * @author Neris Alessandro
+     * @param  Request $request Données de la question (enonce, modele, ids_courses[]).
+     * @return JsonResponse Question créée avec ses relations (201) ou erreur (500).
+     */
     public function store(Request $request): JsonResponse
     {
         $validatedData = $request->validate([
-            'enonce'      => 'required|string|max:255',
-            'modele'      => 'boolean',
-            // On accepte 'ids_courses' car c'est ce que ton Vue.js envoie
-            'ids_courses' => 'nullable|array', 
+            'enonce'        => 'required|string|max:255',
+            'modele'        => 'boolean',
+            // Le frontend Vue.js envoie `ids_courses` (tableau d'IDs de courses)
+            'ids_courses'   => 'nullable|array',
             'ids_courses.*' => 'exists:Course,id',
         ]);
 
@@ -68,10 +101,9 @@ class QuestionController extends Controller
                 'modele' => $validatedData['modele'] ?? false,
             ]);
 
-            // Utilisation de ids_courses au lieu de courses
+            // Attache la question à chaque course avec un ordre calculé automatiquement
             if (!empty($validatedData['ids_courses'])) {
                 foreach ($validatedData['ids_courses'] as $id_course) {
-                    // Calcul de l'ordre pour cette course spécifique
                     $dernierOrdre = \DB::table('CourseQuestion')
                         ->where('id_course', $id_course)
                         ->max('ordre') ?? 0;
@@ -92,7 +124,15 @@ class QuestionController extends Controller
         }
     }
 
-    // PUT (Admin)
+    /**
+     * Met à jour une question existante et synchronise ses liaisons courses.
+     * Pour les cours déjà liées, l'ordre existant est préservé.
+     * Pour les nouvelles cours, l'ordre est calculé automatiquement.
+     * @author Neris Alessandro
+     * @param  Request $request Champs à mettre à jour (enonce, modele, courses[]).
+     * @param  int     $id      Identifiant de la question.
+     * @return JsonResponse Question mise à jour avec ses relations (200) ou erreur.
+     */
     public function update(Request $request, $id): JsonResponse
     {
         $question = Question::find($id);
@@ -110,16 +150,18 @@ class QuestionController extends Controller
 
         DB::beginTransaction();
         try {
+            // Met à jour uniquement les champs de base
             $question->update(array_intersect_key($validatedData, array_flip(['enonce', 'modele'])));
 
             if ($request->has('courses')) {
-                // Sync en préservant l'ordre existant, en ajoutant un ordre pour les nouvelles
+                // Construit le tableau de sync en préservant l'ordre des liaisons existantes
                 $sync = [];
                 foreach ($validatedData['courses'] as $id_course) {
                     $existant = \App\Models\CourseQuestion::where('id_course', $id_course)
                         ->where('id_question', $question->id)
                         ->first();
 
+                    // Preserve l'ordre existant ou calcule le prochain ordre disponible
                     $ordre = $existant?->ordre
                         ?? (\App\Models\CourseQuestion::where('id_course', $id_course)->max('ordre') ?? 0) + 1;
 
@@ -141,7 +183,12 @@ class QuestionController extends Controller
         }
     }
 
-    // DELETE (Admin)
+    /**
+     * Supprime définitivement une question (vue admin).
+     * @author Neris Alessandro
+     * @param  int $id Identifiant de la question à supprimer.
+     * @return JsonResponse Message de confirmation (200) ou 404.
+     */
     public function destroy($id): JsonResponse
     {
         $question = Question::find($id);

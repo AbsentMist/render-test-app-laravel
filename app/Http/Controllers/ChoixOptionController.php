@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * @fileoverview ChoixOptionController.php
+ * @description Contrôleur gérant les choix d'options effectués par les participants lors
+ *              de l'inscription (ex: 2 repas, transport inclus).
+ *              Les opérations de création/mise à jour utilisent firstOrNew + save
+ *              plutôt que updateOrCreate car la clé primaire composite de ChoixOption
+ *              n'est pas compatible avec updateOrCreate.
+ * @author Neris Alessandro
+ */
+
 namespace App\Http\Controllers;
 
 use App\Models\ChoixOption;
@@ -11,7 +21,12 @@ use Illuminate\Support\Facades\DB;
 
 class ChoixOptionController extends Controller
 {
-    // GET - Tous les choix d'options d'une inscription
+    /**
+     * Retourne tous les choix d'options d'une inscription avec les détails de chaque option.
+     * @author Neris Alessandro
+     * @param  int $id_inscription Identifiant de l'inscription.
+     * @return JsonResponse Liste des choix avec leurs options (quantifiable/cochable) ou 404.
+     */
     public function indexParInscription($id_inscription): JsonResponse
     {
         $inscription = Inscription::find($id_inscription);
@@ -27,7 +42,13 @@ class ChoixOptionController extends Controller
         return response()->json($choix, 200);
     }
 
-    // GET - Tous les choix d'une option spécifique (Admin, stats)
+    /**
+     * Retourne tous les choix effectués pour une option spécifique (vue admin — statistiques).
+     * Permet de savoir combien d'inscriptions ont sélectionné une option donnée.
+     * @author Neris Alessandro
+     * @param  int $id_option Identifiant de l'option.
+     * @return JsonResponse Liste des choix avec les inscriptions associées ou 404.
+     */
     public function indexParOption($id_option): JsonResponse
     {
         $option = Option::find($id_option);
@@ -43,8 +64,16 @@ class ChoixOptionController extends Controller
         return response()->json($choix, 200);
     }
 
-    // POST (Participant) - Enregistrer les choix d'options d'une inscription
-    // Attend un tableau pour traiter toutes les options d'un coup
+    /**
+     * Enregistre ou met à jour les choix d'options d'une inscription.
+     * Accepte un tableau pour traiter toutes les options en une seule requête.
+     * Vérifie que chaque option appartient bien à la course de l'inscription.
+     * Utilise firstOrNew + save (et non updateOrCreate) car la clé primaire composite
+     * n'est pas supportée par updateOrCreate.
+     * @author Neris Alessandro
+     * @param  Request $request Tableau `choix` : [{ id_inscription, id_option, quantite? }].
+     * @return JsonResponse Choix enregistrés (201) ou erreur (422/500).
+     */
     public function store(Request $request): JsonResponse
     {
         $request->validate([
@@ -59,7 +88,9 @@ class ChoixOptionController extends Controller
             $crees = [];
 
             foreach ($request->input('choix') as $data) {
-                $inscription = Inscription::find($data['id_inscription']);
+                $inscription  = Inscription::find($data['id_inscription']);
+
+                // Vérifie que l'option est bien disponible pour la course de cette inscription
                 $optionValide = Option::whereHas('courses', function ($query) use ($inscription) {
                     $query->where('id_course', $inscription->id_course);
                 })->find($data['id_option']);
@@ -71,7 +102,7 @@ class ChoixOptionController extends Controller
                     ], 422);
                 }
 
-                // Remplacement de updateOrCreate par firstOrNew + save
+                // Mise à jour si le choix existe, création sinon (clé composite incompatible avec updateOrCreate)
                 $choix = ChoixOption::where('id_inscription', $data['id_inscription'])
                     ->where('id_option', $data['id_option'])
                     ->first();
@@ -108,7 +139,15 @@ class ChoixOptionController extends Controller
         }
     }
 
-    // PUT - Modifier la quantité d'un choix existant
+    /**
+     * Met à jour la quantité d'un choix d'option existant.
+     * Identifié par la clé composite (id_inscription, id_option).
+     * @author Neris Alessandro
+     * @param  Request $request        Doit contenir `quantite`.
+     * @param  int     $id_inscription Identifiant de l'inscription.
+     * @param  int     $id_option      Identifiant de l'option.
+     * @return JsonResponse Choix mis à jour (200) ou 404.
+     */
     public function update(Request $request, $id_inscription, $id_option): JsonResponse
     {
         $choix = ChoixOption::where('id_inscription', $id_inscription)
@@ -123,6 +162,7 @@ class ChoixOptionController extends Controller
             'quantite' => 'required|integer|min:0',
         ]);
 
+        // Mise à jour via requête directe (évite les problèmes de clé composite avec save())
         ChoixOption::where('id_inscription', $id_inscription)
             ->where('id_option', $id_option)
             ->update(['quantite' => $request->input('quantite')]);
@@ -137,7 +177,13 @@ class ChoixOptionController extends Controller
         ], 200);
     }
 
-    // DELETE - Supprimer un choix spécifique
+    /**
+     * Supprime un choix d'option spécifique identifié par sa clé composite.
+     * @author Neris Alessandro
+     * @param  int $id_inscription Identifiant de l'inscription.
+     * @param  int $id_option      Identifiant de l'option.
+     * @return JsonResponse Confirmation (200) ou 404.
+     */
     public function destroy($id_inscription, $id_option): JsonResponse
     {
         $choix = ChoixOption::where('id_inscription', $id_inscription)

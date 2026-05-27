@@ -1,23 +1,32 @@
 <?php
 
+/**
+ * @fileoverview Role.php
+ * @description Modèle Eloquent représentant un rôle utilisateur dans l'application.
+ *              Les rôles disponibles sont : Administrateur, Membre.
+ *              Liés aux comptes via la table pivot UserRole.
+ *              Les timestamps automatiques sont désactivés.
+ * @author Ngoie Steven
+ */
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
-    // On précise le nom de la table car elle a une majuscule
-    protected $table = 'Role'; 
-
-    // On désactive les timestamps car ils ne sont pas dans ta migration
-    public $timestamps = false;
+    /** Nom exact de la table en base (majuscule, contrairement à la convention Laravel) */
+    protected $table      = 'Role';
+    public    $timestamps = false;
 
     protected $fillable = [
-        'type',
+        'type', // Ex: 'Administrateur', 'Membre'
     ];
 
     /**
-     * Relation inverse : Un rôle appartient à plusieurs utilisateurs
+     * Utilisateurs possédant ce rôle.
+     * Relation inverse de User::roles() via la table pivot UserRole.
+     * @author Ngoie Steven
      */
     public function users()
     {

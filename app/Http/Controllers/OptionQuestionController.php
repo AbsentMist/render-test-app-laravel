@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @fileoverview OptionQuestionController.php
+ * @description Contrôleur gérant les choix de réponses (options) des questions du questionnaire.
+ *              Chaque question peut avoir plusieurs options de réponse ; le participant
+ *              en choisit une lors de l'inscription.
+ * @author Neris Alessandro
+ */
+
 namespace App\Http\Controllers;
 
 use App\Models\OptionQuestion;
@@ -9,7 +17,12 @@ use Illuminate\Http\JsonResponse;
 
 class OptionQuestionController extends Controller
 {
-    // GET - Tous les choix d'une question
+    /**
+     * Retourne tous les choix de réponses d'une question donnée.
+     * @author Neris Alessandro
+     * @param  int $id_question Identifiant de la question.
+     * @return JsonResponse Liste des choix ou 404 si la question est introuvable.
+     */
     public function index($id_question): JsonResponse
     {
         $question = Question::find($id_question);
@@ -21,7 +34,12 @@ class OptionQuestionController extends Controller
         return response()->json($question->choix, 200);
     }
 
-    // GET
+    /**
+     * Retourne le détail d'un choix de réponse spécifique avec sa question parente.
+     * @author Neris Alessandro
+     * @param  int $id Identifiant du choix de réponse.
+     * @return JsonResponse Choix avec sa question ou 404.
+     */
     public function show($id): JsonResponse
     {
         $option = OptionQuestion::with(['question'])->find($id);
@@ -33,7 +51,13 @@ class OptionQuestionController extends Controller
         return response()->json($option, 200);
     }
 
-    // POST (Admin) - Ajouter un choix à une question
+    /**
+     * Ajoute un nouveau choix de réponse à une question (vue admin).
+     * @author Neris Alessandro
+     * @param  Request $request Doit contenir `texte_option`.
+     * @param  int     $id_question Identifiant de la question cible.
+     * @return JsonResponse Choix créé (201) ou 404 si la question est introuvable.
+     */
     public function store(Request $request, $id_question): JsonResponse
     {
         $question = Question::find($id_question);
@@ -57,7 +81,13 @@ class OptionQuestionController extends Controller
         ], 201);
     }
 
-    // PUT (Admin)
+    /**
+     * Met à jour le texte d'un choix de réponse existant (vue admin).
+     * @author Neris Alessandro
+     * @param  Request $request Doit contenir `texte_option`.
+     * @param  int     $id      Identifiant du choix à modifier.
+     * @return JsonResponse Choix mis à jour (200) ou 404.
+     */
     public function update(Request $request, $id): JsonResponse
     {
         $option = OptionQuestion::find($id);
@@ -78,7 +108,12 @@ class OptionQuestionController extends Controller
         ], 200);
     }
 
-    // DELETE (Admin)
+    /**
+     * Supprime définitivement un choix de réponse (vue admin).
+     * @author Neris Alessandro
+     * @param  int $id Identifiant du choix à supprimer.
+     * @return JsonResponse Message de confirmation (200) ou 404.
+     */
     public function destroy($id): JsonResponse
     {
         $option = OptionQuestion::find($id);

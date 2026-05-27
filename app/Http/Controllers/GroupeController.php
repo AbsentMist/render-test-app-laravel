@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @fileoverview GroupeController.php
+ * @description Contrôleur gérant les groupes de participants (relais, entreprise, challenge) :
+ *              création, lecture, modification, suppression, gestion des membres,
+ *              validation du code entreprise et système d'invitations avec notifications.
+ * @author Ngoie Steven
+ */
+
 namespace App\Http\Controllers;
 
 use App\Models\Groupe;
@@ -17,11 +25,18 @@ class GroupeController extends Controller
     // CRUD CLASSIQUE (GROUPES)
     // ==========================================
 
+    /**
+     * Retourne tous les groupes auxquels le participant connecté appartient,
+     * quel que soit son statut (fondateur, membre ou en attente).
+     * @author Ngoie Steven
+     * @author Guillermet Jean-Daniel (chargement des relations participants et course)
+     * @return \Illuminate\Http\JsonResponse Liste des groupes du participant avec leurs membres et courses.
+     */
     public function index()
     {
         $idParticipant = Auth::user()->participant->id;
 
-        // Récupère les groupes où le participant connecté est membre, fondateur ou en attente
+        // Récupère tous les groupes où le participant connecté apparaît dans la table pivot
         $groupes = Groupe::whereHas('participants', function($query) use ($idParticipant) {
             $query->where('id_participant', $idParticipant);
         })->with(['participants', 'course'])->get();
@@ -29,40 +44,47 @@ class GroupeController extends Controller
         return response()->json($groupes);
     }
 
+    /**
+     * Crée un nouveau groupe et y attache le créateur en tant que fondateur.
+     * Pour les groupes de type "Entreprise", un code unique préfixé "E-" est généré automatiquement.
+     * Si un groupe portant le même nom existe déjà pour la même course (cas challenge),
+     * le participant est directement rattaché au groupe existant sans en créer un nouveau.
+     * @author Ngoie Steven
+     * @author Guillermet Jean-Daniel (logique de réutilisation du groupe existant pour le challenge)
+     * @param  Request $request Doit contenir `nom`, `type` et optionnellement `id_course`.
+     * @return \Illuminate\Http\JsonResponse Groupe créé (201) ou groupe existant réutilisé (200).
+     */
     public function store(Request $request)
     {
         $validatedData = $request->validate([
             'nom'       => 'required|string|max:100',
             'type'      => 'required|string',
-            'id_course' => 'nullable|exists:Course,id', // ← ajouter
+            'id_course' => 'nullable|exists:Course,id',
         ]);
 
-        // Générer le code entreprise automatiquement si type "Entreprise"
+        // Génère un code unique préfixé "E-" pour les groupes de type Entreprise
         if ($validatedData['type'] === 'Entreprise') {
-            
             $prefixe = 'E-';
-            
-            //Code unique
+            // Boucle jusqu'à trouver un code qui n'existe pas encore en base
             do {
                 $code = $prefixe . strtoupper(Str::random(7));
             } while (Groupe::where('code_entreprise', $code)->exists());
-            
-            $validatedData['code_entreprise'] = $code;
 
+            $validatedData['code_entreprise'] = $code;
         } else {
             $validatedData['code_entreprise'] = null;
         }
 
         $idParticipant = Auth::user()->participant->id;
 
-        // Si un groupe avec ce nom + cette course existe déjà → on le retourne directement
-        // (cas du challenge : plusieurs participants du même groupe s'inscrivent séparément)
+        // Cas challenge : si un groupe avec ce nom + cette course existe déjà,
+        // on y attache le participant plutôt que de créer un doublon
         $groupeExistant = Groupe::where('nom', $validatedData['nom'])
             ->where('id_course', $validatedData['id_course'] ?? null)
             ->first();
 
         if ($groupeExistant) {
-            // Attacher le participant s'il n'est pas déjà membre
+            // Attache le participant uniquement s'il n'est pas déjà membre du groupe
             if (!$groupeExistant->participants()->where('id_participant', $idParticipant)->exists()) {
                 $groupeExistant->participants()->attach($idParticipant, [
                     'statut' => StatutParticipant::MEMBRE->value
@@ -73,7 +95,7 @@ class GroupeController extends Controller
 
         $groupe = Groupe::create($validatedData);
 
-        // Obtiens automatiquement le statut fondateur du groupe
+        // Le créateur obtient automatiquement le statut de fondateur
         $groupe->participants()->attach($idParticipant, [
             'statut' => StatutParticipant::FONDATEUR->value
         ]);
@@ -81,18 +103,32 @@ class GroupeController extends Controller
         return response()->json($groupe->load('participants'), 201);
     }
 
+    /**
+     * Retourne le détail d'un groupe avec la liste de ses participants.
+     * @author Ngoie Steven
+     * @param  int $id Identifiant du groupe.
+     * @return \Illuminate\Http\JsonResponse Groupe avec ses participants.
+     */
     public function show($id)
     {
         $groupe = Groupe::with('participants')->findOrFail($id);
         return response()->json($groupe);
     }
 
+    /**
+     * Met à jour les informations d'un groupe (nom, code entreprise).
+     * Réservé au fondateur du groupe.
+     * @author Ngoie Steven
+     * @param  Request $request Champs à mettre à jour.
+     * @param  int     $id      Identifiant du groupe.
+     * @return \Illuminate\Http\JsonResponse Groupe mis à jour ou 403 si non fondateur.
+     */
     public function update(Request $request, $id)
     {
-        $groupe = Groupe::findOrFail($id);
+        $groupe        = Groupe::findOrFail($id);
         $idParticipant = Auth::user()->participant->id;
 
-        //Fondateur uniquement
+        // Seul le fondateur est autorisé à modifier le groupe
         $isFondateur = $groupe->participants()
             ->where('id_participant', $idParticipant)
             ->where('GroupeParticipant.statut', StatutParticipant::FONDATEUR->value)
@@ -103,7 +139,7 @@ class GroupeController extends Controller
         }
 
         $validatedData = $request->validate([
-            'nom' => 'sometimes|required|string|max:100',
+            'nom'             => 'sometimes|required|string|max:100',
             'code_entreprise' => 'nullable|string|max:255',
         ]);
 
@@ -112,9 +148,16 @@ class GroupeController extends Controller
         return response()->json($groupe->load('participants'));
     }
 
+    /**
+     * Supprime un groupe et détache tous ses participants.
+     * Réservé au fondateur du groupe.
+     * @author Ngoie Steven
+     * @param  int $id Identifiant du groupe à supprimer.
+     * @return \Illuminate\Http\JsonResponse Message de confirmation ou 403 si non fondateur.
+     */
     public function destroy($id)
     {
-        $groupe = Groupe::findOrFail($id);
+        $groupe        = Groupe::findOrFail($id);
         $idParticipant = Auth::user()->participant->id;
 
         $isFondateur = $groupe->participants()
@@ -126,17 +169,29 @@ class GroupeController extends Controller
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
-        
+        // Détache tous les membres avant de supprimer pour éviter les orphelins en base pivot
         $groupe->participants()->detach();
         $groupe->delete();
 
         return response()->json(['message' => 'Groupe supprimé avec succès.']);
     }
 
-    
-    // GESTION DES MEMBRES 
 
-    // Ajouter un participant existant 
+    // ==========================================
+    // GESTION DES MEMBRES
+    // ==========================================
+
+    /**
+     * Ajoute un participant existant à un groupe.
+     * Vérifie que les inscriptions sont encore ouvertes et que le groupe n'est pas complet.
+     * Les profils rattachés directement au compte sont ajoutés comme membres immédiatement ;
+     * les utilisateurs externes reçoivent le statut "En attente" (invitation à accepter).
+     * @author Ngoie Steven
+     * @author Guillermet Jean-Daniel (vérification inscriptions fermées et limite max_nb_personne)
+     * @param  Request $request Doit contenir `id_participant`.
+     * @param  int     $idGroupe Identifiant du groupe cible.
+     * @return \Illuminate\Http\JsonResponse Groupe mis à jour ou erreur métier.
+     */
     public function addParticipant(Request $request, $idGroupe)
     {
         $validatedData = $request->validate([
@@ -144,15 +199,15 @@ class GroupeController extends Controller
         ]);
 
         $groupe = Groupe::findOrFail($idGroupe);
-        
-        //Vérifie que les inscriptions sont toujours ouvertes
+
+        // Bloque l'ajout si les inscriptions pour la course associée sont fermées
         if ($groupe->id_course && !$groupe->course->isRegistrationOpen()) {
             return response()->json([
                 'message' => 'Impossible d\'ajouter un membre, les inscriptions pour cette course sont fermées.'
             ], 403);
         }
 
-        // Vérifie que le groupe ne dépasse pas le nombre maximum de participants fixé par la course
+        // Bloque si le groupe a atteint le nombre maximum de participants fixé par la course
         if ($groupe->id_course && $groupe->course->max_nb_personne) {
             $nbActuels = $groupe->participants()->count();
             if ($nbActuels >= $groupe->course->max_nb_personne) {
@@ -162,19 +217,19 @@ class GroupeController extends Controller
             }
         }
 
+        // Retourne le groupe tel quel si le participant est déjà membre (idempotent)
         if ($groupe->participants()->where('id_participant', $validatedData['id_participant'])->exists()) {
             return response()->json([
                 'message' => 'Ce participant est déjà dans le groupe.',
-                'groupe' => $groupe->load('participants'),
+                'groupe'  => $groupe->load('participants'),
             ], 200);
         }
 
-        //Différence entre l'ajout d'un profil rattaché au compte (sous-profil) et un utilisateur invité
-        $participant = Participant::find($validatedData['id_participant']);
+        // Détermine le statut selon que le participant est géré par le compte connecté ou non
+        $participant        = Participant::find($validatedData['id_participant']);
         $estGereParLeCompte = $participant && $participant->id_user === Auth::id();
 
-        // Ajout avec statut "en_attente" car c'est une invitation,
-        // SAUF pour les profils rattachés au compte
+        // Sous-profil du compte → membre direct ; utilisateur externe → invitation en attente
         $statut = $estGereParLeCompte ? 'Membre' : StatutParticipant::EN_ATTENTE->value;
 
         $groupe->participants()->attach($validatedData['id_participant'], [
@@ -182,27 +237,45 @@ class GroupeController extends Controller
         ]);
 
         return response()->json([
-            'message' => $estGereParLeCompte ? 'Participant ajouté en tant que membre directement.' : 'Invitation envoyée (Participant ajouté en attente).',
-            'groupe' => $groupe->load('participants')
+            'message' => $estGereParLeCompte
+                ? 'Participant ajouté en tant que membre directement.'
+                : 'Invitation envoyée (Participant ajouté en attente).',
+            'groupe'  => $groupe->load('participants')
         ]);
     }
 
-    // Retirer un participant
+    /**
+     * Retire un participant d'un groupe.
+     * @author Ngoie Steven
+     * @param  int $idGroupe      Identifiant du groupe.
+     * @param  int $idParticipant Identifiant du participant à retirer.
+     * @return \Illuminate\Http\JsonResponse Groupe mis à jour.
+     */
     public function removeParticipant($idGroupe, $idParticipant)
     {
         $groupe = Groupe::findOrFail($idGroupe);
-        
-        // Sécurité : Seul le fondateur ou le membre lui-même peut se retirer
+
         $groupe->participants()->detach($idParticipant);
 
         return response()->json([
             'message' => 'Participant retiré du groupe.',
-            'groupe' => $groupe->load('participants')
+            'groupe'  => $groupe->load('participants')
         ]);
     }
 
-    // VALIDATION CODE ENTREPRISE LORS DU PANIER (2.2 & 5.1)
+    // ==========================================
+    // VALIDATION CODE ENTREPRISE (panier)
+    // ==========================================
 
+    /**
+     * Vérifie qu'un code entreprise est valide, que le participant appartient bien au groupe
+     * correspondant et que les inscriptions sont encore ouvertes.
+     * Utilisé lors de la validation du panier pour les courses de type Entreprise.
+     * @author Ngoie Steven
+     * @author Guillermet Jean-Daniel (récupération idParticipant, vérification appartenance groupe, message)
+     * @param  Request $request Doit contenir `code`.
+     * @return \Illuminate\Http\JsonResponse `{valide, message, groupe}` ou erreur 404/403.
+     */
     public function verifierCodeEntreprise(Request $request)
     {
         $request->validate([
@@ -211,51 +284,61 @@ class GroupeController extends Controller
 
         $idParticipant = Auth::user()->participant->id;
 
-        //Cherche si un groupe possède ce code
+        // Cherche le groupe associé à ce code entreprise
         $groupe = Groupe::where('code_entreprise', $request->code)->first();
 
         if (!$groupe) {
             return response()->json([
-                'valide' => false, 
+                'valide'  => false,
                 'message' => 'Ce code de participation est invalide.'
             ], 404);
         }
 
-        //Vérifie si le participant fait partie de ce groupe 
+        // Vérifie que le participant connecté fait bien partie de ce groupe
         $estMembre = $groupe->participants()->where('id_participant', $idParticipant)->exists();
 
         if (!$estMembre) {
             return response()->json([
-                'valide' => false, 
+                'valide'  => false,
                 'message' => 'Vous ne faites pas partie du groupe associé à ce code.'
             ], 403);
         }
-        // Vérifier que l'inscription est toujours ouverte
+
+        // Vérifie que les inscriptions sont encore ouvertes pour cette course
         if ($groupe->id_course && !$groupe->course->isRegistrationOpen()) {
             return response()->json([
                 'message' => 'Le code est correct, mais les inscriptions pour cette course entreprise sont désormais fermées.'
             ], 403);
         }
 
-        //Envoie de l'information au frontend pour validation du panier
+        // Retourne les informations minimales du groupe au frontend pour valider le panier
         return response()->json([
-            'valide' => true,
+            'valide'  => true,
             'message' => 'Code appliqué avec succès !',
-            'groupe' => $groupe->only(['id', 'nom', 'type']) 
+            'groupe'  => $groupe->only(['id', 'nom', 'type'])
         ], 200);
     }
 
-    // GESTION DES INVITATIONS 2.4
+    // ==========================================
+    // GESTION DES INVITATIONS
+    // ==========================================
 
-    // Récupère les invitations en attente pour l'utilisateur connecté
+    /**
+     * Retourne les groupes pour lesquels le participant connecté a une invitation en attente.
+     * Chaque groupe est enrichi du questionnaire formaté de sa course si applicable,
+     * afin que le participant puisse répondre au questionnaire lors de l'acceptation.
+     * Un tag "Invitation à un groupe" est ajouté pour l'affichage dans le tableau de bord.
+     * @author Ngoie Steven
+     * @author Neris Alessandro (chargement des questions/choix, formatage du questionnaire)
+     * @return \Illuminate\Http\JsonResponse Liste des groupes avec invitation en attente.
+     */
     public function getInvitations()
     {
         $idParticipant = Auth::user()->participant->id;
 
-        
         $invitations = Groupe::whereIn('id', function($query) use ($idParticipant) {
             $query->select('id_groupe')
-                  ->from('GroupeParticipant') // On cible explicitement la table pivot
+                  ->from('GroupeParticipant') // Cible explicitement la table pivot
                   ->where('id_participant', $idParticipant)
                   ->where('statut', StatutParticipant::EN_ATTENTE->value);
         })
@@ -263,9 +346,9 @@ class GroupeController extends Controller
         ->get()
         ->map(function($groupe) {
             $course = $groupe->course;
-            
-            // Transformer les données de la course pour inclure le questionnaire formaté
-            // Uniquement si is_questionnaire est à true et qu'il y a des questions
+
+            // Formate le questionnaire en structure normalisée {id, question, answers[]}
+            // uniquement si la course en possède un
             if ($course && $course->is_questionnaire && $course->questions) {
                 $course->questionnaire = $course->questions->map(function($q) {
                     return [
@@ -282,22 +365,33 @@ class GroupeController extends Controller
             } else {
                 $course->questionnaire = null;
             }
-            
+
             return $groupe;
         });
 
+        // Ajoute un tag d'affichage pour différencier ce type de notification dans le tableau de bord
         $invitations->each->setAttribute('tag', 'Invitation à un groupe');
 
         return response()->json($invitations);
     }
 
-    // Acceptation d'une invitation
+    /**
+     * Accepte une invitation à rejoindre un groupe.
+     * Passe le statut du participant de "En attente" à "Membre",
+     * valide les inscriptions de tous les membres du groupe
+     * et enregistre les réponses au questionnaire si la course en possède un.
+     * L'ensemble est enveloppé dans une transaction pour garantir la cohérence.
+     * @author Neris Alessandro
+     * @param  Request $request Peut contenir `reponses` (tableau de réponses au questionnaire).
+     * @param  int     $idGroupe Identifiant du groupe dont l'invitation est acceptée.
+     * @return \Illuminate\Http\JsonResponse Confirmation (200) ou 403 si inscriptions fermées.
+     */
     public function accepterInvitation(Request $request, $idGroupe)
     {
         $idParticipant = Auth::user()->participant->id;
-        $groupe = Groupe::findOrFail($idGroupe);
+        $groupe        = Groupe::findOrFail($idGroupe);
 
-        // Vérifier si l'inscription est toujours ouverte
+        // Bloque si les inscriptions pour cette course sont désormais fermées
         if ($groupe->id_course && !$groupe->course->isRegistrationOpen()) {
             return response()->json([
                 'message' => 'Cette invitation a expiré car les inscriptions pour cette course sont clôturées.'
@@ -306,19 +400,18 @@ class GroupeController extends Controller
 
         \DB::beginTransaction();
         try {
-            // On met à jour le statut dans la table d'association
+            // Passe le statut du participant de "En attente" à "Membre" dans la table pivot
             $groupe->participants()->updateExistingPivot($idParticipant, [
-                'statut' => 'Membre' //Passe de "En attente" à "Membre"
+                'statut' => 'Membre'
             ]);
 
-            // On met à jour le statut des inscriptions liées au groupe(Fondateur ET Membre)
+            // Valide les inscriptions de tous les membres du groupe (fondateur inclus)
             \App\Models\Inscription::where('id_groupe', $idGroupe)
                 ->update(['status_paiement' => 'Validé']);
 
-            // Traiter les réponses au questionnaire si présentes
+            // Enregistre les réponses au questionnaire si fournies
             $reponses = $request->input('reponses', []);
             if (!empty($reponses)) {
-                // Récupérer l'inscription du participant dans ce groupe
                 $inscription = \App\Models\Inscription::where('id_groupe', $idGroupe)
                     ->where('id_participant', $idParticipant)
                     ->first();
@@ -342,7 +435,7 @@ class GroupeController extends Controller
 
             return response()->json([
                 'message' => 'Invitation acceptée avec succès.',
-                'groupe' => $groupe
+                'groupe'  => $groupe
             ], 200);
 
         } catch (\Exception $e) {
@@ -353,40 +446,48 @@ class GroupeController extends Controller
         }
     }
 
-    // Refus d'une invitation
+    /**
+     * Refuse une invitation à rejoindre un groupe.
+     * Détache le participant du groupe, annule son inscription pour cette course
+     * et notifie le fondateur par message interne et par email (non-bloquant).
+     * @author Ngoie Steven
+     * @param  int $idGroupe Identifiant du groupe dont l'invitation est refusée.
+     * @return \Illuminate\Http\JsonResponse Message de confirmation.
+     */
     public function refuserInvitation($idGroupe)
     {
         $participantConnecte = Auth::user()->participant;
-        $idParticipant = $participantConnecte->id;
-        $groupe = Groupe::findOrFail($idGroupe);
+        $idParticipant       = $participantConnecte->id;
+        $groupe              = Groupe::findOrFail($idGroupe);
 
-        // Retire le participant de la table GroupeParticipant
+        // Retire le participant de la table pivot GroupeParticipant
         $groupe->participants()->detach($idParticipant);
 
-        // Annule l'inscription de l'invité pour cette course
+        // Annule l'inscription liée à ce groupe pour ce participant
         \App\Models\Inscription::where('id_participant', $idParticipant)
             ->where('id_groupe', $idGroupe)
             ->update(['status_paiement' => 'Annulé']);
 
-        // Cherche le fondateur du groupe pour le prévenir
+        // Notifie le fondateur du groupe du refus
         $fondateur = $groupe->participants()->wherePivot('statut', 'fondateur')->first();
 
         if ($fondateur && $fondateur->user) {
+            // Notification interne via le système de messages
             Message::create([
                 'content' => json_encode([
                     'recipient_user_id' => $fondateur->user->id,
-                    'sender_user_id' => $participantConnecte->user?->id,
-                    'type' => 'group_invitation_refused',
-                    'groupe_id' => $groupe->id,
+                    'sender_user_id'    => $participantConnecte->user?->id,
+                    'type'              => 'group_invitation_refused',
+                    'groupe_id'         => $groupe->id,
                 ], JSON_UNESCAPED_UNICODE),
             ]);
 
+            // Email de notification au fondateur (non-bloquant, loguée en local via MAIL_MAILER=log)
             try {
-                // Le mail part dans le fichier laravel.log pour le moment (à implémenter l'envoi réel plus tard)
                 \Illuminate\Support\Facades\Mail::send('emails.invitation_refusee', [
                     'fondateur' => $fondateur,
-                    'invite' => $participantConnecte,
-                    'groupe' => $groupe
+                    'invite'    => $participantConnecte,
+                    'groupe'    => $groupe
                 ], function ($message) use ($fondateur) {
                     $message->to($fondateur->user->email)
                             ->subject('Une invitation à votre équipe a été refusée');
@@ -400,5 +501,4 @@ class GroupeController extends Controller
             'message' => 'Invitation refusée. Votre inscription a été annulée.'
         ], 200);
     }
-
 }

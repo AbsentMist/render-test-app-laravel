@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @fileoverview CourseController.php
+ * @description Contrôleur REST gérant les courses rattachées à un événement :
+ *              lecture publique/admin, création, modification et suppression.
+ *              Inclut le calcul dynamique du tarif évolutif et le formatage
+ *              du questionnaire pour le frontend.
+ * @author Ngoie Steven
+ */
+
 namespace App\Http\Controllers;
 
 use App\Models\Course;
@@ -9,17 +18,28 @@ use Illuminate\Http\JsonResponse;
 
 class CourseController extends Controller
 {
-    // GET (Participant)
+    /**
+     * Retourne les courses actives et ouvertes aux inscriptions pour un événement donné.
+     * Charge toutes les relations nécessaires au formulaire d'inscription (options, questionnaire,
+     * prix évolutifs) et calcule le tarif applicable en fonction du nombre d'inscrits courant.
+     * @author Ngoie Steven
+     * @author Neris Alessandro (eager loading, formatage questionnaire, options)
+     * @author Guillermet Jean-Daniel (calcul du tarif évolutif, chargement questions/choix et prixEvolutifs)
+     * @param  int $id_evenement Identifiant de l'événement parent.
+     * @return JsonResponse Événement avec ses courses actives et ouvertes, enrichies de toutes leurs relations.
+     */
     public function indexParticipant($id_evenement): JsonResponse
     {
+        // Charge uniquement les champs nécessaires pour alléger la réponse
         $evenement = Evenement::select('id', 'nom', 'logo', 'couleur_primaire', 'couleur_secondaire')
             ->findOrFail($id_evenement);
 
+        // Convertit le logo binaire en base64 pour l'affichage dans le frontend
         if ($evenement->logo) {
             $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
         }
 
-        // On charge tout avec Eloquent (Eager Loading)
+        // Eager Loading de toutes les relations nécessaires au formulaire d'inscription
         $courses = Course::with([
                 'categorie',
                 'sousCategorie',
@@ -27,30 +47,33 @@ class CourseController extends Controller
                 'avertissement',
                 'options.quantifiable',
                 'options.cochable',
-                'questions.choix', // charge les questions ET leurs choix de réponses
+                'questions.choix',   // Charge les questions ET leurs choix de réponses associés
                 'prixEvolutifs',
                 ])
             ->withCount('inscriptions')
             ->where('id_evenement', $id_evenement)
             ->where('is_actif', true)
-            // Uniquement les courses dont la date d'inscription est ouverte
+            // Filtre sur la fenêtre d'inscription : cours sans limite ou dont la limite n'est pas encore dépassée
             ->where(function($query) {
-                $query->whereNull('fin_inscription')  //pas de limite de fin d'inscription
-                      ->orWhere('fin_inscription', '>=', now()->toDateString()); // Soit la limite est aujourd'hui ou dans le futur
+                $query->whereNull('fin_inscription')             // Pas de date limite définie
+                      ->orWhere('fin_inscription', '>=', now()->toDateString()); // Ou date limite aujourd'hui ou future
             })
             ->get()
             ->map(function ($course) {
                 return [
                     'id'                => $course->id,
                     'nom_course'        => $course->nom,
+                    // Calcule le tarif applicable : palier évolutif si activé, tarif fixe sinon
                     'tarif' => $course->is_prix_evolutif
                         ? (function() use ($course) {
+                            // Simule la position du prochain inscrit pour déterminer son palier
                             $nbInscrits = $course->inscriptions_count + 1;
                             $palier = $course->prixEvolutifs->sortBy('ordre')->first(function($p) use ($nbInscrits) {
                                 $debut = (int) $p->valeur_debut;
                                 $fin = $p->valeur_fin !== null ? (int) $p->valeur_fin : PHP_INT_MAX;
                                 return $nbInscrits >= $debut && $nbInscrits <= $fin;
                             });
+                            // Fallback sur le tarif de base si aucun palier ne correspond
                             return $palier?->tarif ?? $course->tarif;
                         })()
                         : $course->tarif,
@@ -64,7 +87,7 @@ class CourseController extends Controller
                     'options'           => $course->options,
                     'document'          => $course->is_document,
                     'evenement'         => $course->evenement,
-                    // Utilisation des relations déjà chargées
+                    // Formate le questionnaire uniquement si la course en possède un
                     'questionnaire'     => $course->is_questionnaire ? $course->questions->map(function($q) {
                         return [
                             'id'       => $q->id,
@@ -77,6 +100,7 @@ class CourseController extends Controller
                             }),
                         ];
                     }) : null,
+                    // Calcule les dossards restants ou indique "Illimité" si aucun max n'est défini
                     'dossards_restants' => $course->max_inscription
                         ? ($course->max_inscription - $course->inscriptions_count)
                         : 'Illimité',
@@ -94,7 +118,14 @@ class CourseController extends Controller
         ], 200);
     }
 
-    // GET (Admin)
+    /**
+     * Retourne toutes les courses d'un événement pour la vue administrateur.
+     * Contrairement à la vue participant, aucun filtre sur is_actif ou fin_inscription n'est appliqué :
+     * l'admin voit toutes les courses y compris les inactives ou clôturées.
+     * @author Ngoie Steven
+     * @param  int $id_evenement Identifiant de l'événement parent.
+     * @return JsonResponse Événement avec toutes ses courses et le nombre d'inscriptions par course.
+     */
     public function indexAdmin($id_evenement): JsonResponse
     {
         $evenement = Evenement::find($id_evenement);
@@ -103,6 +134,7 @@ class CourseController extends Controller
             return response()->json(['message' => 'Événement introuvable.'], 404);
         }
 
+        // Convertit le logo binaire en base64 pour l'affichage dans le frontend
         if ($evenement->logo) {
             $evenement->logo = 'data:image/jpeg;base64,' . base64_encode($evenement->logo);
         }
@@ -118,7 +150,14 @@ class CourseController extends Controller
         ], 200);
     }
 
-    // GET (Admin / Participant)
+    /**
+     * Retourne le détail complet d'une course avec toutes ses relations.
+     * Accessible à l'administrateur et au participant.
+     * Le questionnaire est reformaté dans une structure normalisée pour le frontend.
+     * @author Neris Alessandro
+     * @param  int $id Identifiant de la course.
+     * @return JsonResponse Détail de la course ou 404 si introuvable.
+     */
     public function show($id): JsonResponse
     {
         $course = Course::with([
@@ -135,11 +174,13 @@ class CourseController extends Controller
             return response()->json(['message' => 'Course introuvable.'], 404);
         }
 
+        // Convertit le logo de l'événement parent en base64 pour le frontend
         if ($course->evenement && $course->evenement->logo) {
             $course->evenement->logo = 'data:image/jpeg;base64,' . base64_encode($course->evenement->logo);
         }
 
-        // Formater les questions pour le frontend
+        // Formate les questions en structure normalisée {id, question, answers[]}
+        // ou null si la course ne possède pas de questionnaire
         if ($course->is_questionnaire && $course->questions) {
             $course->questionnaire = $course->questions->map(function($q) {
                 return [
@@ -160,7 +201,15 @@ class CourseController extends Controller
         return response()->json($course, 200);
     }
 
-    // POST (Admin)
+    /**
+     * Crée une nouvelle course et l'associe à un événement existant.
+     * Les règles de validation garantissent la cohérence des dates et des bornes de dossard.
+     * @author Ngoie Steven
+     * @author Neris Alessandro (champs booléens, max_nb_personne, document_description, is_prix_evolutif)
+     * @author Guillermet Jean-Daniel (validation des dates d'inscription, tarif nullable)
+     * @param  Request $request Données de la course à créer.
+     * @return JsonResponse Course créée (201).
+     */
     public function store(Request $request): JsonResponse
     {
         $validatedData = $request->validate([
@@ -169,6 +218,7 @@ class CourseController extends Controller
             'id_sous_categorie' => 'nullable|integer|exists:SousCategorie,id',
             'id_avertissement'  => 'nullable|integer|exists:Avertissement,id',
             'nom'               => 'required|string|max:120',
+            // Les dates de course et d'inscription doivent être cohérentes entre elles
             'date_debut'        => 'required|date|after_or_equal:today',
             'date_fin'          => 'required|date|after_or_equal:date_debut',
             'debut_inscription' => 'required|date|after_or_equal:today',
@@ -201,7 +251,16 @@ class CourseController extends Controller
         ], 201);
     }
 
-    // PUT (Admin)
+    /**
+     * Met à jour une course existante (vue administrateur).
+     * Tous les champs sont optionnels (PATCH-like) : seuls les champs fournis sont modifiés.
+     * @author Ngoie Steven
+     * @author Neris Alessandro (champs booléens, max_nb_personne, heure_depart/fin, age_maximum, type)
+     * @author Guillermet Jean-Daniel (is_prix_evolutif)
+     * @param  Request $request Champs à mettre à jour.
+     * @param  int     $id      Identifiant de la course.
+     * @return JsonResponse Course mise à jour (200) ou 404 si introuvable.
+     */
     public function update(Request $request, $id): JsonResponse
     {
         $course = Course::find($id);
@@ -249,7 +308,12 @@ class CourseController extends Controller
         ], 200);
     }
 
-    // DELETE (Admin)
+    /**
+     * Supprime définitivement une course (vue administrateur).
+     * @author Ngoie Steven
+     * @param  int $id Identifiant de la course à supprimer.
+     * @return JsonResponse Message de confirmation (200) ou 404 si introuvable.
+     */
     public function destroy($id): JsonResponse
     {
         $course = Course::find($id);

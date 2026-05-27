@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * @fileoverview OptionController.php
+ * @description Contrôleur gérant les options proposées aux participants lors de l'inscription
+ *              (ex: repas, t-shirt, transport). Deux sous-types sont supportés :
+ *              - Quantifiable : l'utilisateur choisit une quantité (ex: 2 repas)
+ *              - Cochable     : case à cocher simple (ex: transport inclus)
+ *              Chaque option peut être liée à une ou plusieurs courses via la table pivot
+ *              OptionPourCourse. Le flag `modele` indique les options réutilisables.
+ * @author Ngoie Steven
+ */
+
 namespace App\Http\Controllers;
 
 use App\Models\Option;
@@ -9,28 +20,33 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Controller qui gère les options : Option, OptionQuantifiable, OptionCochable et OptionPourCourse
- */
 class OptionController extends Controller
 {
-    // GET (Admin)
+    /**
+     * Retourne toutes les options marquées comme modèles avec leurs relations (vue admin).
+     * Charge les relations `courses`, `quantifiable` et `cochable` pour l'affichage complet.
+     * @author Neris Alessandro
+     * @return JsonResponse Liste des options modèles avec leurs sous-types et courses liées.
+     */
     public function indexAdmin(): JsonResponse
     {
-        // Récupération des options avec leurs relations
+        // Charge les relations pour afficher les détails complets de chaque option
         $options = Option::where('modele', true)->with(['courses', 'quantifiable', 'cochable'])->get();
         return response()->json($options, 200);
     }
 
     /**
-     * Récupérer toutes les options d'une course spécifique
+     * Retourne toutes les options assignées à une course spécifique (vue participant).
+     * @author Ngoie Steven
+     * @param  int $id_course Identifiant de la course.
+     * @return JsonResponse Options de la course avec leurs sous-types, ou 404 si aucune.
      */
     public function indexParticipant($id_course): JsonResponse
     {
         $options = Option::whereHas('courses', function ($query) use ($id_course) {
             $query->where('id_course', $id_course);
         })
-        ->with(['quantifiable', 'cochable']) 
+        ->with(['quantifiable', 'cochable'])
         ->get();
 
         if ($options->isEmpty()) {
@@ -40,7 +56,12 @@ class OptionController extends Controller
         return response()->json($options, 200);
     }
 
-    // GET (Admin)
+    /**
+     * Retourne le détail d'une option spécifique avec ses relations (vue admin).
+     * @author Ngoie Steven
+     * @param  int $id Identifiant de l'option.
+     * @return JsonResponse Option avec ses relations ou 404.
+     */
     public function show($id): JsonResponse
     {
         $option = Option::with(['courses', 'quantifiable', 'cochable'])->find($id);
@@ -52,51 +73,59 @@ class OptionController extends Controller
         return response()->json($option, 200);
     }
 
-    // POST (Admin) 
+    /**
+     * Crée une nouvelle option avec ses détails de sous-type et ses liaisons courses.
+     * La création est atomique (transaction) : Option + OptionQuantifiable/OptionCochable
+     * + liaisons courses sont créées ensemble ou pas du tout.
+     * @author Ngoie Steven
+     * @author Neris Alessandro (champ modele, liaison courses)
+     * @param  Request $request Données de l'option (nom, tarif, type, description, modele,
+     *                          quantiteMin/Max si Quantifiable, courses[]).
+     * @return JsonResponse Option créée avec ses relations (201) ou erreur (500).
+     */
     public function store(Request $request): JsonResponse
     {
         $validatedData = $request->validate([
             'nom'         => 'required|string|max:80',
             'tarif'       => 'required|numeric|min:0',
-            'type'        => 'required|string|in:Quantifiable,Cochable', 
+            'type'        => 'required|string|in:Quantifiable,Cochable',
             'description' => 'required|string|max:255',
-            'modele'      => 'boolean', // Nouveau champ booléen
-            
-            // Validation OptionQuantifiable
+            'modele'      => 'boolean',
+            // Champs spécifiques aux options quantifiables
             'quantiteMin' => 'required_if:type,Quantifiable|integer|min:0',
             'quantiteMax' => 'required_if:type,Quantifiable|integer|gte:quantiteMin',
-            
-            // Validation des liaisons courses
+            // Liaisons aux courses (optionnel)
             'courses'     => 'array',
-            'courses.*'   => 'exists:Course,id'
+            'courses.*'   => 'exists:Course,id',
         ]);
 
         DB::beginTransaction();
         try {
-            // Création de l'Option (sans le champ image)
+            // Crée l'option de base (sans les champs de sous-type)
             $option = Option::create([
                 'nom'         => $validatedData['nom'],
                 'tarif'       => $validatedData['tarif'],
                 'type'        => $validatedData['type'],
                 'description' => $validatedData['description'],
-                'modele'      => $validatedData['modele'] ?? false, // Par défaut à false
+                'modele'      => $validatedData['modele'] ?? false,
             ]);
 
-            // Création des détails techniques selon le type
+            // Crée la table de détails spécifique selon le type de l'option
             if ($validatedData['type'] === 'Quantifiable') {
                 OptionQuantifiable::create([
                     'id'          => $option->id,
                     'quantiteMin' => $validatedData['quantiteMin'],
-                    'quantiteMax' => $validatedData['quantiteMax']
+                    'quantiteMax' => $validatedData['quantiteMax'],
                 ]);
             } else {
+                // Cochable : état initial décoché
                 OptionCochable::create([
                     'id'       => $option->id,
-                    'is_coche' => 0 
+                    'is_coche' => 0,
                 ]);
             }
 
-            // Liaison avec les courses si présentes
+            // Lie l'option aux courses si des IDs sont fournis
             if (!empty($request->input('courses'))) {
                 $option->courses()->attach($request->input('courses'));
             }
@@ -114,7 +143,17 @@ class OptionController extends Controller
         }
     }
 
-    // PUT (Admin)
+    /**
+     * Met à jour une option existante (vue admin).
+     * Les règles de validation des champs quantifiables ne sont ajoutées
+     * que si l'option est de type Quantifiable.
+     * La synchronisation des courses remplace la liste existante par la nouvelle.
+     * @author Ngoie Steven
+     * @author Neris Alessandro (champ modele, synchronisation courses)
+     * @param  Request $request Champs à mettre à jour.
+     * @param  int     $id      Identifiant de l'option.
+     * @return JsonResponse Option mise à jour avec ses relations (200) ou erreur (404/500).
+     */
     public function update(Request $request, $id): JsonResponse
     {
         $option = Option::find($id);
@@ -129,9 +168,10 @@ class OptionController extends Controller
             'description' => 'sometimes|required|string|max:255',
             'modele'      => 'boolean',
             'courses'     => 'sometimes|array',
-            'courses.*'   => 'exists:Course,id'
+            'courses.*'   => 'exists:Course,id',
         ];
 
+        // Ajoute les règles quantifiables uniquement si le type de l'option le requiert
         if ($option->type === 'Quantifiable') {
             $rules['quantiteMin'] = 'sometimes|required|integer|min:0';
             $rules['quantiteMax'] = 'sometimes|required|integer|gte:quantiteMin';
@@ -141,21 +181,21 @@ class OptionController extends Controller
 
         DB::beginTransaction();
         try {
-            // Mise à jour des champs de base (image retirée)
+            // Met à jour uniquement les champs de base (le type ne peut pas changer)
             $option->update(array_intersect_key($validatedData, array_flip(['nom', 'tarif', 'description', 'modele'])));
 
-            // Mise à jour de la table OptionQuantifiable si nécessaire
+            // Met à jour les bornes de quantité si l'option est quantifiable
             if ($option->type === 'Quantifiable') {
                 $quantifiableData = [];
                 if (isset($validatedData['quantiteMin'])) $quantifiableData['quantiteMin'] = $validatedData['quantiteMin'];
                 if (isset($validatedData['quantiteMax'])) $quantifiableData['quantiteMax'] = $validatedData['quantiteMax'];
-                
+
                 if (!empty($quantifiableData)) {
                     OptionQuantifiable::where('id', $option->id)->update($quantifiableData);
                 }
             }
 
-            // Synchronisation des courses
+            // Synchronise les courses : remplace la liste existante par la nouvelle
             if ($request->has('courses')) {
                 $option->courses()->sync($request->input('courses'));
             }
@@ -173,7 +213,12 @@ class OptionController extends Controller
         }
     }
 
-    // DELETE (Admin)
+    /**
+     * Supprime définitivement une option (vue admin).
+     * @author Ngoie Steven
+     * @param  int $id Identifiant de l'option à supprimer.
+     * @return JsonResponse Message de confirmation (200) ou 404.
+     */
     public function destroy($id): JsonResponse
     {
         $option = Option::find($id);
@@ -182,7 +227,7 @@ class OptionController extends Controller
             return response()->json(['message' => 'Option introuvable.'], 404);
         }
 
-        $option->delete(); 
+        $option->delete();
 
         return response()->json(['message' => 'Option supprimée avec succès.'], 200);
     }

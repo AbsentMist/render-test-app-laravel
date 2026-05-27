@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @fileoverview CourseQuestionController.php
+ * @description Contrôleur gérant la relation entre les courses et leurs questions de questionnaire.
+ *              Permet de consulter les questions d'une course dans leur ordre d'affichage
+ *              et de réordonner les questions par glisser-déposer dans l'interface admin.
+ * @author Neris Alessandro
+ */
+
 namespace App\Http\Controllers;
 
 use App\Models\CourseQuestion;
@@ -11,7 +19,12 @@ use Illuminate\Support\Facades\DB;
 
 class CourseQuestionController extends Controller
 {
-    // GET - Questions d'une course avec leur ordre
+    /**
+     * Retourne les questions d'une course avec leur ordre d'affichage et leurs choix de réponses.
+     * @author Neris Alessandro
+     * @param  int $id_course Identifiant de la course.
+     * @return JsonResponse Questions triées par ordre ou 404 si la course est introuvable.
+     */
     public function index($id_course): JsonResponse
     {
         $course = Course::find($id_course);
@@ -28,14 +41,21 @@ class CourseQuestionController extends Controller
         return response()->json($questions, 200);
     }
 
-    // PUT - Réordonner les questions d'une course
-    // Attend : [{ id_question: 1, ordre: 1 }, { id_question: 3, ordre: 2 }, ...]
+    /**
+     * Met à jour l'ordre d'affichage des questions d'une course.
+     * Attend un tableau d'objets `{id_question, ordre}` correspondant au nouvel ordre.
+     * La mise à jour est atomique : toutes les questions sont réordonnées ou aucune.
+     * @author Neris Alessandro
+     * @param  Request $request Tableau `questions` : [{ id_question: int, ordre: int }, ...].
+     * @param  int     $id_course Identifiant de la course.
+     * @return JsonResponse Questions réordonnées (200) ou erreur (500).
+     */
     public function reordonner(Request $request, $id_course): JsonResponse
     {
         $request->validate([
-            'questions'              => 'required|array|min:1',
-            'questions.*.id_question'=> 'required|exists:Question,id',
-            'questions.*.ordre'      => 'required|integer|min:1',
+            'questions'               => 'required|array|min:1',
+            'questions.*.id_question' => 'required|exists:Question,id',
+            'questions.*.ordre'       => 'required|integer|min:1',
         ]);
 
         DB::beginTransaction();
