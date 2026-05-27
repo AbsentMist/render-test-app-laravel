@@ -347,6 +347,7 @@ export default {
     computed: {
         /**
          * Filtre uniquement les inscriptions Validées avec un dossard.
+         * @author Guillermet Jean-Daniel
          */
         inscriptionsEligibles() {
             return this.toutesLesInscriptions.filter(

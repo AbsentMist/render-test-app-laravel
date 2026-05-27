@@ -139,10 +139,4 @@ const emit = defineEmits(["selectionner"]);
 function handleClick(course) {
     emit("selectionner", course);
 }
-
-/**
- * Formate la date d'évènement pour affichage localisé.
- * @param {string|Date} dateInput Date brute au format ISO ou objet Date.
- * @returns {string}
- */
 </script>

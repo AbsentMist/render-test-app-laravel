@@ -181,10 +181,11 @@
 
 <script setup>
 /**
- * @fileoverview Vue Connexion.
+ * @fileoverview Vue Connexion
  * @description Page d'authentification utilisateur avec validation des identifiants.
  * @remarks Gère l'état de chargement, l'affichage des erreurs métier et la redirection
  * vers le tableau de bord après connexion réussie.
+ * @author Guillermet Jean-Daniel
  */
 import { ref } from "vue";
 import { useRouter } from "vue-router";
@@ -193,15 +194,19 @@ import { useAuthStore } from "../stores/auth";
 const router = useRouter();
 const authStore = useAuthStore();
 
+// États du formulaire de connexion
 const email = ref("");
 const password = ref("");
 const erreur = ref("");
 const chargement = ref(false);
 
+// État de visibilité du mot de passe
 const showPassword = ref(false);
 
 /**
- * Tente la connexion de l'utilisateur et gère la redirection.
+ * Tente la connexion de l'utilisateur avec email et mot de passe.
+ * Redirige vers le tableau de bord approprié selon le rôle (admin/participant).
+ * Gère les erreurs de validation et affiche le message d'erreur correspondant.
  * @author Guillermet Jean-Daniel
  * @returns {Promise<void>}
  */
@@ -209,11 +214,14 @@ async function handleLogin() {
     erreur.value = "";
     chargement.value = true;
     try {
+        // Appel à l'authentification via le store
         await authStore.login(email.value, password.value);
+        // Redirection selon le rôle de l'utilisateur
         router.push(
             authStore.isAdmin ? "/organisateur/evenements" : "/accueil",
         );
     } catch (e) {
+        // Gestion des erreurs de validation
         if (e.response?.data?.errors?.email) {
             erreur.value = e.response.data.errors.email[0];
         } else {

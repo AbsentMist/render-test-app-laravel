@@ -73,6 +73,12 @@ export default {
   },
   emits: ["select-item", "deselect-item", "cancel"],
   methods: {
+    /**
+      * Gère la sélection d'un élément.
+      * @author Neris Alessandro
+      * @param {object} element
+      * @returns {void}
+      */
     handleSelectItem(element) {
       const key = this.elementKey(element);
       const isSelected = this.selectedElements.includes(key);
@@ -87,20 +93,45 @@ export default {
         this.$emit('select-item', element);
       }
     },
+    /**
+      * Vérifie si un élément est actuellement sélectionné.
+      * @author Neris Alessandro
+      * @param {object} element
+      * @returns {boolean}
+      */
     isElementSelected(element) {
       return this.selectedElements.includes(this.elementKey(element));
     },
+    /**
+      * Génère une clé unique pour un élément donné.
+      * Utilise les propriétés `id`, `label`, `name` ou `enonce` si disponibles, sinon l'élément lui-même.
+      * @author Neris Alessandro
+      * @param {object} element
+      * @returns {string|number}
+      */
     elementKey(element) {
       return element && typeof element === "object"
         ? element.id ?? element.label ?? element.name ?? element.enonce
         : element;
     },
+    /**
+      * Renvoie le libellé d'un élément.
+      * @author Neris Alessandro
+      * @param {object} element
+      * @returns {string}
+      */
     elementLabel(element) {
       if (element && typeof element === "object") {
         return element.label ?? element.name ?? element.enonce ?? String(this.elementKey(element));
       }
       return String(element);
     },
+    /**
+      * Renvoie la description d'un élément.
+      * @author Neris Alessandro
+      * @param {object} element
+      * @returns {string}
+      */
     elementDescription(element) {
       if (element && typeof element === "object") {
         return element.description ?? "";

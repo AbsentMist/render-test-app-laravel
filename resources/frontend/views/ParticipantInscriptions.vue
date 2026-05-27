@@ -288,8 +288,10 @@ export default {
                 this.tri.direction = 'asc';
             }
         },
+
         /**
          * Charge les inscriptions et les demandes d'échange envoyées en parallèle.
+         * @author Guillermet Jean-Daniel
          * @returns {Promise<void>}
          */
         async chargerInscriptions() {
@@ -321,6 +323,7 @@ export default {
 
         /**
          * Vérifie si une inscription a une demande d'échange en cours.
+         * @author Guillermet Jean-Daniel
          * @param {number} idInscription
          * @returns {boolean}
          */
@@ -330,35 +333,58 @@ export default {
             );
         },
 
+        /**
+         * Ferme la popup de changement de course et recharge les inscriptions
+         * pour refléter les éventuelles modifications effectuées.
+         * @author Neris Alessandro
+         * @returns {Promise<void>}
+         */
         async fermerPopupChangement() {
             this.popupChangement = false;
             await this.chargerInscriptions();
         },
 
-        toggleExpand(id) {
-            const index = this.expandedRows.indexOf(id);
-            if (index === -1) {
-                this.expandedRows.push(id);
-            } else {
-                this.expandedRows.splice(index, 1);
-            }
-        },
-
+        /**
+         * Sélectionne une inscription et ouvre la popup de détail.
+         * @author Neris Alessandro
+         * @param {Object} inscription - L'inscription à afficher en détail
+         * @returns {void}
+         */
         detailInscription(inscription) {
             this.inscription.actuel = inscription;
             this.popupDetail = true;
         },
 
+        /**
+         * Sélectionne une inscription et ouvre la popup d'avertissement
+         * préalable au changement de course.
+         * @author Neris Alessandro
+         * @param {Object} inscription - L'inscription concernée par le changement
+         * @returns {void}
+         */
         changerInscription(inscription) {
             this.inscription.actuel = inscription;
             this.popupAvertissement = true;
         },
 
+        /**
+         * Ferme la popup d'avertissement et ouvre la popup de changement de course.
+         * Appelée lorsque l'utilisateur confirme avoir lu le message d'information.
+         * @author Neris Alessandro
+         * @returns {void}
+         */
         afficherPopupChangement() {
             this.popupAvertissement = false;
             this.popupChangement = true;
         },
 
+        /**
+         * Ferme la popup de détail et ajoute l'inscription modifiée au panier.
+         * Appelée lorsque l'utilisateur confirme un changement depuis la popup de détail.
+         * @author Neris Alessandro
+         * @param {Object} data - Les données de la nouvelle inscription à ajouter au panier
+         * @returns {void}
+         */
         onChangementConfirme(data) {
             this.popupDetail = false;
             this.cartStore.ajouterInscription(data, data.course);

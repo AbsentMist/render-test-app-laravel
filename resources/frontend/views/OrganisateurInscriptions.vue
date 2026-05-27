@@ -425,6 +425,7 @@ export default {
     },
     /**
      * Exporte les inscriptions selon l'action demandée.
+     * @author Ngoie Steven
      * @param {'email'|'logistique'|'banque'} action Action d'export souhaitée.
      * @returns {Promise<void>}
      */

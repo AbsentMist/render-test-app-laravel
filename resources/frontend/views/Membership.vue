@@ -456,6 +456,7 @@ export default {
           this.adresseSuggestions = data.results || [];
           this.showAdresseDropdown = this.adresseSuggestions.length > 0;
         } catch (error) {
+          console.error('Erreur lors de la recherche d\'adresses:', error);
           this.adresseSuggestions = [];
           this.showAdresseDropdown = false;
         }

@@ -352,6 +352,9 @@ const groupeSelectionne = ref(null);
  * Redirige vers le profil en scrollant vers le bon endroit.
  * - Profil principal → haut de la page profil
  * - Sous-profil → ancre #mes-participants
+ * @author Guillermet Jean-Daniel
+ * @param {Object} participant - Le participant vers lequel naviguer
+ * @returns {void}
  */
 function allerVersParticipant(participant) {
     menuParticipantsOuvert.value = false;
@@ -359,6 +362,12 @@ function allerVersParticipant(participant) {
     allerVersProfilAncre(estPrincipal ? "" : "#mes-participants");
 }
 
+/**
+ * Redirige vers le profil en scrollant vers le bon endroit.
+ * @author Guillermet Jean-Daniel
+ * @param {string} ancre - L'ancre vers laquelle naviguer
+ * @returns {Promise<void>}
+ */
 async function allerVersProfilAncre(ancre = "") {
     await router.push("/profil" + ancre);
     if (ancre) {
@@ -376,6 +385,7 @@ const participants = ref([]);
 
 /**
  * Charge les participants liés au compte connecté.
+ * @author Guillermet Jean-Daniel
  * @returns {Promise<void>}
  */
 async function chargerParticipants() {
@@ -392,6 +402,7 @@ const chargementGroupes = ref(false);
 
 /**
  * Charge les groupes de type relais/groupe pour l'utilisateur.
+ * @author Ngoie Steven
  * @returns {Promise<void>}
  */
 async function chargerGroupes() {
@@ -435,6 +446,7 @@ async function chargerEvenements() {
 
 /**
  * Ouvre la popup de gestion pour un groupe.
+ * @author Ngoie Steven
  * @param {Object} groupe
  * @returns {void}
  */
@@ -444,6 +456,7 @@ function ouvrirGestionGroupe(groupe) {
 
 /**
  * Redirige vers la liste des courses d'un évènement.
+ * @author Perroud Rémi
  * @param {number|string} idEvenement
  * @returns {void}
  */
@@ -451,14 +464,29 @@ function goToListeCourses(idEvenement) {
     router.push({ name: "ListeCourses", params: { idEvenement } });
 }
 
+/**
+ * Redirige vers la liste de tous les évènements.
+ * @author Perroud Rémi
+ * @returns {void}
+ */
 function goToAllEvenements() {
     router.push("/evenements");
 }
 
+/**
+ * Redirige vers la liste des inscriptions.
+ * @author Perroud Rémi
+ * @returns {void}
+ */
 function goToInscriptions() {
     router.push("/inscriptions");
 }
 
+/**
+ * Redirige vers la liste des résultats.
+ * @author Perroud Rémi
+ * @returns {void}
+ */
 function goToResultats() {
     router.push("/resultats");
 }

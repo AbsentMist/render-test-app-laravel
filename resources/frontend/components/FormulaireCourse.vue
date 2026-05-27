@@ -1237,6 +1237,7 @@ export default {
     computed: {
         /**
          * Indique si le formulaire est ouvert en mode édition.
+         * @author Guillermet Jean-Daniel
          * @returns {boolean}
          */
         isEditMode() {
@@ -1244,6 +1245,7 @@ export default {
         },
         /**
          * Identifiant de la course à charger ou modifier.
+         * @author Guillermet Jean-Daniel
          * @returns {string|undefined}
          */
         courseId() {
@@ -1251,6 +1253,7 @@ export default {
         },
         /**
          * Identifiant de l'évènement associé passé dans l'URL.
+         * @author Guillermet Jean-Daniel
          * @returns {string|undefined}
          */
         eventIdFromUrl() {
@@ -1281,6 +1284,7 @@ export default {
         },
         /**
          * Noms des options déjà présentes dans la course.
+         * @author Guillermet Jean-Daniel
          * @returns {Array<string>}
          */
         preSelectedOptionsNames() {
@@ -1288,6 +1292,7 @@ export default {
         },
         /**
          * Énoncés des questions déjà présentes dans la course.
+         * @author Guillermet Jean-Daniel
          * @returns {Array<string>}
          */
         preSelectedQuestionsEnonces() {
@@ -2014,9 +2019,9 @@ export default {
 
         /**
          * Prépare le payload API d'une option de course.
+         * @author Neris Alessandro
          * @param {object} option
          * @returns {object}
-         * @author Neris Alessandro
          */
         buildOptionPayload(option) {
             const payload = {
