@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author Ngozoo
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
@@ -27,6 +34,10 @@ vi.mock('../../stores/cart', () => ({
 
 vi.mock('../../stores/auth', () => ({
   useAuthStore: () => authStoreMock,
+}))
+
+vi.mock('../../stores/theme', () => ({
+  useThemeStore: () => ({ theme: 'light' }),
 }))
 
 vi.mock('../../services/membershipService', () => ({

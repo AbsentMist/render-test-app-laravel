@@ -9,16 +9,21 @@ use App\Models\Message;
 use App\Models\Participant;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour le controleur de membership.
+ *
+ * @author Steven Ngoie
+ * @return void
+ */
 class MembershipControllerTest extends TestCase
 {
-    use DatabaseTransactions;
 
     protected function setUp(): void
     {

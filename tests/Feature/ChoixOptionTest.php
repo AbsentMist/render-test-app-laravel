@@ -10,14 +10,19 @@ use App\Models\Option;
 use App\Models\OptionPourCourse;
 use App\Models\Participant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour les choix d'options.
+ *
+ * @author Alessandro Neris
+ * @return void
+ */
 class ChoixOptionTest extends TestCase
 {
-    use DatabaseTransactions;
 
     protected User $user;
     protected User $admin;

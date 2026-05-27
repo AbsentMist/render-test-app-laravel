@@ -6,13 +6,18 @@ use App\Models\Groupe;
 use App\Models\Participant;
 use App\Models\User;
 use App\Enums\StatutParticipant;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour les invitations de groupe.
+ *
+ * @author Steven Ngoie
+ * @return void
+ */
 class GroupeInvitationTest extends TestCase
 {
-    use DatabaseTransactions;
 
     protected User $user;
     protected Participant $participant;

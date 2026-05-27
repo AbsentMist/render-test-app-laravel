@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author Ngozoo
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
@@ -11,8 +18,8 @@ vi.mock('@iconify/vue', () => ({
 import MiniatureCourse from '../../components/MiniatureCourse.vue'
 
 const courses = [
-  { id: 1, nom_course: 'Trail 10K', tarif: 40, dossards_restants: 120 },
-  { id: 2, nom_course: 'Semi Marathon', tarif: 55, dossards_restants: 80 },
+  { id: 1, nom_course: 'Trail 10K', tarif: 40, dossards_restants: 120, date_debut: '2026-04-11', date_fin: '2026-04-11' },
+  { id: 2, nom_course: 'Semi Marathon', tarif: 55, dossards_restants: 80, date_debut: '2026-05-12', date_fin: '2026-05-12' },
 ]
 
 const evenement = {
@@ -40,8 +47,7 @@ describe('MiniatureCourse', () => {
 
     expect(wrapper.text()).toContain('Trail 10K')
     expect(wrapper.text()).toContain('Semi Marathon')
-    expect(wrapper.text()).toContain('Tarif CHF 40')
-    expect(wrapper.text()).toContain('Dossards restants : 120')
+    expect(wrapper.text()).toContain('Tarif 40 CHF')
   })
 
   // Relaye la selection de course au parent

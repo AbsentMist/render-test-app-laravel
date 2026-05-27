@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author MurasameMk5
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
@@ -21,6 +28,7 @@ vi.mock('../../services/courseOrganisateurService', () => ({
 
 vi.mock('../../services/evenementOrganisateurService', () => ({
   default: {
+    getAllEvenements: vi.fn(),
     getEvenement: vi.fn(),
   },
 }))
@@ -98,6 +106,9 @@ describe('OrganisateurCourses', () => {
     courseOrganisateurService.getAllCourses.mockResolvedValue({
       data: { courses: mockCourses },
     })
+    evenementOrganisateurService.getAllEvenements.mockResolvedValue({
+      data: { nom: 'Marathon 2026' },
+    })
     courseOrganisateurService.deleteCourse.mockResolvedValue({})
     evenementOrganisateurService.getEvenement.mockResolvedValue({
       data: { nom: 'Marathon 2026' },
@@ -134,7 +145,7 @@ describe('OrganisateurCourses', () => {
 
     await wrapper.findAll('button').find((button) => button.text().includes('Nouveau')).trigger('click')
 
-    expect(routerMock.push).toHaveBeenCalledWith('/organisateur/formulaires?onglet=Course')
+    expect(routerMock.push).toHaveBeenCalledWith('/organisateur/formulaires?onglet=Course&idEvenement=42')
   })
 
   // Redirige vers le formulaire de modification avec les bons ids

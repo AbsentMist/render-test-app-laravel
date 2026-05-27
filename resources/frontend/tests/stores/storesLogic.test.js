@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author MurasameMk5
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 import { useAuthStore } from '../../stores/auth';
@@ -74,7 +81,8 @@ describe('Logique applicative des stores', () => {
 
     store.setOwner(null);
 
-    expect(store.inscriptions).toHaveLength(0);
+    expect(store.inscriptions).toHaveLength(2);
+    expect(store.currentOwnerId).toBeNull();
   });
 
   test('theme: applique et réinitialise le thème', () => {

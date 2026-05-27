@@ -6,7 +6,7 @@ use App\Models\Course;
 use App\Models\Evenement;
 use App\Models\Participant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -14,11 +14,13 @@ use App\Mail\ConfirmationInscriptionMail;
 use Tests\TestCase;
 
 /**
- * Tests pour l'envoi du mail de confirmation lors d'une inscription (Tache 1.1)
+ * Tests pour l'envoi du mail de confirmation lors d'une inscription (Tache 1.1).
+ *
+ * @author Jean Daniel Guillermet
+ * @return void
  */
 class MailConfirmationInscriptionTest extends TestCase
 {
-    use DatabaseTransactions;
 
     protected User $user;
     protected Participant $participant;

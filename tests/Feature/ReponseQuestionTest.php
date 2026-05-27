@@ -10,14 +10,19 @@ use App\Models\Participant;
 use App\Models\Question;
 use App\Models\ReponseQuestion;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour les reponses aux questions.
+ *
+ * @author Alessandro Neris
+ * @return void
+ */
 class ReponseQuestionTest extends TestCase
 {
-    use DatabaseTransactions;
 
     protected User $user;
     protected User $admin;

@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author Ngozoo
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { reactive } from 'vue'
@@ -33,8 +40,17 @@ vi.mock('../../services/profilService', () => ({
   },
 }))
 
+vi.mock('../../services/participantService', () => ({
+  default: {
+    getMesParticipants: vi.fn(),
+    majParticipant: vi.fn(),
+    supprimerParticipant: vi.fn(),
+  },
+}))
+
 import ProfilUser from '../../views/ProfilUser.vue'
 import profilService from '../../services/profilService'
+import participantService from '../../services/participantService'
 
 const profilePayload = {
   nom: 'Dupont',
@@ -74,6 +90,9 @@ describe('ProfilUser', () => {
     profilService.getProfil.mockResolvedValue({ data: profilePayload })
     profilService.updateProfil.mockImplementation(async (payload) => ({ data: payload }))
     profilService.updateAuthPassword.mockResolvedValue({ data: { message: 'ok' } })
+    participantService.getMesParticipants.mockResolvedValue({ data: [] })
+    participantService.majParticipant.mockResolvedValue({ data: {} })
+    participantService.supprimerParticipant.mockResolvedValue({ data: {} })
     fetchMock.mockReset()
     createObjectURLMock.mockReset()
     createObjectURLMock.mockReturnValue('blob:preview')

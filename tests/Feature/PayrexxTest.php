@@ -4,13 +4,18 @@ namespace Tests\Feature;
 
 use App\Models\Participant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour l'integration Payrexx.
+ *
+ * @author Alessandro Neris
+ * @return void
+ */
 class PayrexxTest extends TestCase
 {
-    use DatabaseTransactions;
 
     public function test_authenticated_user_can_create_gateway()
     {

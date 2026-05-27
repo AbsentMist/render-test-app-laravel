@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author Ngozoo
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
@@ -184,6 +191,7 @@ describe('PopupInscriptionCourse', () => {
       course: {
         ...baseCourse,
         type: 'Groupe',
+        max_nb_personne: 2,
       },
     })
 

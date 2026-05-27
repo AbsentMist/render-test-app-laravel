@@ -8,14 +8,19 @@ use App\Models\Inscription;
 use App\Models\Participant;
 use App\Models\PrixEvolutif;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour le calcul du tarif actuel du prix evolutif.
+ *
+ * @author Jean Daniel Guillermet
+ * @return void
+ */
 class PrixEvolutifTarifActuelTest extends TestCase
 {
-    use DatabaseTransactions;
 
     protected User $admin;
     protected Course $course;

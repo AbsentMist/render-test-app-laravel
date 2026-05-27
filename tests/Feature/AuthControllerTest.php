@@ -4,14 +4,19 @@ namespace Tests\Feature;
 
 use App\Models\Participant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour le controleur d'authentification.
+ *
+ * @author Steven Ngoie
+ * @return void
+ */
 class AuthControllerTest extends TestCase
 {
-    use DatabaseTransactions;
 
     public function test_register_creates_user_and_participant()
     {

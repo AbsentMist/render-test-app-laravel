@@ -8,13 +8,18 @@ use App\Models\Evenement;
 use App\Models\Inscription;
 use App\Models\Participant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour le controleur d'echange de dossard.
+ *
+ * @author Steven Ngoie
+ * @return void
+ */
 class EchangeDossardControllerTest extends TestCase
 {
-    use DatabaseTransactions;
 
     public function test_initier_echange_retourne_une_reponse_json_sans_erreur_utf8(): void
     {

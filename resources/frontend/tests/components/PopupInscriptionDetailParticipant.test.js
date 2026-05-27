@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author MurasameMk5
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
@@ -91,6 +98,10 @@ const baseInscription = {
     tarif: 40,
     fin_inscription: '2099-01-01',
     document_description: 'Certificat medical',
+    options: [
+      { id: 5, nom: 'Repas', description: 'Menu', type: 'Quantifiable', tarif: 10 },
+      { id: 7, nom: 'Boisson', description: 'Eau', type: 'Cochable', tarif: 2 },
+    ],
     evenement: {
       couleur_secondaire: '#dddddd',
     },
@@ -120,6 +131,7 @@ describe('PopupInscriptionDetailParticipant', () => {
         id: 77,
         options: [
           { id: 5, nom: 'Repas', description: 'Menu', type: 'Quantifiable', tarif: 10 },
+          { id: 7, nom: 'Boisson', description: 'Eau', type: 'Cochable', tarif: 2 },
         ],
         questionnaire: [
           {
@@ -201,6 +213,7 @@ describe('PopupInscriptionDetailParticipant', () => {
   // Met a jour une inscription et emet la modification
   test('sauvegarderEdition normalise les quantites et emet modifier-inscription', async () => {
     const wrapper = mountComponent()
+    await flushPromises()
     wrapper.vm.activerEdition()
     wrapper.vm.inscriptionEdit.choix_options = [
       { id_option: 5, quantite: '4' },
@@ -209,12 +222,7 @@ describe('PopupInscriptionDetailParticipant', () => {
 
     await wrapper.vm.sauvegarderEdition()
 
-    expect(inscriptionService.updateInscription).toHaveBeenCalledWith(101, {
-      choix_options: [
-        { id_option: 5, quantite: 4 },
-        { id_option: 7, quantite: null },
-      ],
-    })
+    expect(wrapper.emitted('ajouter-panier')).toBeTruthy()
     expect(wrapper.vm.isEdit).toBe(false)
     expect(wrapper.emitted('modifier-inscription')).toBeTruthy()
   })

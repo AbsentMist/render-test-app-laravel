@@ -4,14 +4,19 @@ namespace Tests\Feature;
 
 use App\Models\Participant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
+/**
+ * Tests feature pour le profil utilisateur.
+ *
+ * @author Steven Ngoie
+ * @return void
+ */
 class ProfileControllerTest extends TestCase
 {
-    use DatabaseTransactions;
 
     public function test_show_returns_profile_payload_for_authenticated_user()
     {

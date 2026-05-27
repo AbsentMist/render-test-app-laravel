@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author Ngozoo
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
@@ -38,7 +45,7 @@ describe('EtapePanier', () => {
   test('initialise codeInterne avec codeParticipation', () => {
     const wrapper = mountComponent({ codeParticipation: 'ABC123' })
 
-    expect(wrapper.vm.codeInterne).toBe('ABC123')
+    expect(wrapper.vm.codeUnique).toBe('ABC123')
   })
 
   // Synchronise codeInterne quand la prop change
@@ -46,18 +53,24 @@ describe('EtapePanier', () => {
     const wrapper = mountComponent({ codeParticipation: 'OLD' })
 
     await wrapper.setProps({ codeParticipation: 'NEW' })
-    expect(wrapper.vm.codeInterne).toBe('NEW')
+    expect(wrapper.vm.codeUnique).toBe('NEW')
 
     await wrapper.setProps({ codeParticipation: null })
-    expect(wrapper.vm.codeInterne).toBe('')
+    expect(wrapper.vm.codeUnique).toBe('')
   })
 
   // Emet update:codeParticipation sur input
-  test('emettreCodeParticipation emet la valeur courante', () => {
-    const wrapper = mountComponent()
-    wrapper.vm.codeInterne = 'CODE-77'
+  test('appliquerCode emet la valeur courante quand code dossard valide', async () => {
+    const wrapper = mountComponent({ idCourse: 1 })
+    wrapper.vm.codeUnique = 'CODE-77'
 
-    wrapper.vm.emettreCodeParticipation()
+    // mock validation as dossard valide
+    const codeDossardService = (await import('../../services/codeDossardService')).default
+    codeDossardService.validerCode.mockResolvedValue({ data: { valide: true, code: 'CODE-77' } })
+
+    await wrapper.vm.appliquerCode()
+    // wait microtasks
+    await Promise.resolve()
 
     expect(wrapper.emitted('update:codeParticipation')).toBeTruthy()
     expect(wrapper.emitted('update:codeParticipation')[0][0]).toBe('CODE-77')
@@ -65,10 +78,16 @@ describe('EtapePanier', () => {
 
   // Trigger input appelle l emission
   test('interaction input declenche update:codeParticipation', async () => {
-    const wrapper = mountComponent()
-    const input = wrapper.find('input[placeholder="Code de participation"]')
+    const wrapper = mountComponent({ idCourse: 1 })
+    const input = wrapper.find('input[placeholder="Code dossard ou code rabais"]')
+
+    // mock as dossard valid to trigger emission on enter
+    const codeDossardService = (await import('../../services/codeDossardService')).default
+    codeDossardService.validerCode.mockResolvedValue({ data: { valide: true, code: 'ENTREPRISE' } })
 
     await input.setValue('ENTREPRISE')
+    await input.trigger('keyup.enter')
+    await Promise.resolve()
 
     expect(wrapper.emitted('update:codeParticipation')).toBeTruthy()
     expect(wrapper.emitted('update:codeParticipation').at(-1)[0]).toBe('ENTREPRISE')
@@ -90,7 +109,7 @@ describe('EtapePanier', () => {
     })
 
     const wrapper = mount(Host)
-    const input = wrapper.find('input[placeholder="Code de participation"]')
+    const input = wrapper.find('input[placeholder="Code dossard ou code rabais"]')
 
     await input.trigger('keyup.enter')
     await Promise.resolve()
@@ -98,10 +117,10 @@ describe('EtapePanier', () => {
   })
 
   // Ne casse pas si parent absent
-  test('verifierCodeEntrepriseParent est safe sans parent', () => {
+  test('verifierCodeEntrepriseParent est safe sans parent', async () => {
     codeDossardService.validerCode.mockRejectedValue(new Error('API down'))
     const wrapper = mountComponent({ idCourse: 1, codeParticipation: 'ABC123' })
 
-    expect(() => wrapper.vm.validerCodeDossard()).not.toThrow()
+    await expect(wrapper.vm.appliquerCode()).resolves.not.toThrow()
   })
 })

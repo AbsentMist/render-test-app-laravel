@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author JeanDaniel
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import FiltreInscriptions from '../../components/FiltreInscriptions.vue'

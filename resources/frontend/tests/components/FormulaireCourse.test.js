@@ -1,3 +1,10 @@
+/**
+ * Tests frontend du projet.
+ *
+ * @author Ngozoo
+ * @returns {void}
+ */
+
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import FormulaireCourse from '../../components/FormulaireCourse.vue';
@@ -12,6 +19,12 @@ import questionOrganisateurService from '../../services/questionOrganisateurServ
 vi.mock('flowbite', () => ({
   initDropdowns: vi.fn(),
 }));
+
+vi.stubGlobal('FlowbiteInstances', {
+  getInstance: vi.fn(() => ({
+    hide: vi.fn(),
+  })),
+});
 
 vi.mock('@iconify/vue', () => ({
   Icon: {
@@ -161,6 +174,24 @@ function mountComponent(routeQuery = {}) {
   });
 }
 
+async function remplirEtapeGenerale(wrapper) {
+  await wrapper.find('button[data-dropdown-toggle="dropdownEvent"]').trigger('click')
+  await wrapper.find('#dropdownEvent button').trigger('click')
+  await wrapper.find('#name').setValue('Course test')
+  await wrapper.find('#datepicker-start').setValue('2026-07-01')
+  await wrapper.find('#datepicker-end').setValue('2026-07-01')
+  await wrapper.find('#inscriptionpicker-start').setValue('2026-06-01')
+  await wrapper.find('#inscriptionpicker-end').setValue('2026-06-30')
+  await wrapper.find('#distance').setValue('10')
+  await wrapper.find('#maxRunners').setValue('100')
+  await wrapper.find('#firstDossard').setValue('1')
+  await wrapper.find('#lastDossard').setValue('100')
+  await wrapper.find('#ageMin').setValue('18')
+  await wrapper.find('button[data-dropdown-toggle="dropdownType"]').trigger('click')
+  await wrapper.find('#dropdownType button').trigger('click')
+  await wrapper.find('#tarif').setValue('25')
+}
+
 describe('FormulaireCourse', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -186,8 +217,11 @@ describe('FormulaireCourse', () => {
     const wrapper = mountComponent();
     await flushPromises();
 
+    await remplirEtapeGenerale(wrapper)
+
     const nextButton = wrapper.findAll('button').find((b) => b.text().includes('Etape suivante'));
     await nextButton.trigger('click');
+    await flushPromises();
 
     expect(wrapper.text()).toContain('Options supplémentaires');
     expect(wrapper.text()).toContain('Etape précédente');
@@ -197,8 +231,11 @@ describe('FormulaireCourse', () => {
     const wrapper = mountComponent();
     await flushPromises();
 
+    await remplirEtapeGenerale(wrapper)
+
     const nextButton = wrapper.findAll('button').find((b) => b.text().includes('Etape suivante'));
     await nextButton.trigger('click');
+    await flushPromises();
 
     const plusButtons = wrapper.findAll('button').filter((b) => b.classes().includes('rounded-full'));
     await plusButtons[0].trigger('click');
@@ -222,8 +259,11 @@ describe('FormulaireCourse', () => {
     const wrapper = mountComponent();
     await flushPromises();
 
+    await remplirEtapeGenerale(wrapper)
+
     const nextButton = wrapper.findAll('button').find((b) => b.text().includes('Etape suivante'));
     await nextButton.trigger('click');
+    await flushPromises();
 
     const plusButtons = wrapper.findAll('button').filter((b) => b.classes().includes('rounded-full'));
     await plusButtons[0].trigger('click');

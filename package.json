@@ -5,7 +5,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "devDependencies": {
     "@iconify/vue": "^5.0.0",
