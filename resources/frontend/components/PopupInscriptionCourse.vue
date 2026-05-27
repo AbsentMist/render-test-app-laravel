@@ -171,7 +171,7 @@
                                 {{ course.nom_course }}
                             </p>
                             <span class="text-gray-700 ml-2 shrink-0"
-                                >{{ course.tarif }}.-</span
+                                >{{ course.tarif }} CHF</span
                             >
                         </div>
 
@@ -259,7 +259,8 @@
                                                 ? opt.quantite
                                                 : 1)
                                         ).toFixed(2)
-                                    }}.-</span
+                                    }}
+                                    CHF</span
                                 >
                             </div>
                         </div>
@@ -279,10 +280,9 @@
                             <span
                                 >-
                                 {{
-                                    inscription.rabais.montant_rabais.toFixed(
-                                        2,
-                                    )
-                                }}.-</span
+                                    inscription.rabais.montant_rabais.toFixed(2)
+                                }}
+                                CHF</span
                             >
                         </div>
                         <!-- Dossard personnalisé -->
@@ -310,7 +310,7 @@
                                 >Total</span
                             >
                             <span class="text-sm font-bold text-gray-800"
-                                >{{ totalInscription.toFixed(2) }}.-</span
+                                >{{ totalInscription.toFixed(2) }} CHF</span
                             >
                         </div>
                     </div>
