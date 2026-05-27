@@ -18,20 +18,19 @@ class ParticipantSeeder extends Seeder
      */
     public function run(): void
     {
-        // Créer un utilisateur
-        $user = User::create([
-            'email'    => 'participant@test.ch',
-            'password' => Hash::make('Participant2026!'),
+        // Participant 1
+        $user1 = User::create([
+            'email'    => 'particip1@inscriptionrunning.ch',
+            'password' => Hash::make('Particip123#'),
         ]);
 
-        // Créer un participant lié à cet utilisateur
         Participant::create([
-            'id_user'        => $user->id,
-            'nom'            => 'Dupont',
+            'id_user'        => $user1->id,
+            'nom'            => 'Dupond',
             'prenom'         => 'Jean',
             'date_naissance' => '1990-05-15',
             'equipe_nom'     => null,
-            'adresse'        => '123 Rue de la Paix',
+            'adresse'        => '123 Rue de Genève',
             'code_postal'    => '1200',
             'ville'          => 'Genève',
             'pays'           => 'Suisse',
@@ -41,6 +40,31 @@ class ParticipantSeeder extends Seeder
             'facebook'       => null,
             'taille_tshirt'  => 'M',
             'sexe'           => 'Homme',
+            'photo'          => null,
+        ]);
+
+        // Participant 2
+        $user2 = User::create([
+            'email'    => 'particip2@inscriptionrunning.ch',
+            'password' => Hash::make('Particip123#'),
+        ]);
+
+        Participant::create([
+            'id_user'        => $user2->id,
+            'nom'            => 'Durand',
+            'prenom'         => 'Marie',
+            'date_naissance' => '1995-03-20',
+            'equipe_nom'     => null,
+            'adresse'        => '456 Avenue du Lac',
+            'code_postal'    => '1201',
+            'ville'          => 'Genève',
+            'pays'           => 'Suisse',
+            'telephone'      => '+41791234568',
+            'nationalite'    => 'Suisse',
+            'instagram'      => null,
+            'facebook'       => null,
+            'taille_tshirt'  => 'L',
+            'sexe'           => 'Femme',
             'photo'          => null,
         ]);
     }
