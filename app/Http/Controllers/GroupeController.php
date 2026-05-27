@@ -279,10 +279,10 @@ class GroupeController extends Controller
                         }),
                     ];
                 });
-            } else {
+            } elseif ($course) {
                 $course->questionnaire = null;
             }
-            
+
             return $groupe;
         });
 

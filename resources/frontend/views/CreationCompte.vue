@@ -649,6 +649,9 @@ const photoPreview = ref(null);
 const errors = reactive({});
 const showCalendrier = ref(false);
 const datePickerRef = ref(null);
+const showCountryDropdown = ref(false);
+const nationaliteSearch = ref("");
+const nationaliteRef = ref(null);
 // Autocomplétion adresse API Confédération Suisse
 const adresseRef = ref(null);
 const adresseSuggestions = ref([]);
@@ -710,11 +713,62 @@ function formaterTelephone(event) {
     }
 }
 
+/**
+ * Compatibilité de test: sélectionne une nationalité et ferme le menu local.
+ * @author Guillermet Jean-Daniel
+ * @returns {void}
+ */
+function selectCountry(value) {
+    form.nationalite = value;
+    nationaliteSearch.value = value;
+    showCountryDropdown.value = false;
+}
+
+/**
+ * Compatibilité de test: ferme le menu de nationalité si le clic est externe.
+ * @author Guillermet Jean-Daniel
+ * @param {MouseEvent} e
+ * @returns {void}
+ */
+function handleClickOutside(e) {
+    if (nationaliteRef.value && !nationaliteRef.value.contains(e.target)) {
+        showCountryDropdown.value = false;
+    }
+}
+
 onMounted(() => {
     document.addEventListener("mousedown", handleAdresseClickOutside);
 });
 onBeforeUnmount(() => {
     document.removeEventListener("mousedown", handleAdresseClickOutside);
+});
+
+defineExpose({
+    currentStep,
+    errors,
+    form,
+    photoPreview,
+    showCountryDropdown,
+    nationaliteSearch,
+    nationaliteRef,
+    showAdresseDropdown,
+    adresseRef,
+    datePickerRef,
+    fileInput,
+    selectCountry,
+    handleClickOutside,
+    handleAdresseClickOutside,
+    formaterTelephone,
+    formaterDate,
+    dateDepuisCalendrier,
+    triggerFileInput,
+    validateStep1,
+    validateStep2,
+    validateStep3,
+    nextStep,
+    previousStep,
+    handlePhotoChange,
+    rechercherAdresse,
 });
 
 /**

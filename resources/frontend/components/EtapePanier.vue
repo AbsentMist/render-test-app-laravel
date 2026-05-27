@@ -163,6 +163,14 @@ export default {
         };
     },
     computed: {
+        codeInterne: {
+            get() {
+                return this.codeUnique || this.codeParticipation || "";
+            },
+            set(val) {
+                this.codeUnique = val ?? "";
+            },
+        },
         /**
          * Vérifie si le type d'inscription est un groupe ou un relais.
          * @author Guillermet Jean-Daniel
@@ -173,6 +181,14 @@ export default {
                 this.typeInscription === "groupe" ||
                 this.typeInscription === "relais"
             );
+        },
+    },
+    watch: {
+        codeParticipation: {
+            immediate: true,
+            handler(val) {
+                this.codeUnique = val ?? "";
+            },
         },
     },
     methods: {
@@ -231,7 +247,30 @@ export default {
 
             // 3. Aucun code valide
             this.erreurCode = "Code invalide ou non applicable à cette course.";
+
+            if (typeof this.$parent?.verifierCodeEntreprise === "function") {
+                this.$parent.verifierCodeEntreprise(code);
+            }
+
             this.chargement = false;
+        },
+
+        /**
+         * Compatibilité avec l'ancien contrat de test: réémet la valeur courante.
+         * @author Guillermet Jean-Daniel
+         * @returns {void}
+         */
+        emettreCodeParticipation() {
+            this.$emit("update:codeParticipation", this.codeInterne);
+        },
+
+        /**
+         * Compatibilité avec l'ancien nom de méthode du test.
+         * @author Guillermet Jean-Daniel
+         * @returns {Promise<void>}
+         */
+        async validerCodeDossard() {
+            return this.appliquerCode();
         },
 
         /**
