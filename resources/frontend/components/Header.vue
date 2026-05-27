@@ -516,8 +516,7 @@ const getLogoSource = (evenement) => {
 
           <span 
             v-if="cartStore.cartCount > 0 && !authStore.showAdminLayout" 
-            :class="['absolute -top-2 -right-2 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold border-2 shadow-sm pointer-events-none z-10', themeStore.primaryColor ? '' : 'text-tertiary border-tertiary']"
-            :style="themeStore.primaryColor ? {color: themeStore.secondaryColor, borderColor: themeStore.secondaryColor} : {}"
+            class="absolute -top-2 -right-2  rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow-sm pointer-events-none z-10 text-secondary bg-accent "
             >
             {{ cartStore.cartCount }}
           </span>

@@ -10,7 +10,10 @@
       class="absolute top-4 right-4 w-6 h-6 rounded-full border flex items-center justify-center text-xs font-medium"
       :style="{ borderColor: evt.couleur_secondaire, color: evt.couleur_secondaire }"
     >
-      <Icon icon="mdi:exclamation-thick" class="w-4 h-4" />
+      <Icon @click.stop="togglePopup(evt)" icon="mdi:exclamation-thick" class="w-4 h-4 cursor-pointer" />
+    </div>
+    <div v-if="popupOpenForEventId === evt.id" @click.stop class="absolute top-4 right-4 -translate-y-full bg-white text-primary rounded-lg shadow-lg p-2 z-50 whitespace-nowrap text-sm">
+      <span :href="[evt.url]" @click="router.push(evt.url)">Voir la page de l'évènement</span>
     </div>
     <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-6">
       <img
@@ -57,6 +60,7 @@ const props = defineProps({
 const router = useRouter();
 const evenementsColorises = ref([]);
 const emit = defineEmits(['selectionner']);
+const popupOpenForEventId = ref(null);
 
 /**
  * Gère le clic sur une carte selon le mode courant.
@@ -65,11 +69,22 @@ const emit = defineEmits(['selectionner']);
  * @returns {void}
  */
 function handleClick(evt) {
+  if (popupOpenForEventId.value === evt.id) return;
   if (props.mode === 'selection') {
     emit('selectionner', evt);
   } else {
     router.push({ name: 'ListeCourses', params: { idEvenement: evt.id } });
   }
+}
+
+/**
+ * Bascule l'affichage du popup pour un événement.
+ * @author Perroud Rémi
+ * @param {Object} evt Évènement ciblé.
+ * @returns {void}
+ */
+function togglePopup(evt) {
+  popupOpenForEventId.value = popupOpenForEventId.value === evt.id ? null : evt.id;
 }
 
 /**
