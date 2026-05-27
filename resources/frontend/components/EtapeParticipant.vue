@@ -893,6 +893,11 @@ export default {
             return "";
         },
 
+        /**
+         * Limites de participants pour le groupe/relais selon la configuration (prop maxPersonnes ou parsing du nom du type).
+         * @author Guillermet Jean-Daniel
+         * @returns {object|null} { min: number, max: number } ou null si pas de limite définie 
+         */
         limiteGroupe() {
             if (this.maxPersonnes)
                 return { min: this.maxPersonnes, max: this.maxPersonnes };
@@ -903,6 +908,10 @@ export default {
             return null;
         },
 
+        /**
+         * Message de statut de la sélection du groupe/relais avec validation selon les limites définies.
+         * @author Guillermet Jean-Daniel   
+         */
         messageStatutGroupe() {
             const nb = this.groupeData.participants.length;
             const limite = this.limiteGroupe;
@@ -946,6 +955,11 @@ export default {
             },
         },
 
+        /**
+         * Validation du formulaire de création de participant avec prise en compte des champs obligatoires, de l'âge minimum et de la responsabilité légale pour les mineurs.
+         * @author Guillermet Jean-Daniel
+         * @returns {boolean}
+         */
         formulaireValide() {
             const baseValide =
                 this.form.nom.trim() !== "" &&

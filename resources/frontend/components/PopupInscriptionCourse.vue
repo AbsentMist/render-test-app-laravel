@@ -430,14 +430,24 @@ import EtapeQuestionnaire from "./EtapeQuestionnaire.vue";
 import EtapePanier from "./EtapePanier.vue";
 import groupeService from "../services/groupeService";
 
+/**
+ * @enum {number} Identifiants des étapes du formulaire d'inscription.
+ * L'ordre des valeurs détermine la progression dans `etapesActives`.
+ */
 const formulaireEtape = {
-    PARAMETRE: 1,
-    PARTICIPANTS: 2,
-    OPTIONS: 3,
-    DOCUMENT: 4,
+    PARAMETRE:     1,
+    PARTICIPANTS:  2,
+    OPTIONS:       3,
+    DOCUMENT:      4,
     QUESTIONNAIRE: 5,
-    CONFIRMATION: 6,
+    CONFIRMATION:  6,
 };
+
+/**
+ * @enum {number} Identifiants des modales affichées dans la popup.
+ * AVERTISSEMENT est affiché en premier si la course possède un avertissement,
+ * INSCRIPTION prend ensuite le relai pour le formulaire complet.
+ */
 const modals = { AVERTISSEMENT: 1, INSCRIPTION: 2 };
 
 export default {
@@ -469,6 +479,7 @@ export default {
             formulaireEtapesLabels: [],
             participantsSupplementaires: [],
             creationGroupe: false,
+            
             inscription: {
                 type: null,
                 participant: [],
@@ -478,7 +489,7 @@ export default {
                 reponses: {},
                 codeParticipation: "",
                 nom_equipe: "",
-                rabais: null, // { code, montant_rabais, tarif_final, message }
+                rabais: null,      // { code, montant_rabais, tarif_final, message }
                 code_dossard: null, // { code, nom_personnalise, message }
             },
             erreurGroupe: null,
@@ -487,12 +498,25 @@ export default {
         };
     },
     watch: {
+        /**
+         * Réinitialise les états entreprise et erreur dès que l'utilisateur
+         * modifie le code de participation, évitant d'afficher un résultat périmé.
+         * @author Guillermet Jean-Daniel
+         * @param {string} newVal - Nouvelle valeur du code saisi
+         */
         "inscription.codeParticipation"(newVal) {
             this.entrepriseValidee = null;
             this.erreurCode = null;
         },
     },
     computed: {
+        /**
+         * Fusionne les participants de base avec ceux créés à la volée
+         * dans EtapeParticipant (membres ajoutés manuellement au groupe éphémère),
+         * en dédoublonnant par identifiant.
+         * @author Guillermet Jean-Daniel
+         * @returns {Array<Object>} Liste dédoublonnée de tous les participants disponibles
+         */
         tousLesParticipants() {
             const ids = new Set(this.participants.map((p) => p.id));
             const extras = (
@@ -500,9 +524,25 @@ export default {
             ).filter((p) => !ids.has(p.id));
             return [...this.participants, ...extras];
         },
+
+        /**
+         * Indique si la course est de type "Groupe".
+         * Conditionne le label de l'étape participants et les règles de validation.
+         * @author Guillermet Jean-Daniel
+         * @returns {boolean}
+         */
         estCourseGroupe() {
             return this.course.type === "Groupe";
         },
+
+        /**
+         * Calcule dynamiquement la liste des étapes à afficher selon la configuration
+         * de la course (présence d'options, de document, de questionnaire).
+         * Met également à jour `formulaireEtapesLabels` pour l'indicateur de progression.
+         * Les étapes PARAMETRE, PARTICIPANTS et CONFIRMATION sont toujours présentes.
+         * @author Guillermet Jean-Daniel
+         * @returns {number[]} Tableau ordonné des identifiants d'étapes actives
+         */
         etapesActives() {
             const listeEtapes = [formulaireEtape.PARAMETRE];
             const listeLabels = ["Type"];
@@ -525,12 +565,34 @@ export default {
             this.formulaireEtapesLabels = listeLabels;
             return listeEtapes;
         },
+
+        /**
+         * Indique si l'étape courante est la dernière de la séquence active.
+         * Quand true, le bouton de navigation affiche "Ajouter au panier"
+         * et `etapeSuivante` déclenche la soumission plutôt qu'une progression.
+         * @author Guillermet Jean-Daniel
+         * @returns {boolean}
+         */
         estDerniereEtape() {
             return (
                 this.etapesActives.indexOf(this.etape) ===
                 this.etapesActives.length - 1
             );
         },
+
+        /**
+         * Détermine si l'utilisateur peut progresser depuis l'étape courante.
+         * Les règles varient selon l'étape :
+         *   - PARAMETRE    : un type d'inscription doit être sélectionné
+         *   - PARTICIPANTS : pour challenge, groupe nom + ≥1 participant ; pour groupe/relais,
+         *                    nom + nombre exact de membres requis (ou ≥2 si non contraint) ;
+         *                    sinon au moins 1 participant
+         *   - DOCUMENT     : au moins un fichier uploadé
+         *   - QUESTIONNAIRE: toutes les questions ont une réponse
+         *   - autres       : toujours true
+         * @author Guillermet Jean-Daniel
+         * @returns {boolean}
+         */
         peutContinuer() {
             if (this.etape === formulaireEtape.PARAMETRE)
                 return !!this.inscription.type;
@@ -555,11 +617,9 @@ export default {
                 }
                 return this.inscription.participant.length > 0;
             }
-            // Document obligatoire si la course en demande un
             if (this.etape === formulaireEtape.DOCUMENT) {
                 return this.inscription.documents.length > 0;
             }
-            // Questionnaire obligatoire : toutes les questions doivent avoir une réponse
             if (this.etape === formulaireEtape.QUESTIONNAIRE) {
                 const questions = this.course.questionnaire ?? [];
                 if (questions.length === 0) return true;
@@ -569,11 +629,24 @@ export default {
             }
             return true;
         },
+
+        /**
+         * Retourne la liste des options réellement sélectionnées par l'utilisateur
+         * sous forme de tableau, à partir de l'objet clé-valeur `inscription.options`.
+         * Chaque entrée contient l'objet option complet et la quantité choisie (0 pour cochable non-coché).
+         * Les options cochables ont une quantité de 1 si cochées, 0 sinon ; les options quantifiables ont la quantité choisie par l'utilisateur.
+         * @author Guillermet Jean-Daniel
+         * @returns {Array<{ option: Object, quantite: number }>}
+         */
         optionsSelectionnees() {
             return Object.values(this.inscription.options || {});
         },
+
         /**
-         * Calcule le total : tarif de base + options - rabais éventuel.
+         * Calcule le montant total de l'inscription :
+         * tarif de base (0 si entreprise validée) + options - rabais éventuel.
+         * Le résultat est garanti non négatif (Math.max(..., 0)).
+         * @returns {number} Montant total en CHF
          */
         totalInscription() {
             const base = this.entrepriseValidee
@@ -590,6 +663,14 @@ export default {
             const montantRabais = this.inscription.rabais?.montant_rabais ?? 0;
             return Math.max(sousTotal - montantRabais, 0);
         },
+
+        /**
+         * Transforme `inscription.options` au format attendu par le backend :
+         * un tableau d'objets `{ id_option, quantite }`.
+         * Les options cochables ont une quantité fixe de 1, les non-cochables de 0.
+         * @author Guillermet Jean-Daniel
+         * @returns {Array<{ id_option: number, quantite: number }>}
+         */
         choixOptionsPourPanier() {
             return this.optionsSelectionnees.map(({ option, quantite }) => ({
                 id_option: option.id,
@@ -601,6 +682,13 @@ export default {
                           : 0,
             }));
         },
+
+        /**
+         * Transforme `inscription.reponses` au format attendu par le backend :
+         * un tableau d'objets `{ id_question, id_option_choisie }`.
+         * @author Guillermet Jean-Daniel
+         * @returns {Array<{ id_question: number, id_option_choisie: number|null }>}
+         */
         reponsesPourPanier() {
             return Object.entries(this.inscription.reponses || {}).map(
                 ([id_question, valeur]) => ({
@@ -609,6 +697,15 @@ export default {
                 }),
             );
         },
+
+        /**
+         * Indique si un code de participation saisi bloque la progression.
+         * Un code est bloquant uniquement s'il est non vide, non validé comme
+         * code entreprise et non validé comme code dossard — ce qui signifie
+         * que l'utilisateur a saisi quelque chose sans que sa nature soit résolue.
+         * @author Guillermet Jean-Daniel
+         * @returns {boolean}
+         */
         codeBloquant() {
             const code = this.inscription.codeParticipation?.trim();
             if (!code) return false;
@@ -618,11 +715,34 @@ export default {
         },
     },
     methods: {
+        /**
+         * Recule à l'étape précédente dans la séquence des étapes actives.
+         * Sans effet si l'on est déjà à la première étape.
+         * @author Guillermet Jean-Daniel
+         * @returns {void}
+         */
         etapePrecedente() {
             const idx = this.etapesActives.indexOf(this.etape);
             if (idx > 0) this.etape = this.etapesActives[idx - 1];
         },
 
+        /**
+         * Avance à l'étape suivante ou finalise l'inscription si c'est la dernière étape.
+         *
+         * À la dernière étape, le flux est le suivant :
+         *   1. Si le type est "groupe" ou "relais" : crée le groupe via l'API, puis ajoute
+         *      chaque membre en gérant les doublons (409 ignoré).
+         *   2. Si le type est "challenge" : crée le groupe challenge via l'API
+         *      (le doublon 500/UNIQUE est ignoré silencieusement).
+         *   3. Si une entreprise est validée, son id remplace l'id du groupe créé.
+         *   4. Émet `ajouter-panier` avec le payload complet (tarifs, rabais, dossard,
+         *      options, réponses).
+         *
+         * Les erreurs de création de groupe sont capturées et affichées dans `erreurGroupe`.
+         * `creationGroupe` est utilisé comme verrou UI pendant les appels API.
+         * @author Guillermet Jean-Daniel
+         * @returns {Promise<void>}
+         */
         async etapeSuivante() {
             this.erreurGroupe = null;
             if (!this.peutContinuer || this.creationGroupe) return;
@@ -725,10 +845,10 @@ export default {
                     ...this.inscription,
                     id_groupe: id_groupe_final,
                     nom_equipe: this.inscription.groupeEphemere?.nom ?? null,
-                    tarif: this.totalInscription, //prix après rabais
+                    tarif: this.totalInscription,
                     tarif_base:
                         this.totalInscription +
-                        (this.inscription.rabais?.montant_rabais ?? 0), // prix avant rabais
+                        (this.inscription.rabais?.montant_rabais ?? 0),
                     montant_rabais:
                         this.inscription.rabais?.montant_rabais ?? 0,
                     code_rabais: this.inscription.rabais?.code ?? null,
@@ -745,6 +865,14 @@ export default {
             this.etape = this.etapesActives[idx + 1];
         },
 
+        /**
+         * Ajoute un participant créé à la volée depuis EtapeParticipant à la liste
+         * locale `participantsSupplementaires`, en évitant les doublons par identifiant.
+         * Ces participants sont ensuite fusionnés dans `tousLesParticipants`.
+         * @author Guillermet Jean-Daniel
+         * @param {Object} data - Objet participant fraîchement créé
+         * @returns {void}
+         */
         ajouterParticipantSupplementaire(data) {
             if (
                 !this.participantsSupplementaires.some((p) => p.id === data.id)
@@ -753,6 +881,14 @@ export default {
             }
         },
 
+        /**
+         * Vérifie la validité du code de participation saisi en interrogeant le backend.
+         * En cas de succès, stocke l'objet groupe entreprise dans `entrepriseValidee`,
+         * ce qui rend le tarif de base gratuit dans `totalInscription`.
+         * En cas d'échec, affiche le message d'erreur retourné par l'API dans `erreurCode`.
+         * @author Guillermet Jean-Daniel
+         * @returns {Promise<void>}
+         */
         async verifierCodeEntreprise() {
             const codeSaisi = this.inscription.codeParticipation?.trim();
             if (!codeSaisi) {
@@ -771,23 +907,46 @@ export default {
         },
 
         /**
-         * Appelé quand EtapePanier valide un code de rabais.
-         * @param {Object} rabaisData - { code, montant_rabais, tarif_final, message }
+         * Appelé quand EtapePanier émet l'événement `rabais-applique`.
+         * Stocke les données du rabais validé dans l'inscription pour qu'elles
+         * soient prises en compte dans `totalInscription` et transmises au panier.
+         * @author Guillermet Jean-Daniel
+         * @param {{ code: string, montant_rabais: number, tarif_final: number, message: string }} rabaisData
+         * @returns {void}
          */
         onRabaisApplique(rabaisData) {
             this.inscription.rabais = rabaisData;
         },
 
         /**
-         * Appelé quand EtapePanier retire le code de rabais.
+         * Appelé quand EtapePanier émet l'événement `rabais-retire`.
+         * Supprime le rabais actif de l'inscription, ce qui recalcule
+         * immédiatement `totalInscription` au tarif plein.
+         * @author Guillermet Jean-Daniel
+         * @returns {void}
          */
         onRabaisRetire() {
             this.inscription.rabais = null;
         },
+
+        /**
+         * Appelé quand EtapePanier émet l'événement `dossard-valide`.
+         * Stocke les données du dossard personnalisé validé dans l'inscription
+         * pour transmission au panier.
+         * @author Guillermet Jean-Daniel
+         * @param {{ code: string, nom_personnalise: string|null, message: string }} dossardData
+         * @returns {void}
+         */
         onDossardValide(dossardData) {
             this.inscription.code_dossard = dossardData;
         },
     },
+
+    /**
+     * Initialise la popup au montage :
+     * - positionne l'étape courante sur la première étape active
+     * - affiche la modale AVERTISSEMENT si la course en possède un, sinon INSCRIPTION directement
+     */
     mounted() {
         console.log("max_nb_personne:", this.course.max_nb_personne);
         this.etape = this.etapesActives[0];

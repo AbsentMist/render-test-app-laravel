@@ -525,6 +525,7 @@ export default {
     methods: {
         /**
          * Bascule le menu d'options pour une course donnée.
+         * @author Neris Alessandro
          * @param {number} courseId - L'identifiant de la course
          * @returns {void}
          */
@@ -537,6 +538,7 @@ export default {
         },
         /**
          * Met à jour la position du menu d'options en fonction de la position du bouton.
+         * @author Neris Alessandro
          * @returns {void}
          */
         updateOptionListPosition() {
@@ -551,6 +553,7 @@ export default {
         },
         /**
          * Recherche et retourne une course par son identifiant.
+         * @author Neris Alessandro
          * @param {number} courseId - L'identifiant de la course à trouver
          * @returns {object|null} - La course correspondante ou null si non trouvée
          */
@@ -559,6 +562,7 @@ export default {
         },
         /**
          * Traite la sélection d'une option (Dupliquer ou Supprimer) pour une course.
+         * @author Neris Alessandro
          * @param {object} course - La course concernée par l'option
          * @param {string} option - L'option sélectionnée ("Dupliquer" ou "Supprimer")
          * @returns {void}
@@ -584,6 +588,7 @@ export default {
         },
         /**
          * Formate une date au format JJ.MM.AAAA selon la locale fr-CH.
+         * @author Neris Alessandro
          * @param {string} dateString - La chaîne de date à formater
          * @returns {string} - La date formatée ou "—" si la date est invalide
          */
@@ -598,6 +603,7 @@ export default {
         },
         /**
          * Charge la liste des courses pour l'événement actuel depuis l'API.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async chargerCourses() {
@@ -608,7 +614,7 @@ export default {
                     this.idEvenement,
                 );
                 this.courses = response.data?.courses ?? [];
-            } catch (e) {
+            } catch {
                 this.erreur = "Impossible de charger les courses.";
             } finally {
                 this.chargement = false;
@@ -616,6 +622,7 @@ export default {
         },
         /**
          * Redirige vers le formulaire de modification pour une course.
+         * @author Guillermet Jean-Daniel
          * @param {object} course - La course à modifier
          * @returns {void}
          */
@@ -626,6 +633,7 @@ export default {
         },
         /**
          * Ouvre la popup de gestion des codes de rabais pour une course.
+         * @author Guillermet Jean-Daniel
          * @param {object} course - La course concernée
          * @returns {void}
          */
@@ -634,6 +642,7 @@ export default {
         },
         /**
          * Ouvre la popup de gestion des codes dossard personnalisés pour une course.
+         * @author Guillermet Jean-Daniel
          * @param {object} course - La course concernée
          * @returns {void}
          */
@@ -642,6 +651,7 @@ export default {
         },
         /**
          * Prépare la suppression d'une course en l'assignant à courseASupprimer et affiche la popup de confirmation.
+         * @author Neris Alessandro
          * @param {object} course - La course à supprimer
          * @returns {void}
          */
@@ -650,6 +660,7 @@ export default {
         },
         /**
          * Affiche la popup des résultats du questionnaire pour une course.
+         * @author Neris Alessandro
          * @param {object} course - La course dont afficher les résultats
          * @returns {void}
          */
@@ -658,6 +669,7 @@ export default {
         },
         /**
          * Ferme la popup des résultats du questionnaire.
+         * @author Neris Alessandro
          * @returns {void}
          */
         fermerQuestionnaire() {
@@ -665,6 +677,7 @@ export default {
         },
         /**
          * Vérifie si une course possède un questionnaire associé.
+         * @author Neris Alessandro
          * @param {object} course - La course à vérifier
          * @returns {boolean} - true si la course a un questionnaire, false sinon
          */
@@ -677,6 +690,7 @@ export default {
         },
         /**
          * Supprime une course et la retire de la liste après confirmation.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async supprimerCourse() {
@@ -689,12 +703,16 @@ export default {
                 );
                 this.courseASupprimer = null;
             } catch (e) {
-                this.erreur = "Impossible de supprimer cette course.";
+                // Log full error for debugging and surface a helpful message to the user
+                console.error('Erreur suppression course:', e);
+                this.erreur = e?.response?.data?.message || "Impossible de supprimer cette course.";
                 this.courseASupprimer = null;
             }
         },
         /**
          * Génère un nom unique pour une course dupliquée en ajoutant un compteur.
+         * Ex: Si "Course" existe déjà, les duplications seront nommées "Course (2)", "Course (3)", etc.
+         * @author Neris Alessandro
          * @param {string} nomOriginal - Le nom original de la course
          * @returns {string} - Le nouveau nom avec le compteur (ex: "Course (2)")
          */
@@ -707,6 +725,9 @@ export default {
         },
         /**
          * Duplique une course complète avec ses options, avertissements et questionnaires.
+         * Le nom de la nouvelle course est généré automatiquement pour éviter les conflits.
+         * Si "Dupliquer dans l'événement actuel" est décoché, la course sera dupliquée dans l'événement sélectionné dans le popup.
+         * @author Neris Alessandro
          * @param {object} course - La course à dupliquer
          * @returns {Promise<void>}
          */
@@ -863,6 +884,7 @@ export default {
         },
         /**
          * Ferme le menu d'options lorsque l'utilisateur clique en dehors.
+         * @author Neris Alessandro
          * @param {Event} event - L'événement de clic
          * @returns {void}
          */
@@ -877,6 +899,7 @@ export default {
         },
         /**
          * Ferme le menu d'options quand la touche Échap est pressée.
+         * @author Neris Alessandro
          * @param {KeyboardEvent} event - L'événement clavier
          * @returns {void}
          */
@@ -887,6 +910,7 @@ export default {
         },
         /**
          * Met à jour la position du dropdown (nom ou année) en fonction du bouton.
+         * @author Neris Alessandro
          * @param {string} dropdown - Le dropdown à positionner ("nom" ou "annee")
          * @returns {void}
          */
@@ -914,6 +938,10 @@ export default {
         },
         /**
          * Confirme et exécute la duplication de la course vers l'événement sélectionné.
+         * Si "Dupliquer dans l'événement actuel" est coché, la course sera dupliquée dans le même événement.
+         * Sinon, la course sera dupliquée dans l'événement sélectionné via les dropdowns du popup.
+         * Affiche des alertes si les informations nécessaires ne sont pas fournies ou si l'événement sélectionné est introuvable.
+         * @author Neris Alessandro
          * @returns {void}
          */
         confirmerDuplication() {
@@ -942,6 +970,7 @@ export default {
         },
         /**
          * Ouvre la popup d'affichage et d'import des résultats pour une course.
+         * @author Guillermet Jean-Daniel
          * @param {object} course - La course dont afficher les résultats
          * @returns {void}
          */
@@ -950,6 +979,7 @@ export default {
         },
         /**
          * Charge la liste de tous les événements organisateur depuis l'API.
+         * @author Neris Alessandro
          * @returns {Promise<void>}
          */
         async chargerEvenements() {

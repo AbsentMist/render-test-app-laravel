@@ -1109,7 +1109,7 @@ const formaterTelephoneValeur = (valeur) => {
 
 /**
  * Recherche des adresses via l'API geo.admin.ch avec débounce.
- * @author Ngoie Steven
+ * @author Guillermet Jean-Daniel
  * @async
  * @param {string} valeur - Le texte d'adresse à rechercher
  * @returns {Promise<void>}
@@ -1132,7 +1132,8 @@ const rechercherAdresse = async (valeur) => {
             const data = await response.json();
             adresseSuggestions.value = data.results || [];
             showAdresseDropdown.value = adresseSuggestions.value.length > 0;
-        } catch (_error) {
+        } catch (error) {
+            console.error("Erreur lors de la recherche d'adresse:", error);
             adresseSuggestions.value = [];
             showAdresseDropdown.value = false;
         }
@@ -1141,7 +1142,7 @@ const rechercherAdresse = async (valeur) => {
 
 /**
  * Sélectionne une adresse des suggestions et remplissage automatique des champs adresse, numéro, NPA, commune.
- * @author Ngoie Steven
+ * @author Guillermet Jean-Daniel
  * @param {Object} suggestion - La suggestion d'adresse sélectionnée
  * @returns {void}
  */
@@ -1167,7 +1168,7 @@ const selectionnerAdresse = (suggestion) => {
 
 /**
  * Gère le clic extérieur au dropdown d'adresses pour le fermer.
- * @author Ngoie Steven
+ * @author Guillermet Jean-Daniel
  * @param {MouseEvent} event - L'événement de clic
  * @returns {void}
  */
@@ -1506,7 +1507,7 @@ const formEdition = reactive({
 
 /**
  * Filtre et retourne les sous-profils de participants (autres que l'utilisateur courant).
- * @author Ngoie Steven
+ * @author Guillermet Jean-Daniel
  * @returns {Array} Liste des sous-profils participants
  */
 const sousProfilsParticipants = computed(() => {
@@ -1516,7 +1517,7 @@ const sousProfilsParticipants = computed(() => {
 
 /**
  * Charge la liste de tous les participants liés au compte utilisateur.
- * @author Ngoie Steven
+ * @author Guillermet Jean-Daniel
  * @async
  * @returns {Promise<void>}
  */
@@ -1534,7 +1535,7 @@ async function chargerParticipants() {
 
 /**
  * Ouvre le modal d'édition pour un participant sélectionné.
- * @author Ngoie Steven
+ * @author Guillermet Jean-Daniel
  * @param {Object} p - Le participant à éditer
  * @returns {void}
  */
@@ -1554,7 +1555,7 @@ function ouvrirEditionParticipant(p) {
 
 /**
  * Enregistre les modifications apportées à un participant.
- * @author Ngoie Steven
+ * @author Guillermet Jean-Daniel
  * @async
  * @returns {Promise<void>}
  */
@@ -1579,7 +1580,7 @@ async function sauvegarderEditionParticipant() {
 
 /**
  * Prépare la suppression d'un participant en ouvrant le modal de confirmation.
- * @author Ngoie Steven
+ * @author Guillermet Jean-Daniel
  * @param {Object} p - Le participant à supprimer
  * @returns {void}
  */
@@ -1590,7 +1591,7 @@ function confirmerSuppressionParticipant(p) {
 
 /**
  * Supprime le participant confirmé via l'API.
- * @author Ngoie Steven
+ * @author Guillermet Jean-Daniel
  * @async
  * @returns {Promise<void>}
  */

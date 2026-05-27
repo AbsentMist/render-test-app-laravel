@@ -542,6 +542,7 @@ const panier = computed(() => cartStore.inscriptions);
 /**
  * Retire un article du panier et supprime le groupe associé si nécessaire.
  * Utilise panier.value[index] pour éviter le problème de cache du handler Vue.
+ * @author Perroud Rémi
  */
 async function retirerArticle(idGroupe) {
     const index = panier.value.findIndex((i) => i.id_groupe === idGroupe);
@@ -557,6 +558,7 @@ const redirectionApresPopup = ref(null);
 
 /**
  * Ouvre la popup de confirmation d'inscription avec le message fourni.
+ * @author Perroud Rémi
  * @param {string} message
  * @param {string|null} [redirection='/inscriptions']
  */
@@ -568,6 +570,7 @@ function ouvrirPopupInscription(message, redirection = "/inscriptions") {
 
 /**
  * Ferme la popup de confirmation sans redirection.
+ * @author Perroud Rémi
  */
 function fermerPopupInscription() {
     popupInscriptionVisible.value = false;
@@ -575,6 +578,7 @@ function fermerPopupInscription() {
 
 /**
  * Confirme la popup puis effectue la redirection cible si définie.
+ * @author Perroud Rémi
  */
 function confirmerPopupInscription() {
     popupInscriptionVisible.value = false;
@@ -587,6 +591,7 @@ function confirmerPopupInscription() {
 /**
  * Normalise la source du logo évènement pour l'affichage.
  * Supporte `logo_base64` ou `logo`, avec ou sans préfixe data URI.
+ * @author Perroud Rémi
  * @param {Object} evenement
  * @returns {string|null}
  */
@@ -599,6 +604,7 @@ function getLogoSource(evenement) {
 /**
  * Applique une couleur de teinte à un logo via canvas.
  * Utilise le mode composite `source-atop` pour coloriser l'image.
+ * @author Neris Alessandro
  * @param {string} logoSrc - Data URI du logo
  * @param {string} couleur - Couleur hexadécimale (ex: '#FF0000')
  * @returns {Promise<string>} Data URI de l'image colorisée
@@ -632,6 +638,7 @@ function coloriserLogo(logoSrc, couleur) {
 
 /**
  * Colorise les logos du panier avec la couleur secondaire de l'événement.
+ * @author Perroud Rémi
  * @param {Array} panier - Tableau des articles du panier
  */
 async function coloriserLogosParier(panier) {
@@ -659,6 +666,7 @@ async function coloriserLogosParier(panier) {
 
 /**
  * Vérifie si une valeur correspond à un fichier uploadable côté navigateur.
+ * @author Perroud Rémi
  * @param {unknown} valeur
  * @returns {boolean}
  */
@@ -671,6 +679,7 @@ function estFichierNavigateur(valeur) {
 
 /**
  * Extrait un fichier exploitable depuis différents formats possibles.
+ * @author Perroud Rémi
  * @param {unknown} document
  * @returns {File|Blob|null}
  */
@@ -702,6 +711,7 @@ const deductionsParArticle = ref({});
 
 /**
  * Retourne la déduction applicable à une ligne panier.
+ * @author Ngoie Steven
  * @param {number} index
  * @returns {number}
  */
@@ -712,6 +722,7 @@ const getDeductionArticle = (index) => {
 /**
  * Retourne le tarif final d'une ligne après déduction de changement.
  * Inclut prixTotal pour les options supplémentaires.
+ * @author Perroud Rémi
  * @param {Object} article
  * @param {number} index
  * @returns {number}
@@ -725,6 +736,7 @@ const getTotalLigneArticle = (article, index) => {
 
 /**
  * Calcule le supplément dû aux options pour un article du panier.
+ * @author Ngoie Steven
  * @param {Object} article
  * @returns {number}
  */
@@ -754,6 +766,8 @@ function calculerSupplementOptions(article) {
 
 /**
  * Surveille le panier pour recalculer la déduction liée aux anciennes inscriptions.
+ * Récupère le tarif de l'ancienne inscription si `ancienneInscriptionId` est présente et met à jour `deductionsParArticle`.
+ * @author Ngoie Steven
  */
 watch(
     panier,
@@ -793,6 +807,7 @@ watch(
 
 /**
  * Somme de toutes les déductions de changement dans le panier.
+ * @author Ngoie Steven
  * @type {import('vue').ComputedRef<number>}
  */
 const deductionTotale = computed(() => {
@@ -804,6 +819,8 @@ const deductionTotale = computed(() => {
 
 /**
  * Surveille le panier pour rafraîchir les tarifs évolutifs.
+ * Si un article a `is_prix_evolutif` et pas de code de participation, récupère le tarif actuel et met à jour `article.tarif`.
+ * @author Guillermet Jean-Daniel
  */
 watch(
     panier,
@@ -835,6 +852,7 @@ watch(
 
 /**
  * Surveille le panier pour coloriser les logos des articles.
+ * @author Perroud Rémi
  */
 watch(
     panier,
@@ -848,6 +866,9 @@ watch(
 
 /**
  * Sous-total après déduction éventuelle.
+ * Inclut le calcul du tarif évolutif et des options supplémentaires.
+ * Ne peut pas être négatif, minimum 0.
+ * @author Perroud Rémi
  * @type {import('vue').ComputedRef<number>}
  */
 const sousTotal = computed(() => {
@@ -857,6 +878,7 @@ const sousTotal = computed(() => {
 
 /**
  * Frais de service appliqués uniquement si un montant positif est dû.
+ * @author Perroud Rémi
  * @type {import('vue').ComputedRef<string>}
  */
 const fraisService = computed(() => {
@@ -867,6 +889,7 @@ const fraisService = computed(() => {
 
 /**
  * Total final à payer, frais inclus.
+ * @author Perroud Rémi
  * @type {import('vue').ComputedRef<string>}
  */
 const total = computed(() => {
@@ -879,6 +902,7 @@ const total = computed(() => {
 
 /**
  * Valide le panier: crée inscriptions/options/réponses/documents puis lance le paiement.
+ * @author Ngoie Steven, Perroud Rémi
  * @returns {Promise<void>}
  */
 const procederPaiement = async () => {
@@ -1188,11 +1212,13 @@ const procederPaiement = async () => {
 
             if (gatewayResponse.data.url) {
                 cartStore.viderPanier();
-                window.location.href = gatewayResponse.data.url;
+                globalThis.location.href = gatewayResponse.data.url;
             }
         } catch (payrexxError) {
+            // Log the actual error for debugging and proceed with simulated success
             console.warn(
                 "Payrexx indisponible, simulation de paiement réussie !",
+                payrexxError,
             );
             cartStore.viderPanier();
             ouvrirPopupInscription(

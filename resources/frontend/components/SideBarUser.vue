@@ -4,6 +4,7 @@
  * @description Barre latérale de navigation dédiée aux utilisateurs participants.
  * @remarks La navigation expose les parcours participants et conserve la cohérence visuelle
  * avec le thème dynamique appliqué par l'utilisateur.
+ * @author Ngoie Steven
  */
 import { Icon } from "@iconify/vue";
 import { useAuthStore } from "../stores/auth";

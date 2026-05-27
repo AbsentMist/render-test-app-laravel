@@ -269,7 +269,8 @@ export default {
     /**
       * Indique si les modifications d'inscription sont interdites.
       * La date de fin est considérée inclusive jusqu'à 23:59:59.
-     * @returns {boolean}
+      * @author Ngoie Steven
+      * @returns {boolean}
      */
     inscriptionsFermees() {
       if (!this.groupeLocal.course?.fin_inscription) return false;
@@ -279,14 +280,25 @@ export default {
     },
     /**
       * Type normalisé de la course liée.
-     * @returns {string}
+      * @author Guillermet Jean-Daniel
+      * @returns {string}
      */
     typeCourse() {
       return this.groupeLocal.course?.type ?? '';
     },
+    /**
+     * Détecte les groupes relais.
+     * @author Guillermet Jean-Daniel
+     * @return {String}
+     */
     estRelais() {
       return this.typeCourse === 'Relais';
     },
+    /**
+      * Détecte les groupes classiques (non relais, non challenge).
+      * @author Guillermet Jean-Daniel
+      * @returns {String}
+     */
     estGroupe() {
       return this.typeCourse === 'Groupe';
     },
@@ -294,7 +306,8 @@ export default {
       * Détecte les groupes challenge.
       * Un challenge est identifié soit par un type explicite `Entreprise`,
       * soit par l'absence de fondateur dans les données pivot des participants.
-     * @returns {boolean}
+      * @author Guillermet Jean-Daniel
+      * @returns {boolean}
      */
     estChallenge() {
       return this.groupeLocal.type === 'Entreprise' ||
@@ -302,24 +315,46 @@ export default {
           p.pivot?.statut === 'Fondateur' || p.pivot?.statut === 'fondateur'
         );
     },
+    /**
+      * Libellé à afficher pour le type de groupe.
+      * @author Guillermet Jean-Daniel
+      * @returns {string}
+     */
     typeLabel() {
       if (this.estChallenge) return 'Challenge';
       if (this.estRelais)    return 'Relais';
       if (this.estGroupe)    return 'Groupe';
       return this.typeCourse;
     },
+    /**
+     * Indique si le nom du groupe peut être modifié (interdit pour les challenges).
+     * @author Guillermet Jean-Daniel
+     * @returns {boolean}
+     */
     peutModifierNom() {
       return !this.estChallenge;
     },
+      /**
+        * Nombre maximum de membres autorisés pour la course, ou null si pas de limite.
+        * @author Guillermet Jean-Daniel
+        * @returns {number|null}
+      */
     maxMembres() {
       return this.groupeLocal.course?.max_nb_personne ?? null;
     },
+      /**
+        * Indique si un membre peut être ajouté sans dépasser la limite de membres.
+        * Si aucune limite n'est définie, retourne toujours true.
+        * @author Guillermet Jean-Daniel
+        * @returns {boolean}
+       */
     peutAjouter() {
       if (!this.maxMembres) return true;
       return (this.groupeLocal.participants?.length ?? 0) < this.maxMembres;
     },
     /**
       * Liste des participants du compte qui ne sont pas déjà dans le groupe.
+      * @author Guillermet Jean-Daniel
      * @returns {Array<object>}
      */
     participantsDisponibles() {
@@ -330,6 +365,7 @@ export default {
   methods: {
     /**
       * Retourne l'identifiant du participant authentifié depuis le store.
+      * @author Guillermet Jean-Daniel
      * @returns {number|string|undefined}
      */
     monId() {
@@ -338,6 +374,7 @@ export default {
 
     /**
       * Vérifie si un membre a le statut fondateur.
+      * @author Guillermet Jean-Daniel
      * @param {object} membre
      * @returns {boolean}
      */
@@ -347,6 +384,7 @@ export default {
 
     /**
       * Construit un libellé lisible pour le rôle d'un membre.
+      * @author Guillermet Jean-Daniel
      * @param {object} membre
      * @returns {string}
      */
@@ -359,6 +397,7 @@ export default {
     /**
       * Enregistre le changement de nom du groupe.
       * Émet `mis-a-jour` avec l'instantané local du groupe en cas de succès.
+      * @author Guillermet Jean-Daniel
      * @returns {Promise<void>}
      */
     async sauvegarderNom() {
@@ -380,6 +419,7 @@ export default {
 
       /**
         * Ouvre le formulaire de remplacement pour un membre donné.
+        * @author Guillermet Jean-Daniel
        * @param {object} membre
        * @returns {void}
        */
@@ -395,6 +435,7 @@ export default {
 
     /**
       * Ouvre le formulaire d'ajout de membre.
+      * @author Guillermet Jean-Daniel
      * @returns {void}
      */
     ouvrirAjout() {
@@ -409,6 +450,7 @@ export default {
 
     /**
       * Ferme et réinitialise l'état du formulaire d'ajout/remplacement.
+      * @author Guillermet Jean-Daniel
      * @returns {void}
      */
     annulerFormulaire() {
@@ -421,6 +463,7 @@ export default {
 
     /**
       * Recherche un participant par email via l'API.
+      * @author Guillermet Jean-Daniel
      * @returns {Promise<void>}
      */
     async rechercherParEmail() {
@@ -438,6 +481,7 @@ export default {
     /**
       * Confirme un remplacement ou un ajout de membre selon l'état courant.
       * Recharge le groupe depuis l'API et émet `mis-a-jour` en cas de succès.
+      * @author Guillermet Jean-Daniel, Ngoie Steven
      * @returns {Promise<void>}
      */
     async confirmerAction() {
@@ -468,6 +512,7 @@ export default {
 
     /**
       * Ouvre la confirmation de retrait d'un membre.
+      * @author Guillermet Jean-Daniel
      * @param {object} membre
      * @returns {Promise<void>}
      */
@@ -477,6 +522,7 @@ export default {
 
     /**
       * Confirme le retrait d'un membre, recharge le groupe et émet `mis-a-jour`.
+      * @author Guillermet Jean-Daniel
      * @returns {Promise<void>}
      */
     async confirmerRetraitMembre() {

@@ -222,12 +222,27 @@ const paysFiltres = computed(() => {
     return pays.filter((p) => p.toLowerCase().includes(q));
 });
 
+/**
+ * Sélectionne un pays dans la liste filtrée.
+ * Met à jour le champ de recherche, ferme la liste et émet l'événement de mise à jour du modèle.
+ * @author Guillermet Jean-Daniel
+ * @param {string} p - Le pays sélectionné
+ * @returns {void}
+ */
 function selectionner(p) {
     recherche.value = p;
     ouvert.value = false;
     emit("update:modelValue", p);
 }
 
+/**
+ * Gère les clics à l'extérieur du composant pour fermer la liste déroulante.
+ * Si le clic est en dehors du conteneur, ferme la liste et réinitialise la recherche
+ * à la valeur du modèle si elle ne correspond à aucun pays.
+ * @author Guillermet Jean-Daniel
+ * @param {MouseEvent} e - L'événement de clic
+ * @returns {void}
+ */
 function handleClickOutside(e) {
     if (containerRef.value && !containerRef.value.contains(e.target)) {
         ouvert.value = false;

@@ -100,6 +100,7 @@ export default {
   methods: {
     /**
      * Détermine le rôle courant de l'utilisateur dans un groupe.
+     * @author Ngoie Steven
      * @param {Object} groupe
      * @returns {string}
      */
@@ -114,6 +115,7 @@ export default {
     },
     /**
      * Ouvre la popup de gestion pour le groupe sélectionné.
+     * @author Ngoie Steven
      * @param {Object} groupe
      * @returns {void}
      */
@@ -122,6 +124,7 @@ export default {
     },
     /**
      * Met à jour la liste locale après une modification validée.
+     * @author Ngoie Steven
      * @param {Object} groupeMaj
      * @returns {void}
      */
@@ -132,6 +135,7 @@ export default {
     },
     /**
      * Charge les groupes gérés par le participant.
+     * @author Ngoie Steven
      * @returns {Promise<void>}
      */
     async chargerGroupes() {
@@ -152,6 +156,7 @@ export default {
 },
     /**
      * Charge les participants liés au compte utilisateur.
+     * @author Ngoie Steven
      * @returns {Promise<void>}
      */
     async chargerParticipants() {

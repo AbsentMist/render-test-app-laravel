@@ -71,10 +71,11 @@ async function chargerParticipants() {
     try {
         const response = await participantService.getMesParticipants();
         participants.value = response.data;
-    } catch (e) {
-        // Fallback sur le participant principal du compte
-        const p = authStore.user?.participant;
-        participants.value = p ? [p] : [];
+    } catch (error) {
+      console.error('Erreur lors du chargement des participants :', error);
+      // Fallback sur le participant principal du compte
+      const p = authStore.user?.participant;
+      participants.value = p ? [p] : [];
     }
 }
 const route = useRoute();

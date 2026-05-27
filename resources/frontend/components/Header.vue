@@ -35,6 +35,7 @@ const headerLogoUrl = ref(null);
 
 /**
  * Retourne le style dynamique du bouton panier selon le thème et l'état hover.
+ * @author Neris Alessandro
  * @param {boolean} isHovered État du hover
  * @returns {object}
  */
@@ -56,6 +57,7 @@ const getCartButtonStyle = (isHovered) => {
 
 /**
  * Observe le panier pour recalculer la déduction liée aux changements de course.
+ * @author Ngoie Steven
  */
 watch(() => cartStore.inscriptions, async (nouveauPanier) => {
   let deduction = 0;
@@ -76,6 +78,7 @@ watch(() => cartStore.inscriptions, async (nouveauPanier) => {
 
 /**
  * Total affiché dans le mini-panier après déduction éventuelle.
+ * @author Ngoie Steven
  * @returns {number}
  */
 const totalMiniPanier = computed(() => {
@@ -85,6 +88,7 @@ const totalMiniPanier = computed(() => {
 
 /**
  * Bascule entre l'affichage participant et administrateur.
+ * @author Ngoie Steven
  * @returns {Promise<void>}
  */
 const handleToggleMode = async () => {
@@ -98,6 +102,7 @@ const handleToggleMode = async () => {
 
 /**
  * Nom d'affichage utilisateur selon le rôle et les données disponibles.
+ * @author Ngoie Steven 
  * @returns {{top: string, bottom: string}}
  */
 const userDisplayName = computed(() => {
@@ -112,6 +117,7 @@ const userDisplayName = computed(() => {
 /**
  * Source de l'avatar utilisateur.
  * Utilise la photo participant si disponible, sinon null pour afficher l'icone par defaut.
+ * @author Ngoie Steven
  * @returns {string|null}
  */
 const profileAvatarSource = computed(() => {
@@ -122,6 +128,7 @@ const profileAvatarSource = computed(() => {
 
 /**
  * Ferme le mini-panier puis navigue vers la page panier.
+ * @author Ngoie Steven
  * @returns {void}
  */
 const allerAuPanier = () => {
@@ -132,6 +139,7 @@ const allerAuPanier = () => {
 
 /**
  * Charge les invitations en attente pour le participant connecté.
+ * @author Ngoie Steven
  * @returns {Promise<void>}
  */
 const chargerInvitations = async () => {
@@ -185,6 +193,7 @@ onMounted(() => {
 
 /**
  * Applique une teinte sur le logo afin de l'adapter à la palette de l'évènement.
+ * @author Neris Alessandro
  * @param {string} logoSrc Source de l'image à recolorer.
  * @param {string} couleur Couleur cible.
  * @returns {Promise<string>}
@@ -209,6 +218,7 @@ async function coloriserLogo(logoSrc, couleur) {
 
 /**
  * Met à jour l'URL du logo du header en formatant et colorisant le logo du themeStore.
+ * @author Ngoie Steven
  * @returns {Promise<void>}
  */
 const mettreAJourLogoHeader = async () => {
@@ -223,6 +233,7 @@ const mettreAJourLogoHeader = async () => {
 
 /**
  * Observe les changements du logo du thème et met à jour l'affichage du header.
+ * @author Ngoie Steven
  */
 watch(() => themeStore.logo, () => {
   mettreAJourLogoHeader();
@@ -230,6 +241,7 @@ watch(() => themeStore.logo, () => {
 
 /**
  * Colorise les logos des événements présents dans le mini-panier.
+ * @author Neris Alessandro
  * @param {Array} panier Liste des articles du panier
  * @returns {Promise<void>}
  */
@@ -251,6 +263,7 @@ const coloriserLogosParier = async (panier = cartStore.inscriptions) => {
 
 /**
  * Observe le panier pour coloriser les logos des événements.
+ * @author Neris Alessandro
  */
 watch(() => cartStore.inscriptions, async (nouveauPanier) => {
   await coloriserLogosParier(nouveauPanier);
@@ -273,6 +286,7 @@ watch(isProfileDropdownOpen, (isOpen) => {
 
 /**
  * Ouvre/ferme le menu profil et garantit l'exclusivité avec le panier.
+ * @author Ngoie Steven
  * @returns {void}
  */
 const toggleProfileDropdown = () => {
@@ -284,6 +298,7 @@ const toggleProfileDropdown = () => {
 
 /**
  * Ouvre/ferme le mini-panier et garantit l'exclusivité avec le profil.
+ * @author Ngoie Steven
  * @returns {void}
  */
 const toggleCartDropdown = () => {
@@ -295,6 +310,7 @@ const toggleCartDropdown = () => {
 
 /**
  * Indique si une invitation est expirée selon la date de fin d'inscription de la course.
+ * @author Ngoie Steven
  * @param {object} invit
  * @returns {boolean}
  */
@@ -307,6 +323,7 @@ const estInvitationExpiree = (invit) => {
 
 /**
  * Affiche le popup pour accepter une invitation avec questionnaire, ou accepte directement si pas de questionnaire.
+ * @author Ngoie Steven
  * @param {object} invit L'invitation à accepter
  * @returns {Promise<void>}
  */
@@ -330,6 +347,7 @@ const afficherPopupAccepterInvitation = async (invit) => {
 
 /**
  * Ferme le popup d'acceptation d'invitation.
+ * @author Ngoie Steven
  * @returns {void}
  */
 const fermerPopupAccepterInvitation = () => {
@@ -339,6 +357,7 @@ const fermerPopupAccepterInvitation = () => {
 /**
  * Traite l'acceptation réussie de l'invitation depuis le popup.
  * Retire l'invitation de la liste et ferme le popup.
+ * @author Ngoie Steven
  * @param {object} data Données d'acceptation ({ idGroupe, reponses })
  * @returns {void}
  */
@@ -350,6 +369,7 @@ const onInvitationAcceptee = (data) => {
 
 /**
  * Refuse une invitation groupe et met à jour la liste locale.
+ * @author Ngoie Steven
  * @param {number} idGroupe
  * @returns {Promise<void>}
  */
@@ -368,6 +388,7 @@ const refuserInvitation = async (idGroupe) => {
 
 /**
  * Supprime une notification d'information côté serveur et la retire de l'affichage local.
+ * @author Ngoie Steven
  * @param {number} idNotification
  * @returns {Promise<void>}
  */
@@ -430,6 +451,7 @@ const ouvrirNotificationInfo = async (notification) => {
 /**
  * Déconnecte l'utilisateur via le store et redirige vers la page de login.
  * Garde le dropdown profil fermé et gère les erreurs silencieusement.
+ * @author Ngoie Steven
  */
 const handleLogout = async () => {
   try {
@@ -449,6 +471,7 @@ const handleLogout = async () => {
 
 /**
  * Récupère la source du logo d'un événement formatée en data URI.
+ * @author Neris Alessandro
  * @param {object} evenement
  * @returns {string|null}
  */

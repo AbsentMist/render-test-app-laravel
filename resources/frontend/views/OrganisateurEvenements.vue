@@ -277,6 +277,7 @@ const epingles = computed(() =>
 // Index d'un événement parmi les épinglés uniquement
 /**
  * Calcule l'index d'un événement au sein de la liste des événements épinglés uniquement.
+ * @author Guillermet Jean-Daniel
  * @param {number} indexGlobal - L'index global de l'événement dans la liste complète
  * @returns {number} - L'index de l'événement parmi les épinglés
  */
@@ -288,6 +289,7 @@ function indexParmiEpingles(indexGlobal) {
 // Épingler ou désépingler un événement
 /**
  * Bascule l'épinglage d'un événement. Si épinglé, le désépingle ; sinon, l'épingle.
+ * @author Guillermet Jean-Daniel
  * @param {Object} evenement - L'événement à épingler ou désépingler
  * @returns {Promise<void>}
  */
@@ -315,6 +317,7 @@ async function toggleEpingler(evenement) {
 // Monter un événement épinglé
 /**
  * Fait monter d'une position un événement épinglé en échangeant ses positions avec le précédent.
+ * @author Guillermet Jean-Daniel
  * @param {number} indexGlobal - L'index global de l'événement dans la liste complète
  * @returns {Promise<void>}
  */
@@ -339,6 +342,7 @@ async function monterEvenement(indexGlobal) {
 // Descendre un événement épinglé
 /**
  * Fait descendre d'une position un événement épinglé en échangeant ses positions avec le suivant.
+ * @author Guillermet Jean-Daniel
  * @param {number} indexGlobal - L'index global de l'événement dans la liste complète
  * @returns {Promise<void>}
  */
@@ -362,6 +366,7 @@ async function descendreEvenement(indexGlobal) {
 
 /**
  * Formate une date brute en locale suisse (fr-CH).
+ * @author Guillermet Jean-Daniel
  * @param {string} dateString - La chaîne de date à formater
  * @returns {string} - La date formatée au format JJ.MM.AAAA ou "—" si invalide
  */
@@ -377,6 +382,7 @@ function formaterDate(dateString) {
 
 /**
  * Retourne la première date d'inscription (la plus ancienne) parmi toutes les courses d'un événement.
+ * @author Guillermet Jean-Daniel
  * @param {Object} evenement - L'objet événement contenant la liste des courses
  * @returns {string} - La date formatée ou "—" si aucune course
  */
@@ -395,6 +401,7 @@ function getDateDebutEvenement(evenement) {
 
 /**
  * Retourne la dernière date d'inscription (la plus récente) parmi toutes les courses d'un événement.
+ * @author Guillermet Jean-Daniel
  * @param {Object} evenement - L'objet événement contenant la liste des courses
  * @returns {string} - La date formatée ou "—" si aucune course
  */
@@ -413,6 +420,7 @@ function getDateFinEvenement(evenement) {
 
 /**
  * Charge tous les événements organisateur depuis l'API.
+ * @author Guillermet Jean-Daniel
  * @returns {Promise<void>}
  */
 async function chargerEvenements() {
@@ -422,7 +430,11 @@ async function chargerEvenements() {
         const response = await api.get("/organisateur/evenements");
         evenements.value = response.data;
     } catch (e) {
-        erreur.value = "Impossible de charger les évènements.";
+        // Log the error for debugging and provide a useful message to the UI
+        console.error("Erreur lors du chargement des événements :", e);
+        erreur.value = (e && e.response && e.response.data && e.response.data.message)
+            || (e && e.message)
+            || "Impossible de charger les évènements.";
     } finally {
         chargement.value = false;
     }
@@ -430,6 +442,7 @@ async function chargerEvenements() {
 
 /**
  * Redirige vers le formulaire de modification d'un événement.
+ * @author Guillermet Jean-Daniel
  * @param {Object} evenement - L'événement à modifier
  * @returns {void}
  */
@@ -441,6 +454,7 @@ function modifierEvenement(evenement) {
 
 /**
  * Prépare la suppression d'un événement en affichant la popup de confirmation.
+ * @author Guillermet Jean-Daniel
  * @param {Object} evenement - L'événement à supprimer
  * @returns {void}
  */
@@ -450,6 +464,7 @@ function confirmerSuppression(evenement) {
 
 /**
  * Supprime l'événement confirmé via l'API et met à jour la liste locale des événements.
+ * @author Guillermet Jean-Daniel
  * @returns {Promise<void>}
  */
 async function supprimerEvenement() {
@@ -461,8 +476,12 @@ async function supprimerEvenement() {
             (e) => e.id !== evenementASupprimer.value.id,
         );
         evenementASupprimer.value = null;
-    } catch (e) {
-        erreur.value = "Impossible de supprimer cet évènement.";
+    } catch (err) {
+        // Handle the exception: log for debugging and surface a useful message to the UI.
+        console.error("Erreur lors de la suppression de l'évènement:", err);
+        erreur.value = `Impossible de supprimer cet évènement. ${
+            err.response?.data?.message || "Veuillez réessayer plus tard."
+        }`;
         evenementASupprimer.value = null;
     }
 }
