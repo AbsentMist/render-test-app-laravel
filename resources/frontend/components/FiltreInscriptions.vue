@@ -19,7 +19,7 @@
   
       <select
         v-model="filtresInternes.status"
-        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-3 py-2 focus:ring-brand focus:border-brand shadow-xs"
+        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base py-2 focus:ring-brand focus:border-brand shadow-xs"
         @change="emitFiltres"
       >
         <option value="">Tous les statuts</option>
@@ -32,7 +32,7 @@
   
       <select
         v-model="filtresInternes.type"
-        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-3 py-2 focus:ring-brand focus:border-brand shadow-xs"
+        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base py-2 focus:ring-brand focus:border-brand shadow-xs"
         @change="emitFiltres"
       >
         <option value="">Tous les types</option>

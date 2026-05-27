@@ -5,8 +5,8 @@
             Créez des modèles de questions réutilisables pour l'étape questionnaire des courses.
         </p>
 
-        <div class="flex flex-col-2 gap-4">
-            <div class="basis-2/3">
+        <div class="flex flex-col lg:flex-row gap-4">
+            <div class="w-full lg:basis-2/3">
                 <QuestionTemplate :questionModel="questionData" :removeButton="true" />
                 <div class="flex flex-row justify-end mt-4 gap-4">
                     <button v-if="isEditing" type="button" @click="resetForm" class="btn-accent-300">
@@ -20,9 +20,9 @@
                     </button>
                 </div>
             </div>
-            <div class="basis-1/3 min-w-0 border-l border-default-medium pl-4">
+            <div class="w-full lg:basis-1/3 border-t lg:border-t-0 lg:border-l border-default-medium pt-4 lg:pt-0 lg:pl-4">
                 <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
-                <div class="flex flex-col gap-2 h-103.75 overflow-y-auto overflow-x-hidden pr-2 scrollbar-thin">
+                <div class="flex flex-col gap-2 max-h-96 overflow-y-auto overflow-x-hidden pr-2 scrollbar-thin">
                     <button
                         v-for="(question, index) in questionModels"
                         :key="question.id ?? index"

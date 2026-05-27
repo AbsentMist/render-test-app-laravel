@@ -480,7 +480,7 @@ const getLogoSource = (evenement) => {
           <Icon icon="lucide:menu" class="w-6 h-6" />
         </button>
         <router-link to="/accueil" class="flex ms-2 md:me-24">
-          <img v-if="headerLogoUrl" :src="headerLogoUrl" class="max-h-15 max-w-70 me-3 object-contain" alt="Logo événement" />
+          <img v-if="headerLogoUrl" :src="headerLogoUrl" class="max-h-15 me-3 object-contain" alt="Logo événement" />
           <img v-else src="../assets/thumbnail_RGVA_LOGO_PRINCIPAL_BLANC_RVB.png" class="max-h-20 me-3" alt="Running Geneva Logo" />
         </router-link>
       </div>
@@ -556,8 +556,9 @@ const getLogoSource = (evenement) => {
                         <p v-if="item.type === 'options_supplementaires'" class="text-[0.8rem] text-[#0e0f54] font-semibold">
                           - {{ item.courseDetails?.nom  }} 
                         </p>
-                        <p v-else class="text-[0.8rem] text-[#0e0f54] font-semibold">
-                          - {{ item.participant?.[0]?.prenom }} {{ item.participant?.[0]?.nom }}
+                        <p v-else class="flex text-[0.8rem] text-[#0e0f54] font-semibold">
+                          <Icon :icon="'mdi:account'" class="w-4 h-4 mr-1" /> 
+                          {{ (item.participant?.length ? item.participant : item.groupeEphemere?.participants || []).map(p => p.prenom + " " + p.nom).join(", ") }}
                         </p>
                         <div v-if="item.options && Object.keys(item.options).length > 0">
                           <p v-for="(opt, key) in item.options" :key="key" class="text-[0.8rem] text-[#0e0f54] font-sm mt-0.5 ml-2">

@@ -1,7 +1,7 @@
 <template>
-  <div class="flex">
+  <div class="flex flex-wrap gap-1 sm:gap-0">
     <button v-for="(formulaire, index) in formulaires" :key="index" @click="selectionnerFormulaire(formulaire)"
-    :class="['px-4 py-2 text-sm font-medium border -mb-px transition-colors rounded-t-base',
+    :class="['px-2 sm:px-4 py-1 sm:py-2 text-sm font-medium border -mb-px transition-colors rounded-t-base whitespace-nowrap',
         modelValue === formulaire 
           ? 'border-default-medium border-b-secondary bg-secondary text-accent' 
           : 'border-transparent text-body hover:text-heading'

@@ -8,8 +8,8 @@
             Les templates texte permettent de sauvegarder des modèles de texte à recopier pour des annonces via les plateformes de communication.
         </p>
 
-        <div class="flex flex-row gap-4">
-            <div class="basis-2/3 flex flex-col justify-between h-112.5">
+        <div class="flex flex-col lg:flex-row gap-4">
+            <div class="w-full lg:basis-2/3 flex flex-col justify-between min-h-96">
                 <div class="space-y-4 grow">
                     <div>
                         <label for="nom" class="block mb-2 text-sm font-medium text-heading">Nom du modèle</label>
@@ -20,7 +20,7 @@
                     <div class="flex flex-col">
                         <label for="template" class="block mb-2 text-sm font-medium text-heading">Contenu du template</label>
                         <textarea id="template" v-model="templateData.contenu" 
-                            class="resize-none h-70 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" 
+                            class="resize-none h-48 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-2.5 py-2 shadow-xs placeholder:text-body" 
                             placeholder="Saisissez le contenu du template..." required />
                     </div>
                 </div>
@@ -56,9 +56,9 @@
                 </div>
             </div>
 
-            <div class="basis-1/3 min-w-0 border-l border-default-medium pl-4">
+            <div class="w-full lg:basis-1/3 border-t lg:border-t-0 lg:border-l border-default-medium pt-4 lg:pt-0 lg:pl-4">
                 <h2 class="text-sm font-medium text-heading mb-2.5">Mes modèles</h2>
-                <div class="flex flex-col gap-2 h-103.75 overflow-y-auto overflow-x-hidden pr-2 scrollbar-thin">
+                <div class="flex flex-col gap-2 max-h-96 overflow-y-auto overflow-x-hidden pr-2 scrollbar-thin">
                     <button v-for="(template, index) in templateModels" 
                         :key="template.id ?? index" 
                         type="button" 

@@ -18,7 +18,7 @@
                     <select
                         v-model="optionsSelectionnees[option.id].quantite"
                         @change="mettreAJour"
-                        class="border border-gray-300 rounded-lg text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-secondary/40"
+                        class="border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-secondary/40"
                     >
                         <option
                             v-for="q in quantitesDisponibles(option)"
@@ -30,7 +30,7 @@
             </div>
 
             <div class="flex items-center gap-3 shrink-0">
-                <span class="text-sm font-semibold text-gray-700">{{ option.tarif }}.-</span>
+                <span class="text-sm font-semibold text-gray-700">{{ option.tarif }} CHF</span>
 
                 <!-- Cochable : bouton ajouter / retirer -->
                 <template v-if="option.type === 'Cochable'">
