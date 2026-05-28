@@ -21,8 +21,9 @@
                 >
                     <tr>
                         <th class="px-4 py-3">Nom</th>
-                        <th class="px-4 py-3">Date début</th>
-                        <th class="px-4 py-3">Date fin</th>
+                        <th class="px-4 py-3">Date evenement</th>
+                        <th class="px-4 py-3">Date inscription début</th>
+                        <th class="px-4 py-3">Date inscription fin</th>
                         <th class="px-4 py-3 text-center">Actif</th>
                         <th class="px-4 py-3 text-center">Interne</th>
                         <th class="px-4 py-3">Action</th>
@@ -41,6 +42,12 @@
                     >
                         <td class="px-4 py-3 font-medium text-heading">
                             {{ course.nom }}
+                        </td>
+                         <td v-if="course.date_debut === course.date_fin" class="px-4 py-3">
+                            {{ formaterDate(course.date_debut) }}
+                        </td>
+                        <td v-else class="px-4 py-3">
+                            {{ formaterDate(course.date_debut).split('.')[0] }} - {{ formaterDate(course.date_fin) }}
                         </td>
                         <td class="px-4 py-3">
                             {{ formaterDate(course.debut_inscription) }}
@@ -740,15 +747,29 @@ export default {
                     courseComplete.data.id_evenement = this.evenementADupliquer;
                 }
                 
+                  if(courseComplete.data.date_debut < new Date()) {
+                    courseComplete.data.date_debut = new Date();
+                }
+                if(courseComplete.data.date_fin < new Date()) {
+                    courseComplete.data.date_fin = new Date();
+                }
+
+                if(courseComplete.data.debut_inscription < new Date()) {
+                    courseComplete.data.debut_inscription = new Date();
+                }
+                if(courseComplete.data.fin_inscription < new Date()) {
+                    courseComplete.data.fin_inscription = new Date();
+                }
+
                 const payload = {
                     id_evenement: courseComplete.data.id_evenement,
                     id_categorie: courseComplete.data.id_categorie,
                     id_sous_categorie: courseComplete.data.id_sous_categorie,
                     nom: nomDuplique,
-                    date_debut: new Date(),
-                    date_fin: new Date(),
-                    debut_inscription: new Date(),
-                    fin_inscription: new Date(),
+                    date_debut: courseComplete.data.date_debut,
+                    date_fin: courseComplete.data.date_fin,
+                    debut_inscription: courseComplete.data.debut_inscription,
+                    fin_inscription: courseComplete.data.fin_inscription,
                     tarif: courseComplete.data.tarif,
                     status: courseComplete.data.status,
                     type: courseComplete.data.type,
