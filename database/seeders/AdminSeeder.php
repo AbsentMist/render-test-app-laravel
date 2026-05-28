@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * @fileoverview AdminSeeder.php
+ * @description Crée les comptes administrateurs de l'application :
+ *              - 2 comptes de test génériques (admin1, admin2)
+ *              - La mandante du projet (Patricia Bongini)
+ *              - Les 4 membres de l'équipe de développement HES-SO
+ *              Chaque compte possède un profil User, un rôle Administrateur
+ *              et un profil Participant associé.
+ *              Dépend de RoleSeeder (rôle Administrateur requis).
+ * @author Ngoie Steven
+ * @author Guillermet Jean-Daniel
+ * @author Neris Alessandro
+ */
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -35,7 +49,7 @@ class AdminSeeder extends Seeder
                 'password'  => 'Admin123#',
                 'prenom'    => 'Admin',
                 'nom'       => 'Rgva',
-                'sexe'      => 'H',
+                'sexe'      => 'M',
                 'telephone' => '0000000007',
             ],
             // Mandante

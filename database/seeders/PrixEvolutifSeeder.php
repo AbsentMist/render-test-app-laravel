@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * @fileoverview PrixEvolutifSeeder.php
+ * @description Crée les paliers de prix évolutifs pour les courses concernées.
+ *              - 10km des Ponts : 2 paliers par dates (tarif augmente en août)
+ *              - Urban Trail de Genève : 2 paliers par dossards (tarif augmente à 5500 inscrits)
+ *              - Urban Trail 15km : 2 paliers par dossards
+ *              Dépend de CourseSeeder.
+ * @author Guillermet Jean-Daniel
+ */
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;

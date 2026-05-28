@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @fileoverview QuestionSeeder.php
+ * @description Crée les questions du questionnaire d'inscription et leurs options de réponse,
+ *              puis les lie aux courses ayant is_questionnaire = true.
+ *              Les 3 questions sont liées dans l'ordre défini par le tableau.
+ *              Dépend de CourseSeeder.
+ * @author Neris Alessandro
+ */
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;

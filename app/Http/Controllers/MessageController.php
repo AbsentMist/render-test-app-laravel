@@ -2,10 +2,8 @@
 
 /**
  * @fileoverview MessageController.php
- * @description Contrôleur de test utilisé lors du développement initial de l'application.
- *              Affiche le premier message de la base de données dans la vue welcome.
- *              Ce contrôleur n'est plus utilisé dans l'application finale ;
- *              la gestion des notifications est assurée par AuthController::mesNotificationsInfo().
+ * @description Contrôleur de test utilisé lors du développement initial.
+ * @deprecated Non utilisé en production — remplacé par AuthController::mesNotificationsInfo()
  * @author Guillermet Jean-Daniel
  */
 

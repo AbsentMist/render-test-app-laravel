@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * @fileoverview EvenementSeeder.php
+ * @description Crée les événements sportifs de test avec leurs logos (chargés depuis public/images/).
+ *              6 événements couvrant les cas principaux :
+ *              - 2 épinglés (ordre 1 et 2) mis en avant sur la page d'accueil
+ *              - 2 standards actifs
+ *              - 1 interne (réservé aux membres)
+ *              - 1 inactif (à venir, non visible par les participants)
+ *              Les logos sont lus depuis le disque au moment du seed — absents = null sans erreur.
+ * @author Neris Alessandro
+ * @author Guillermet Jean-Daniel
+ * @author Ngoie Steven
+ */
+
 namespace Database\Seeders;
 
 use App\Models\Evenement;

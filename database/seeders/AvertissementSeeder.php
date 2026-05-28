@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * @fileoverview AvertissementSeeder.php
+ * @description Crée les modèles d'avertissements réutilisables et les associe
+ *              aux courses concernées. Dépend de CourseSeeder.
+ * @author Neris Alessandro
+ */
+
 namespace Database\Seeders;
 
 use App\Models\Avertissement;

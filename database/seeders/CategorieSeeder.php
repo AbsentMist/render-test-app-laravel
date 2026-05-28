@@ -1,4 +1,13 @@
 <?php
+
+/**
+ * @fileoverview CategorieSeeder.php
+ * @description Initialise les catégories et sous-catégories de courses réutilisables.
+ *              Catégories : Mixte, Homme, Femme.
+ *              Sous-catégories : Etudiant, Employé, Vétéran, Junior.
+ * @author Neris Alessandro
+ */
+
 namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
