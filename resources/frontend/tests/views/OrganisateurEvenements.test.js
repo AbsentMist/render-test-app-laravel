@@ -174,7 +174,7 @@ describe('OrganisateurEvenements', () => {
     wrapper.vm.confirmerSuppression(mockEvenements[0])
     await wrapper.vm.supprimerEvenement()
 
-    expect(wrapper.vm.erreur).toBe('Impossible de supprimer cet évènement.')
+    expect(wrapper.vm.erreur).toBe('Impossible de supprimer cet évènement. Veuillez réessayer plus tard.')
     expect(wrapper.vm.evenementASupprimer).toBeNull()
   })
 
@@ -184,7 +184,7 @@ describe('OrganisateurEvenements', () => {
     const wrapper = mountComponent()
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Impossible de charger les évènements.')
+    expect(wrapper.text()).toContain('Erreur reseau')
   })
 
   // Clique sur une ligne et ouvre la page des courses de l evenement

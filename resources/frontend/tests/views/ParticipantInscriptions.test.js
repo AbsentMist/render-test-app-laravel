@@ -150,8 +150,8 @@ describe('ParticipantInscriptions', () => {
     expect(inscriptionService.getMesInscriptions).toHaveBeenCalledTimes(2)
   })
 
-  // Ouvre ou ferme le detail et relaie les donnees vers le parent
-  test('toggle les donnees de detail et emet ajouter-panier', async () => {
+  // Ouvre le detail et relaie les donnees vers le panier
+  test('detailInscription ouvre le detail et onChangementConfirme ajoute au panier', async () => {
     const wrapper = mountComponent()
     await flushPromises()
 
@@ -159,18 +159,13 @@ describe('ParticipantInscriptions', () => {
     expect(wrapper.vm.popupDetail).toBe(true)
     expect(wrapper.vm.inscription.actuel.id).toBe(99)
 
-    wrapper.vm.toggleExpand(99)
-    expect(wrapper.vm.expandedRows).toContain(99)
-    wrapper.vm.toggleExpand(99)
-    expect(wrapper.vm.expandedRows).not.toContain(99)
-
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const cartStore = wrapper.vm.cartStore
     const ajoutSpy = vi.spyOn(cartStore, 'ajouterInscription')
-    wrapper.vm.onChangementConfirme({ panier: true })
+    wrapper.vm.onChangementConfirme({ id: 99, course: mockInscriptions[0].course })
     warnSpy.mockRestore()
     expect(wrapper.vm.popupDetail).toBe(false)
-    expect(ajoutSpy).toHaveBeenCalledWith({ panier: true }, undefined)
+    expect(ajoutSpy).toHaveBeenCalledWith({ id: 99, course: mockInscriptions[0].course }, mockInscriptions[0].course)
   })
 
   // Affiche un message en cas d erreur de chargement
