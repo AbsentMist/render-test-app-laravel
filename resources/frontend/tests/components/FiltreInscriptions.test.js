@@ -88,21 +88,21 @@ describe('FiltreInscriptions', () => {
     expect(dernierEmit).toEqual({ recherche: '', status: '', type: '' })
   })
 
-  // Bouton Excel emet exporter avec xlsx
-  test('bouton Excel emet exporter xlsx', async () => {
+  // Bouton export logistique emet la bonne valeur
+  test('bouton export logistique emet exporter logistique', async () => {
     const wrapper = mountComponent()
-    const btnExcel = wrapper.findAll('button').find(b => b.text().includes('Excel'))
-    await btnExcel.trigger('click')
+    await wrapper.findAll('button').find(b => b.text().includes('Exporter')).trigger('click')
+    await wrapper.findAll('button').find(b => b.text().includes('Export logistique')).trigger('click')
     expect(wrapper.emitted('exporter')).toBeTruthy()
-    expect(wrapper.emitted('exporter')[0]).toEqual(['xlsx'])
+    expect(wrapper.emitted('exporter')[0]).toEqual(['logistique'])
   })
 
-  // Bouton CSV emet exporter avec csv
-  test('bouton CSV emet exporter csv', async () => {
+  // Bouton export banque emet la bonne valeur
+  test('bouton export banque emet exporter banque', async () => {
     const wrapper = mountComponent()
-    const btnCsv = wrapper.findAll('button').find(b => b.text().includes('CSV'))
-    await btnCsv.trigger('click')
+    await wrapper.findAll('button').find(b => b.text().includes('Exporter')).trigger('click')
+    await wrapper.findAll('button').find(b => b.text().includes('Export banque')).trigger('click')
     expect(wrapper.emitted('exporter')).toBeTruthy()
-    expect(wrapper.emitted('exporter')[0]).toEqual(['csv'])
+    expect(wrapper.emitted('exporter')[0]).toEqual(['banque'])
   })
 })

@@ -276,7 +276,7 @@ describe('OrganisateurInscriptions', () => {
   })
 
   // Exporte les inscriptions au format demande
-  test('exporter genere un fichier csv', async () => {
+  test('exporter genere un fichier xlsx logistique', async () => {
     const clickSpy = vi.fn()
     const originalCreateElement = document.createElement.bind(document)
 
@@ -291,9 +291,9 @@ describe('OrganisateurInscriptions', () => {
     const wrapper = mountComponent()
     await flushPromises()
 
-    await wrapper.vm.exporter('csv')
+    await wrapper.vm.exporter('logistique')
 
-    expect(inscriptionService.exportInscriptionsAdmin).toHaveBeenCalledWith('csv', { recherche: '', status: '', type: '' })
+    expect(inscriptionService.exportInscriptionsAdmin).toHaveBeenCalledWith('xlsx', { recherche: '', status: '', type: '' }, 'logistique')
     expect(createObjectURL).toHaveBeenCalledTimes(1)
     expect(clickSpy).toHaveBeenCalledTimes(1)
     expect(wrapper.vm.erreur).toBe('')
