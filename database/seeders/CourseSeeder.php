@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * @fileoverview CourseSeeder.php
+ * @description Crée les courses de test rattachées aux événements créés par EvenementSeeder.
+ *              Couvre tous les types et combinaisons de fonctionnalités pour les tests :
+ *              - Course des Ponts 2026   : individuel + groupe, challenge, prix évolutif, questionnaire
+ *              - Antigel Run 2026        : individuel + relais, document obligatoire, code dossard
+ *              - Geneva Urban Trail 2026 : trail 30km + 15km, document, prix évolutif par dossards
+ *              - Nocturne des Evaux 2026 : relais + individuel, toutes fonctionnalités
+ *              - Course Interne RHE 2026 : course interne simple
+ *              Dépend de EvenementSeeder.
+ * @author Neris Alessandro
+ * @author Guillermet Jean-Daniel
+ * @author Ngoie Steven
+ * 
+ */
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;

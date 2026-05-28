@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * @fileoverview OptionSeeder.php
+ * @description Crée les options disponibles lors de l'inscription et les lie aux courses.
+ *              - Options quantifiables : repas pasta (bolognaise, pesto)
+ *              - Options cochables : navette transport
+ *              Les options pasta et navette sont liées aux 4 principales courses.
+ *              Dépend de CourseSeeder.
+ * @author Neris Alessandro
+ * @author Guillermet Jean-Daniel
+ * @author Ngoie Steven
+ */
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @fileoverview CodeDossardSeeder.php
+ * @description Crée des codes dossard personnalisés de test pour deux courses.
+ *              Permet de tester la fonctionnalité de dossard nominatif lors de l'inscription.
+ *              Dépend de CourseSeeder.
+ * @author Guillermet Jean-Daniel
+ */
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @fileoverview DatabaseSeeder.php
+ * @description Point d'entrée principal du seeding. Orchestre l'exécution de tous
+ *              les seeders dans le bon ordre de dépendance.
+ *              À exécuter via : php artisan migrate:fresh --seed
+ * @author Ngoie Steven
+ */
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;

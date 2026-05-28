@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @fileoverview CodeRabaisSeeder.php
+ * @description Crée les codes de réduction de test pour plusieurs courses.
+ *              Inclut un code expiré (EXPIRE2025) pour tester les cas d'erreur
+ *              et vérifier que les validations bloquent bien les codes invalides.
+ *              Dépend de CourseSeeder.
+ * @author Guillermet Jean-Daniel
+ */
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;

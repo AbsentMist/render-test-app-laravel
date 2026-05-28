@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @fileoverview ParticipantSeeder.php
+ * @description Crée les 2 comptes participants de test.
+ *              Utilisés pour tester les fonctionnalités côté participant
+ *              (inscription, panier, dossard, questionnaire...).
+ *              À exécuter via migrate:fresh --seed uniquement.
+ * @author Neris Alessandro
+ */
+
 namespace Database\Seeders;
 
 use App\Models\Participant;
@@ -39,7 +48,7 @@ class ParticipantSeeder extends Seeder
             'instagram'      => null,
             'facebook'       => null,
             'taille_tshirt'  => 'M',
-            'sexe'           => 'Homme',
+            'sexe'           => 'M',
             'photo'          => null,
         ]);
 
@@ -64,7 +73,7 @@ class ParticipantSeeder extends Seeder
             'instagram'      => null,
             'facebook'       => null,
             'taille_tshirt'  => 'L',
-            'sexe'           => 'Femme',
+            'sexe'           => 'F',
             'photo'          => null,
         ]);
     }

@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * @fileoverview InscriptionSeeder.php
+ * @description Crée des inscriptions de test couvrant les principaux scénarios de l'application :
+ *              - Inscription individuelle simple
+ *              - Inscription en groupe (4 membres, fondateur = premier de la liste)
+ *              - Inscription avec code rabais
+ *              - Inscription en relais (2 membres)
+ *              - Inscription avec participation au challenge
+ *              - Inscription annulée (pour tester les cas de statut)
+ *              Les utilisateurs référencés sont les membres de l'équipe créés dans AdminSeeder.
+ *              Dépend de AdminSeeder, CourseSeeder.
+ * @author Neris Alessandro
+ * @author Guillermet Jean-Daniel
+ * @author Ngoie Steven
+ */
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
