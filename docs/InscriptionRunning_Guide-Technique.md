@@ -14,7 +14,7 @@ Date: 28 mai 2026
 
 ## Table des matières
 
-1. Contexte du POC
+1. Contexte
 2. Prérequis techniques (résumé)
 3. Architecture générale
 4. Environnement de développement (synopsis)
@@ -38,9 +38,9 @@ Date: 28 mai 2026
 
 <div class="page"></div>
 
-### 1. Contexte du POC
+### 1. Contexte
 
-Running Geneva est une preuve de concept (POC) d'une plateforme de gestion d'événements de course. L'objectif technique est de valider les parcours clefs participant / organisateur, la séparation frontend/backend et la viabilité d'un déploiement moderne (Vite + Laravel).
+Ce document a pour but de documenter et de valider les parcours clés participant / organisateur, la séparation frontend/backend et la viabilité d'un déploiement moderne (Vite + Laravel) pour notre mandant Running Geneva.
 
 ### 2. Prérequis techniques (résumé)
 
@@ -365,7 +365,7 @@ Réponse exemple
 
 Frontend
 
-- `GroupListView`, `GroupDetail`, `InviteMemberDialog`
+- `MesGroupes.vue`, `GroupDetail`, `InviteMemberDialog`
 
 Composants de la vue
 
@@ -581,7 +581,7 @@ Réponse exemple
 
 Frontend
 
-- `ResultsView`, `ProfileView`
+- `Resultats.vue`, `ProfilUser.vue`
 
 Composants de la vue Résultats
 
