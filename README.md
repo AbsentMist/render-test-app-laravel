@@ -64,6 +64,8 @@ Ces étapes sont à réaliser uniquement la première fois que vous clonez le pr
 
 `npm install`
 
+`npm run build`
+
 **3. Configurer l'environnement local**
 
 `cp .env.example .env`
@@ -146,4 +148,8 @@ La commande de test s'assure d'abord de vider le cache de configuration pour év
 
 **Lancer les tests Frontend (Vitest) :**
 La suite de tests Vue.js utilise Happy-DOM pour simuler le navigateur.
+Si la dépendance Happy-DOM n'est pas encore installée, lancez d'abord :
+
+`npm install -D happy-dom`
+
 `npm run test`
