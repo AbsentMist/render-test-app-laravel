@@ -52,7 +52,7 @@ class ResultatController extends Controller
                     'date_course'        => $resultat->inscription->course->date_debut,
                     'couleur_primaire'   => $resultat->inscription->course->evenement->couleur_primaire,
                     'couleur_secondaire' => $resultat->inscription->course->evenement->couleur_secondaire,
-                    'logo'               => $resultat->inscription->course->evenement->logo,
+                    'logo' => null,
                 ];
             });
 
